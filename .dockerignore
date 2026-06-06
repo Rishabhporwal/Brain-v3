@@ -1,0 +1,14 @@
+# Keep the Docker build context small (used by apps/web-founder-console/Dockerfile et al.)
+**/node_modules
+**/.next
+**/.turbo
+**/dist
+**/coverage
+.git
+.engineering-os
+docs
+**/*.docx
+**/*.log
+**/.DS_Store
+deploy/local/dev-bff/node_modules
+legacy frontend

@@ -1,0 +1,28 @@
+# Frontend (Founder Console) in Docker. Kept as a separate overlay so `make up` (infra only) stays fast.
+# Run with `make web` (builds + starts). Browser auth note: the OIDC issuer must resolve identically from
+# the browser and the container — add `127.0.0.1 host.docker.internal` to /etc/hosts so the browser can
+# reach Keycloak at the same host the container uses. For pure UI dev, `pnpm dev` on the host is simplest.
+name: brain-local
+services:
+  web:
+    image: brain-web:local
+    build:
+      context: ../..
+      dockerfile: apps/web-founder-console/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:4000
+        NEXT_PUBLIC_APP_URL: http://localhost:3000
+    container_name: brain-local-web
+    depends_on:
+      keycloak:
+        condition: service_started
+    ports:
+      - '3000:3000'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    environment:
+      AUTH_SECRET: brain-local-dev-auth-secret-please-change-32
+      AUTH_URL: http://localhost:3000
+      KEYCLOAK_ISSUER: http://host.docker.internal:8080/realms/brain
+      KEYCLOAK_CLIENT_ID: brain-web
+      KEYCLOAK_CLIENT_SECRET: brain-web-secret

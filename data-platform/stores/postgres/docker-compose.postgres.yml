@@ -1,0 +1,22 @@
+# Standalone local Postgres for building & verifying the Brain Aurora schema.
+# `make db.up && make db.migrate && make db.verify`
+name: brain-postgres
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: brain-postgres
+    environment:
+      POSTGRES_DB: brain
+      POSTGRES_USER: brain
+      POSTGRES_PASSWORD: brain
+    ports:
+      - "5433:5432"          # 5433 on host to avoid clashing with a local pg
+    volumes:
+      - brain_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U brain -d brain"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+volumes:
+  brain_pgdata:

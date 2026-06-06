@@ -1,0 +1,123 @@
+# e2e-onboarding — M5. Drives the full 7-step onboarding click-through in a real browser against a
+# real stack (Postgres + ClickHouse + Keycloak + BFF + web), proving provisioning → activated end to end.
+# See docs/onboarding-production-plan.md (M5) and architecture doc §22.
+name: e2e-onboarding
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web-founder-console/**'
+      - 'platform-foundation/api-gateway-bff/**'
+      - 'data-platform/**'
+      - 'deploy/local/**'
+      - '.github/workflows/e2e-onboarding.yml'
+  workflow_dispatch:
+
+jobs:
+  onboarding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      # Build/runtime env for the BFF + web (mirrors apps/web-founder-console/.env.local).
+      PG_URL: postgres://brain:brain@localhost:5440/brain
+      CH_URL: http://localhost:8125
+      KEYCLOAK_ISSUER: http://localhost:8080/realms/brain
+      KEYCLOAK_JWKS_URL: http://localhost:8080/realms/brain/protocol/openid-connect/certs
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:4000
+      API_BASE_URL: http://localhost:4000
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      AUTH_SECRET: brain-ci-auth-secret-please-change-32chars
+      AUTH_URL: http://localhost:3000
+      KEYCLOAK_CLIENT_ID: brain-web
+      KEYCLOAK_CLIENT_SECRET: brain-web-secret
+      KEYCLOAK_ADMIN_USER: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      E2E_EXTERNAL_SERVER: '1'
+      E2E_BASE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # 1) Bring up the data + identity stack (schema/realm auto-applied by the compose mounts).
+      - name: Start infra (Postgres + ClickHouse + Keycloak)
+        working-directory: deploy/local
+        run: docker compose -f docker-compose.yml -f compose/infra.yml up -d postgres clickhouse keycloak
+
+      - name: Wait for Postgres + ClickHouse healthy
+        run: |
+          for c in brain-local-postgres brain-local-clickhouse; do
+            echo "waiting for $c…"
+            until [ "$(docker inspect -f '{{.State.Health.Status}}' $c 2>/dev/null)" = healthy ]; do sleep 2; done
+          done
+
+      - name: Wait for Keycloak realm
+        run: |
+          until curl -fsS http://localhost:8080/realms/brain/.well-known/openid-configuration >/dev/null 2>&1; do
+            echo "waiting for keycloak realm…"; sleep 3
+          done
+
+      # 2) Install JS deps once for the whole workspace.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 3) BFF unit tests (DB-free: gate decision, Shopify OAuth crypto, vault).
+      - name: BFF unit tests
+        run: pnpm --filter @brain/api-gateway-bff test
+
+      # 4) Build + start the BFF on :4000.
+      - name: Build BFF
+        run: pnpm --filter @brain/api-gateway-bff build
+
+      - name: Start BFF
+        run: |
+          nohup node platform-foundation/api-gateway-bff/dist/main.js > /tmp/bff.log 2>&1 &
+          until curl -fsS http://localhost:4000/health >/dev/null 2>&1; do echo "waiting for bff…"; sleep 2; done
+          echo "bff up"
+
+      # Integration test: full provisioning → active against the live Postgres + ClickHouse.
+      - name: BFF integration tests (against live DB)
+        env:
+          RUN_DB_TESTS: '1'
+        run: pnpm --filter @brain/api-gateway-bff test
+
+      # 5) Build + start the web on :3000 (NEXT_PUBLIC_* are baked at build time from env above).
+      - name: Build web
+        run: pnpm --filter @brain/web-founder-console build
+
+      - name: Start web
+        run: |
+          nohup pnpm --filter @brain/web-founder-console start > /tmp/web.log 2>&1 &
+          until curl -fsS http://localhost:3000/auth/login >/dev/null 2>&1; do echo "waiting for web…"; sleep 2; done
+          echo "web up"
+
+      # 6) Run the Playwright onboarding click-through.
+      - name: Install Playwright browser
+        working-directory: apps/web-founder-console
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run e2e
+        working-directory: apps/web-founder-console
+        run: pnpm exec playwright test
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web-founder-console/playwright-report
+          retention-days: 7
+
+      - name: Dump service logs on failure
+        if: failure()
+        run: |
+          echo "=== BFF ==="; tail -100 /tmp/bff.log || true
+          echo "=== WEB ==="; tail -100 /tmp/web.log || true
+          echo "=== keycloak ==="; docker logs --tail 80 brain-local-keycloak || true

@@ -1,0 +1,15 @@
+# Standalone local ClickHouse for building & verifying the Brain analytical schema.
+name: brain-clickhouse
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:24-alpine
+    container_name: brain-clickhouse
+    ports:
+      - "8124:8123"   # HTTP
+      - "9001:9000"   # native
+    ulimits:
+      nofile: { soft: 262144, hard: 262144 }
+    volumes:
+      - brain_chdata:/var/lib/clickhouse
+volumes:
+  brain_chdata:

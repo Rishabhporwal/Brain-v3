@@ -35,3 +35,10 @@ out/
 .idea/
 .vscode/
 coverage/
+
+# Engineering OS — derived/runtime files (everything else under .engineering-os/ stays committed)
+.engineering-os/index/
+.engineering-os/live.log
+.engineering-os/dashboard.html
+.engineering-os
+legacy frontend

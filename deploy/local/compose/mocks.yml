@@ -1,1 +1,2 @@
-# mocks layer — see architecture doc §17A
+name: brain-local
+services: {}

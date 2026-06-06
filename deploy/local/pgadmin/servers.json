@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Brain Local (Postgres)",
+      "Group": "Brain",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "brain",
+      "Username": "brain",
+      "SSLMode": "prefer",
+      "Comment": "Brain Phase-1 schema. Password: brain"
+    }
+  }
+}

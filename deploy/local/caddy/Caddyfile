@@ -1,0 +1,12 @@
+# Single origin for the whole Brain stack on http://localhost:8088
+:8088 {
+	handle_path /bff/* {
+		reverse_proxy bff:4000
+	}
+	handle /idp/* {
+		reverse_proxy keycloak:8080
+	}
+	handle {
+		reverse_proxy web:3000
+	}
+}

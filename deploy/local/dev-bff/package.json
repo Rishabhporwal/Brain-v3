@@ -1,0 +1,17 @@
+{
+  "name": "brain-dev-bff",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Minimal dev BFF: verifies Keycloak JWTs and serves the console read-model from Postgres + ClickHouse.",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@clickhouse/client": "^1.7.0",
+    "@fastify/cors": "^10.0.1",
+    "fastify": "^5.1.0",
+    "jose": "^5.9.6",
+    "pg": "^8.13.1"
+  }
+}
