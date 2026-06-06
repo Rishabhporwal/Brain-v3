@@ -1,0 +1,1 @@
+# cookiecutter for future connectors

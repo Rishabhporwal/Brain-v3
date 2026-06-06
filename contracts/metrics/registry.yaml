@@ -1,0 +1,4 @@
+# THE FORMULA BOOK — single source of truth for every metric (TS + Python generated from here).
+# Only the metric-engine computes these; libs/metric-client + py-libs/metrics generate clients.
+version: 1
+metrics: []   # e.g. { id: cm2, formula_version: 1, definition: "...", inputs: [...] }

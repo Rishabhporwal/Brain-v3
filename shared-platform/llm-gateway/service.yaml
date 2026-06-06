@@ -1,0 +1,15 @@
+# Service manifest — machine-readable ownership / SLO / contract registry.
+name: llm-gateway
+owner_pod: ai-platform
+phase: P1
+language: nestjs-ts
+summary: >-
+  Route prompts by complexity; enforce AI quotes computed figures only.
+slos:
+  availability: "99.9%"
+  latency_p99_ms: 250
+contracts:
+  consumes: []          # e.g. [proto/commerce/metric.proto, events/avro/order.normalized.avsc]
+  produces: []
+data_owned: []          # tables/topics this service owns (no shared tables — Blueprint §2.14)
+on_call: ai-platform

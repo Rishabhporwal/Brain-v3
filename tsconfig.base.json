@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "composite": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "paths": {
+      "@brain/tenancy": ["libs/tenancy/src"],
+      "@brain/auth": ["libs/auth/src"],
+      "@brain/authz": ["libs/authz/src"],
+      "@brain/contracts-ts": ["libs/contracts-ts/src"],
+      "@brain/dto": ["libs/dto/src"],
+      "@brain/events": ["libs/events/src"],
+      "@brain/temporal": ["libs/temporal/src"],
+      "@brain/observability": ["libs/observability/src"],
+      "@brain/security": ["libs/security/src"],
+      "@brain/region": ["libs/region/src"],
+      "@brain/idempotency": ["libs/idempotency/src"],
+      "@brain/metric-client": ["libs/metric-client/src"],
+      "@brain/http": ["libs/http/src"],
+      "@brain/config": ["libs/config/src"],
+      "@brain/errors": ["libs/errors/src"],
+      "@brain/testing": ["libs/testing/src"],
+      "@brain/feature-flags": ["libs/feature-flags/src"]
+    }
+  },
+  "exclude": ["node_modules", "dist", ".next"]
+}

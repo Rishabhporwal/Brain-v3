@@ -1,0 +1,4 @@
+# Base local stack. Layered overrides in compose/{infra,services,ai,mocks}.yml
+# `make -C deploy/local up` brings up the whole platform (BRD requirement: one command).
+name: brain-local
+services: {}

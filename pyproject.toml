@@ -1,0 +1,15 @@
+[project]
+name = "brain-ai"
+version = "0.1.0"
+requires-python = ">=3.12"
+description = "Brain AI/ML platform — Python workspace (FastAPI, BentoML, PyTorch, Feast, MLflow, LangGraph)."
+
+[tool.uv.workspace]
+members = [
+  "ai-platform/services/*",
+  "ai-platform/agents/*",
+  "py-libs/*",
+]
+
+[tool.uv]
+package = false

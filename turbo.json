@@ -1,0 +1,24 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "globalDependencies": ["tsconfig.base.json", "contracts/**"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build", "codegen"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+    },
+    "codegen": {
+      "inputs": ["../contracts/**", "contracts/**"],
+      "outputs": ["src/generated/**"],
+      "cache": true
+    },
+    "lint": { "dependsOn": ["^build"] },
+    "typecheck": { "dependsOn": ["^build", "codegen"] },
+    "test:unit": { "dependsOn": ["^build"], "outputs": ["coverage/**"] },
+    "test:contract": { "dependsOn": ["^build", "codegen"] },
+    "test:integration": { "dependsOn": ["^build"], "cache": false },
+    "test:isolation": { "dependsOn": ["^build"], "cache": false },
+    "dev": { "cache": false, "persistent": true }
+  },
+  "remoteCache": { "signature": true }
+}
