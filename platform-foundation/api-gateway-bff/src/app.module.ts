@@ -13,6 +13,7 @@ import { IntegrationsController } from './integrations.controller'
 import { WebhooksController } from './webhooks.controller'
 import { vaultProvider } from './vault'
 import { eventBusProvider } from './events'
+import { PgSeenStore } from './seen-store'
 
 @Module({
   controllers: [HealthController, BffController, OnboardingController, TrackController, IntegrationsController, WebhooksController],
@@ -20,6 +21,7 @@ import { eventBusProvider } from './events'
     ...dbProviders,
     vaultProvider,
     eventBusProvider,
+    PgSeenStore,
     BffService,
     OnboardingService,
     TrackService,

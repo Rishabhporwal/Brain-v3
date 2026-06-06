@@ -43,7 +43,13 @@ through `nest build` (workspace package resolution) with **no behaviour change**
 the contract.
 **Risk:** scope creep — keep it a *refactor with seams*, not a rewrite.
 
-### P1 — Close the Shopify loop (push → ClickHouse, end-to-end)
+### P1 — Close the Shopify loop (push → ClickHouse, end-to-end)  ✅ DONE
+**Built + verified:** idempotency via `X-Shopify-Webhook-Id` → `integration.webhook_receipts` (Postgres
+`PgSeenStore` implementing the kit's `SeenStore`) — 2 deliveries = **1** Kafka event; ClickHouse consumer
+(`brain.kafka_integration_webhooks` Kafka-Engine → `brain.mv_orders` MV → `brain.orders` ReplacingMergeTree)
+normalizing Shopify `orders/create|updated`. Proven end-to-end: order webhook → BFF (verify+dedup+resolve) →
+Kafka → `brain.orders` (₹3499/paid/customer, tz-correct); `orders/updated` collapses to **one** row (latest).
+25 unit + 26 integration + onboarding e2e green.
 **Objective:** a real Shopify order webhook becomes a queryable ClickHouse row.
 - **Idempotency**: dedup on `X-Shopify-Webhook-Id` (store choice below).
 - **Consumer**: ClickHouse **Kafka-Engine table + MV → MergeTree** consuming `brain.integration.webhooks`,

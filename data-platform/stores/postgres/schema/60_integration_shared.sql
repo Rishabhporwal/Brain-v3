@@ -59,6 +59,18 @@ SELECT brain_apply_updated_at('integration.oauth_tokens');
 SELECT brain_apply_brand_rls('integration.oauth_tokens');
 SELECT brain_meta.register('integration','oauth_tokens',1,'integration','aurora');
 
+-- webhook_receipts — idempotency for inbound webhooks. Providers redeliver; the PK dedups per provider+id
+-- (e.g. Shopify's X-Shopify-Webhook-Id). Operational (not tenant-queried) → no RLS. Prune by received_at.
+CREATE TABLE IF NOT EXISTS integration.webhook_receipts (
+  provider    text NOT NULL,
+  webhook_id  text NOT NULL,
+  brand_id    uuid,
+  received_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (provider, webhook_id)
+);
+CREATE INDEX IF NOT EXISTS ix_webhook_receipts_received ON integration.webhook_receipts(received_at);
+SELECT brain_meta.register('integration','webhook_receipts',1,'integration','aurora');
+
 CREATE TABLE IF NOT EXISTS integration.sync_state (
   id             uuid PRIMARY KEY DEFAULT uuidv7(),
   brand_id       uuid NOT NULL,

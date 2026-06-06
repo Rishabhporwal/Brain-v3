@@ -4,6 +4,7 @@ import { createClient, type ClickHouseClient } from '@clickhouse/client'
 import { OnboardingService } from '../src/onboarding.service'
 import { TrackService } from '../src/track.service'
 import { ShopifyService } from '../src/shopify.service'
+import { PgSeenStore } from '../src/seen-store'
 import type { EventBus } from '../src/events'
 import type { AuthUser } from '../src/bff.service'
 
@@ -28,7 +29,7 @@ describe.skipIf(!RUN)('onboarding provisioning → active (integration)', () => 
     ch = createClient({ url: process.env.CH_URL ?? 'http://localhost:8125', username: 'default', password: '' })
     const noopBus: EventBus = { emit() {}, emitWebhook() {} }
     const noopVault = { put: async () => {}, get: async () => null }
-    const shopify = new ShopifyService(pg, noopVault, noopBus)
+    const shopify = new ShopifyService(pg, noopVault, noopBus, new PgSeenStore(pg))
     onboarding = new OnboardingService(pg, ch, noopBus, noopVault, shopify)
     track = new TrackService(pg, ch)
   })

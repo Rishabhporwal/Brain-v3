@@ -18,9 +18,10 @@ export class WebhooksController {
     @Headers('x-shopify-shop-domain') shop?: string,
     @Headers('x-shopify-topic') topic?: string,
     @Headers('x-shopify-hmac-sha256') hmac?: string,
+    @Headers('x-shopify-webhook-id') webhookId?: string,
   ): Promise<void> {
     const rawBody = req.rawBody ?? Buffer.from(typeof req.body === 'string' ? req.body : JSON.stringify(req.body ?? {}))
-    const { status } = await this.shopify.handleWebhook({ shop, topic, hmac, rawBody })
+    const { status } = await this.shopify.handleWebhook({ shop, topic, hmac, webhookId, rawBody })
     res.status(status).json({ ok: status < 300 })
   }
 }
