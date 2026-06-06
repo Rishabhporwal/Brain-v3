@@ -23,7 +23,14 @@ migration, EventBridge/Pub-Sub delivery, the full 100 connectors (we build the f
 
 ## Phases
 
-### P0 — Connector framework foundation (`_kit` + registry + contract)
+### P0 — Connector framework foundation (`_kit` + registry + contract)  ✅ DONE
+**Built:** `@brain/connector-kit` (contract incl. **connect/authorize hooks** — authorize→token→ingest is
+enforced for every app — plus oauth signed-state, `verifyHmac`, `SeenStore` idempotency; 5 unit tests),
+`@brain/connector-shopify` (manifest + topics + `verifyShopifyWebhook` composing the kit),
+`@brain/connector-template` (cookiecutter showing connect→ingest), `@brain/connector-registry` (catalog).
+The BFF now **consumes** the kit/connector (oauth-state + webhook HMAC + topics routed through them) — proven
+through `nest build` (workspace package resolution) with **no behaviour change**: 25 BFF tests + webhook
+200/401 + onboarding e2e all green.
 **Objective:** the seams that make 100+ cheap, by lifting the *working* BFF logic — no behaviour change.
 - Define the **connector contract** (manifest + hooks) as a shared TS package.
 - `_kit/oauth` (from `ShopifyService`/`OAuthService` + `vault`), `_kit/webhook-engine` (from `WebhooksController`

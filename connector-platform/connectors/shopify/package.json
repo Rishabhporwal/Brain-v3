@@ -1,0 +1,16 @@
+{
+  "name": "@brain/connector-shopify",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shopify connector — manifest + hooks composing @brain/connector-kit (push lane).",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "scripts": { "build": "tsc -p tsconfig.json", "test": "vitest run" },
+  "dependencies": { "@brain/connector-kit": "workspace:*" },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.8"
+  }
+}

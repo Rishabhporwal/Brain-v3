@@ -5,6 +5,7 @@ import { PG_POOL } from './db.providers'
 import { VAULT, type Vault } from './vault'
 import { EVENT_BUS, type EventBus } from './events'
 import { safeReturnTo } from './oauth-state'
+import { SHOPIFY_WEBHOOK_TOPICS, verifyShopifyWebhook } from '@brain/connector-shopify'
 import type { AuthUser } from './bff.service'
 
 /**
@@ -196,20 +197,8 @@ export class ShopifyService {
   }
 
   // ---- webhooks (real-time data) ---------------------------------------------------------------
-
-  // Topics we subscribe to for live data. Data topics fan out to Kafka; app/uninstalled + GDPR are control.
-  private static readonly WEBHOOK_TOPICS = [
-    'orders/create',
-    'orders/updated',
-    'orders/cancelled',
-    'products/create',
-    'products/update',
-    'products/delete',
-    'customers/create',
-    'customers/update',
-    'inventory_levels/update',
-    'app/uninstalled',
-  ] as const
+  // Topics + signature verification are owned by the Shopify connector (@brain/connector-shopify),
+  // which composes @brain/connector-kit. The BFF just wires DB/Kafka around them (P0 framework seam).
 
   private get apiVersion() {
     return process.env.SHOPIFY_API_VERSION ?? '2025-01'
@@ -225,7 +214,7 @@ export class ShopifyService {
     const address = this.webhookAddress
     const errors: string[] = []
     let registered = 0
-    for (const topic of ShopifyService.WEBHOOK_TOPICS) {
+    for (const topic of SHOPIFY_WEBHOOK_TOPICS) {
       try {
         const res = await fetch(`${adminBase}/admin/api/${this.apiVersion}/webhooks.json`, {
           method: 'POST',
@@ -238,17 +227,13 @@ export class ShopifyService {
         errors.push(`${topic}: ${(e as Error).message}`)
       }
     }
-    this.log.log(`shopify webhooks registered ${registered}/${ShopifyService.WEBHOOK_TOPICS.length} for ${shop}`)
+    this.log.log(`shopify webhooks registered ${registered}/${SHOPIFY_WEBHOOK_TOPICS.length} for ${shop}`)
     return { registered, errors }
   }
 
-  /** Verify a Shopify webhook: HMAC-SHA256 of the RAW body with the app secret, base64, constant-time. */
+  /** Verify a Shopify webhook signature — delegated to the connector (which composes @brain/connector-kit). */
   verifyWebhookHmac(rawBody: Buffer, header?: string): boolean {
-    if (!header) return false
-    const digest = createHmac('sha256', this.clientSecret ?? 'dev').update(rawBody).digest('base64')
-    const a = Buffer.from(digest)
-    const b = Buffer.from(header)
-    return a.length === b.length && timingSafeEqual(a, b)
+    return verifyShopifyWebhook(rawBody, header, this.clientSecret ?? 'dev')
   }
 
   private async brandIdByShop(shop: string): Promise<string | null> {
