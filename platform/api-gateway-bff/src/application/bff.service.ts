@@ -80,27 +80,61 @@ export class BffService {
       .then((r) => r.json() as Promise<T[]>)
   }
 
+  // An order counts toward realized revenue unless it's in a non-realized financial state.
+  // Provider-agnostic: Shopify uses 'paid'/'voided'/'refunded'; WooCommerce maps completed→'paid';
+  // empty status (providers that don't send one) is treated as realized so data still surfaces.
+  private static readonly REALIZED =
+    `financial_status NOT IN ('voided','refunded','pending','cancelled','partially_refunded','declined','expired')`
+
   async summary(slug: string) {
     const b = await this.workspaceBySlug(slug)
     if (!b) throw new NotFoundException('workspace not found')
-    const ev = await this.chQuery<{ orders: number; revenue_minor: number; sessions: number; conversions: number }>(
-      `SELECT countIf(event_type='purchase') AS orders,
-              sumIf(toFloat64OrZero(JSONExtractString(props,'value')), event_type='purchase') AS revenue_minor,
-              uniqExact(session_id) AS sessions,
+
+    // ── Revenue & orders: source of truth is the ingested order facts (Shopify/Woo/…).
+    //    total_price is Decimal major units → ×100 to integer-minor (the metric registry convention).
+    const ord = await this.chQuery<{ orders: number; revenue_minor: number }>(
+      `SELECT countIf(${BffService.REALIZED}) AS orders,
+              toInt64(round(toFloat64(sumIf(total_price, ${BffService.REALIZED})) * 100)) AS revenue_minor
+         FROM brain.orders FINAL WHERE brand_id = {b:UUID}`,
+      b.id,
+    )
+    let orders = Number(ord[0]?.orders ?? 0)
+    let revenue = Number(ord[0]?.revenue_minor ?? 0)
+    // Fallback to first-party pixel purchases for brands not yet connected to a store.
+    if (!orders) {
+      const px = await this.chQuery<{ orders: number; revenue_minor: number }>(
+        `SELECT countIf(event_type='purchase') AS orders,
+                sumIf(toFloat64OrZero(JSONExtractString(props,'value')), event_type='purchase') AS revenue_minor
+           FROM brain.customer_events WHERE brand_id = {b:UUID}`,
+        b.id,
+      )
+      orders = Number(px[0]?.orders ?? 0)
+      revenue = Number(px[0]?.revenue_minor ?? 0)
+    }
+
+    // ── Ad spend: source of truth is the normalized ad_spend facts (Google/Meta). spend_minor is already minor.
+    const ad = await this.chQuery<{ spend: number }>(
+      `SELECT sum(spend_minor) AS spend FROM brain.ad_spend FINAL WHERE brand_id = {b:UUID}`,
+      b.id,
+    )
+    let spend = Number(ad[0]?.spend ?? 0)
+    if (!spend) {
+      const fs = await this.chQuery<{ spend: number }>(
+        `SELECT sum(spend_minor) AS spend FROM brain.fact_spend WHERE brand_id = {b:UUID}`,
+        b.id,
+      )
+      spend = Number(fs[0]?.spend ?? 0)
+    }
+
+    // ── Sessions & conversion: genuinely first-party (orders carry no session signal).
+    const px = await this.chQuery<{ sessions: number; conversions: number }>(
+      `SELECT uniqExact(session_id) AS sessions,
               countIf(event_type='checkout_completed') AS conversions
          FROM brain.customer_events WHERE brand_id = {b:UUID}`,
       b.id,
     )
-    const sp = await this.chQuery<{ spend: number }>(
-      `SELECT sum(spend_minor) AS spend FROM brain.fact_spend WHERE brand_id = {b:UUID}`,
-      b.id,
-    )
-    const e = ev[0] ?? ({} as Record<string, number>)
-    const spend = Number(sp[0]?.spend ?? 0)
-    const orders = Number(e.orders ?? 0)
-    const revenue = Number(e.revenue_minor ?? 0)
-    const sessions = Number(e.sessions ?? 0)
-    const conversions = Number(e.conversions ?? 0)
+    const sessions = Number(px[0]?.sessions ?? 0)
+    const conversions = Number(px[0]?.conversions ?? 0)
 
     const m: Record<string, number> = {}
     if (revenue) m.realized_revenue = revenue
@@ -119,20 +153,55 @@ export class BffService {
   async detail(slug: string) {
     const b = await this.workspaceBySlug(slug)
     if (!b) throw new NotFoundException('workspace not found')
-    const timeseries = await this.chQuery<{ label: string; realized_revenue: number; orders: number; sessions: number }>(
-      `SELECT toString(toStartOfWeek(ts)) AS label,
-              sumIf(toFloat64OrZero(JSONExtractString(props,'value')), event_type='purchase') AS realized_revenue,
-              toFloat64(countIf(event_type='purchase')) AS orders,
-              toFloat64(uniqExact(session_id)) AS sessions
-         FROM brain.customer_events WHERE brand_id = {b:UUID}
+
+    // ── Weekly timeseries from ingested orders (revenue in minor, order count); sessions overlaid from pixel.
+    let timeseries = await this.chQuery<{ label: string; realized_revenue: number; orders: number; sessions: number }>(
+      `SELECT toString(toStartOfWeek(ordered_at)) AS label,
+              toFloat64(toInt64(round(toFloat64(sumIf(total_price, ${BffService.REALIZED})) * 100))) AS realized_revenue,
+              toFloat64(countIf(${BffService.REALIZED})) AS orders,
+              toFloat64(0) AS sessions
+         FROM brain.orders FINAL WHERE brand_id = {b:UUID}
         GROUP BY label ORDER BY label`,
       b.id,
     )
-    const breakdown = await this.chQuery<{ label: string; value: number }>(
-      `SELECT source AS label, toFloat64(count()) AS value
-         FROM brain.customer_events WHERE brand_id = {b:UUID} GROUP BY source ORDER BY value DESC`,
+    if (timeseries.length) {
+      // Fill sessions per week from the first-party pixel and merge by label.
+      const sess = await this.chQuery<{ label: string; sessions: number }>(
+        `SELECT toString(toStartOfWeek(ts)) AS label, toFloat64(uniqExact(session_id)) AS sessions
+           FROM brain.customer_events WHERE brand_id = {b:UUID} GROUP BY label`,
+        b.id,
+      )
+      const sMap = new Map(sess.map((r) => [r.label, Number(r.sessions)]))
+      timeseries = timeseries.map((t) => ({ ...t, sessions: sMap.get(t.label) ?? 0 }))
+    } else {
+      // Fallback: brand not yet connected → pixel-derived timeseries.
+      timeseries = await this.chQuery(
+        `SELECT toString(toStartOfWeek(ts)) AS label,
+                sumIf(toFloat64OrZero(JSONExtractString(props,'value')), event_type='purchase') AS realized_revenue,
+                toFloat64(countIf(event_type='purchase')) AS orders,
+                toFloat64(uniqExact(session_id)) AS sessions
+           FROM brain.customer_events WHERE brand_id = {b:UUID}
+          GROUP BY label ORDER BY label`,
+        b.id,
+      )
+    }
+
+    // ── Revenue-by-provider breakdown from orders (where the money comes from); pixel-source fallback.
+    let breakdown = await this.chQuery<{ label: string; value: number }>(
+      `SELECT provider AS label, toFloat64(toInt64(round(toFloat64(sumIf(total_price, ${BffService.REALIZED})) * 100))) AS value
+         FROM brain.orders FINAL WHERE brand_id = {b:UUID} GROUP BY provider ORDER BY value DESC`,
       b.id,
     )
+    if (!breakdown.length) {
+      breakdown = await this.chQuery(
+        `SELECT source AS label, toFloat64(count()) AS value
+           FROM brain.customer_events WHERE brand_id = {b:UUID} GROUP BY source ORDER BY value DESC`,
+        b.id,
+      )
+    }
+
+    // ── Per-SKU rows: only the pixel carries line-item SKUs today (orders are order-level).
+    //    Line-item ingestion is a future enhancement; until then this stays first-party.
     const rows = await this.chQuery<{ sku: string; orders: number; revenue: number }>(
       `SELECT JSONExtractString(props,'sku') AS sku, toFloat64(count()) AS orders,
               sum(toFloat64OrZero(JSONExtractString(props,'value'))) AS revenue
@@ -140,29 +209,61 @@ export class BffService {
         GROUP BY sku ORDER BY revenue DESC LIMIT 10`,
       b.id,
     )
-    const paymentBreakdown = await this.chQuery<{ label: string; value: number }>(
-      `SELECT JSONExtractString(props,'payment') AS label, toFloat64(count()) AS value
-         FROM brain.customer_events WHERE brand_id = {b:UUID} AND event_type='purchase'
-           AND JSONExtractString(props,'payment') != '' GROUP BY label ORDER BY value DESC`,
+
+    // ── Payment-method mix from ingested payment facts (Razorpay/…); pixel-source fallback.
+    let paymentBreakdown = await this.chQuery<{ label: string; value: number }>(
+      `SELECT method AS label, toFloat64(toInt64(round(sum(amount_minor)))) AS value
+         FROM brain.payments FINAL
+        WHERE brand_id = {b:UUID} AND method != ''
+          AND status NOT IN ('failed','refunded','created','authorized','declined')
+        GROUP BY method ORDER BY value DESC`,
+
       b.id,
     )
+    if (!paymentBreakdown.length) {
+      paymentBreakdown = await this.chQuery(
+        `SELECT JSONExtractString(props,'payment') AS label, toFloat64(count()) AS value
+           FROM brain.customer_events WHERE brand_id = {b:UUID} AND event_type='purchase'
+             AND JSONExtractString(props,'payment') != '' GROUP BY label ORDER BY value DESC`,
+        b.id,
+      )
+    }
+
+    // ── Courier mix: no courier dimension in connector facts yet → first-party only.
     const courierBreakdown = await this.chQuery<{ label: string; value: number }>(
       `SELECT JSONExtractString(props,'courier') AS label, toFloat64(count()) AS value
          FROM brain.customer_events WHERE brand_id = {b:UUID} AND event_type='purchase'
            AND JSONExtractString(props,'courier') != '' GROUP BY label ORDER BY value DESC`,
       b.id,
     )
+
+    // ── CM waterfall on realized order revenue + real ad spend (both integer-minor).
     const tot = await this.chQuery<{ revenue: number }>(
-      `SELECT sumIf(toFloat64OrZero(JSONExtractString(props,'value')), event_type='purchase') AS revenue
-         FROM brain.customer_events WHERE brand_id = {b:UUID}`,
+      `SELECT toInt64(round(toFloat64(sumIf(total_price, ${BffService.REALIZED})) * 100)) AS revenue
+         FROM brain.orders FINAL WHERE brand_id = {b:UUID}`,
       b.id,
     )
-    const sp = await this.chQuery<{ spend: number }>(
-      `SELECT sum(spend_minor) AS spend FROM brain.fact_spend WHERE brand_id = {b:UUID}`,
+    let rev = Number(tot[0]?.revenue ?? 0)
+    if (!rev) {
+      const px = await this.chQuery<{ revenue: number }>(
+        `SELECT sumIf(toFloat64OrZero(JSONExtractString(props,'value')), event_type='purchase') AS revenue
+           FROM brain.customer_events WHERE brand_id = {b:UUID}`,
+        b.id,
+      )
+      rev = Number(px[0]?.revenue ?? 0)
+    }
+    const ad = await this.chQuery<{ spend: number }>(
+      `SELECT sum(spend_minor) AS spend FROM brain.ad_spend FINAL WHERE brand_id = {b:UUID}`,
       b.id,
     )
-    const rev = Number(tot[0]?.revenue ?? 0)
-    const spend = Number(sp[0]?.spend ?? 0)
+    let spend = Number(ad[0]?.spend ?? 0)
+    if (!spend) {
+      const fs = await this.chQuery<{ spend: number }>(
+        `SELECT sum(spend_minor) AS spend FROM brain.fact_spend WHERE brand_id = {b:UUID}`,
+        b.id,
+      )
+      spend = Number(fs[0]?.spend ?? 0)
+    }
     // CM waterfall on REAL revenue/spend; cost ratios are modelled until per-SKU cost data lands (Phase 2).
     const waterfall = rev
       ? [
