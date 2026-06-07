@@ -54,7 +54,7 @@ ALTER TABLE platform.brands ENABLE ROW LEVEL SECURITY;
 ALTER TABLE platform.brands FORCE  ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS brand_isolation ON platform.brands;
 CREATE POLICY brand_isolation ON platform.brands
-  USING (id = current_setting('app.current_brand', true)::uuid);
+  USING (id = NULLIF(current_setting('app.current_brand', true), '')::uuid);
 SELECT brain_meta.register('platform','brands',1,'brand','aurora');
 
 -- users — GLOBAL (not brand-scoped). Brand reachability is via memberships only. No RLS.
@@ -122,8 +122,8 @@ ALTER TABLE platform.memberships ENABLE ROW LEVEL SECURITY;
 ALTER TABLE platform.memberships FORCE  ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS brand_isolation ON platform.memberships;
 CREATE POLICY brand_isolation ON platform.memberships
-  USING      (brand_id IS NULL OR brand_id = current_setting('app.current_brand', true)::uuid)
-  WITH CHECK (brand_id IS NULL OR brand_id = current_setting('app.current_brand', true)::uuid);
+  USING      (brand_id IS NULL OR brand_id = NULLIF(current_setting('app.current_brand', true), '')::uuid)
+  WITH CHECK (brand_id IS NULL OR brand_id = NULLIF(current_setting('app.current_brand', true), '')::uuid);
 SELECT brain_meta.register('platform','memberships',1,'membership','aurora');
 
 -- teams — brand-scoped grouping. Standard RLS.
@@ -158,7 +158,7 @@ ALTER TABLE platform.audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE platform.audit_logs FORCE  ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS brand_isolation ON platform.audit_logs;
 CREATE POLICY brand_isolation ON platform.audit_logs
-  USING (brand_id IS NULL OR brand_id = current_setting('app.current_brand', true)::uuid);
+  USING (brand_id IS NULL OR brand_id = NULLIF(current_setting('app.current_brand', true), '')::uuid);
 SELECT brain_meta.register('platform','audit_logs',1,'governance','aurora');
 
 -- sessions — durable record (live state mirrored in Redis).

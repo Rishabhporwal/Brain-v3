@@ -1,7 +1,9 @@
--- §30.4 RBAC role seed (11 roles). Idempotent.
+-- §30.4 RBAC role seed (11 fixed roles). Idempotent. Code-canonical set lives in @brain/authz roles.ts;
+-- this seed MUST stay in sync with it. Org scope: Owner (sole org role). Brand scope: Brand Admin + the
+-- domain Manager/Analyst roles + Read Only.
 INSERT INTO platform.roles(scope,name,is_system) VALUES
   ('org','Owner',true),
-  ('org','Admin',true),
+  ('brand','Brand Admin',true),
   ('brand','Marketing Manager',true),
   ('brand','Marketing Analyst',true),
   ('brand','Finance Manager',true),

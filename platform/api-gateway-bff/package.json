@@ -11,6 +11,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@brain/access-control": "workspace:*",
     "@brain/connector-kit": "workspace:*",
     "@brain/connector-shopify": "workspace:*",
     "@brain/connector-google-ads": "workspace:*",

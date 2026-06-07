@@ -1,6 +1,7 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common'
+import { ConflictException, Inject, Injectable } from '@nestjs/common'
 import { Pool } from 'pg'
 import type { ClickHouseClient } from '@clickhouse/client'
+import { AccessControl, type BrandContext } from '@brain/access-control'
 import { CH_CLIENT, PG_POOL } from '../persistence/db.providers'
 
 export interface AuthUser {
@@ -31,18 +32,20 @@ export class BffService {
   constructor(
     @Inject(PG_POOL) private readonly pg: Pool,
     @Inject(CH_CLIENT) private readonly ch: ClickHouseClient,
+    private readonly ac: AccessControl,
   ) {}
+
+  /**
+   * Resolve + REQUIRE the caller's brand context (membership enforced). Throws NoBrandAccessError → 404,
+   * so a non-member can never read a brand's data. Use for every tenant-scoped read.
+   */
+  private async requireContext(user: AuthUser, slug: string): Promise<BrandContext> {
+    const uid = await this.userIdForSub(user.sub, user.email)
+    return this.ac.contextFor(uid, slug)
+  }
 
   private toWorkspace(b: BrandRow) {
     return { id: b.id, name: b.name, slug: b.slug, logoUrl: null, plan: 'growth', currency: b.currency, features: null }
-  }
-
-  private async workspaceBySlug(slug: string): Promise<BrandRow | undefined> {
-    const { rows } = await this.pg.query<BrandRow>(
-      `SELECT id, name, slug, currency FROM platform.brands WHERE slug = $1 LIMIT 1`,
-      [slug],
-    )
-    return rows[0]
   }
 
   private async userIdForSub(sub: string, email?: string): Promise<string> {
@@ -57,46 +60,52 @@ export class BffService {
 
   async me(user: AuthUser) {
     const uid = await this.userIdForSub(user.sub, user.email)
-    const { rows } = await this.pg.query<BrandRow & { role: string }>(
-      `SELECT b.id, b.name, b.slug, b.currency, r.name AS role
-         FROM platform.memberships m
-         JOIN platform.brands b ON b.id = m.brand_id
-         JOIN platform.roles r ON r.id = m.role_id
-        WHERE m.user_id = $1 AND m.state = 'active' AND b.status = 'active'
-        ORDER BY m.created_at`,
-      [uid],
-    )
+    // Control-plane: spans every brand the user belongs to, so it cannot be brand-RLS-bound. Explicitly
+    // scoped by user_id. Org-level memberships (brand_id NULL) reach every brand in the org.
+    const rows = await this.ac.controlPlane(async (c) => {
+      const res = await c.query<BrandRow & { role: string }>(
+        `SELECT b.id, b.name, b.slug, b.currency, r.name AS role
+           FROM platform.memberships m
+           JOIN platform.brands b
+             ON b.id = m.brand_id OR (m.brand_id IS NULL AND b.organization_id = m.organization_id)
+           JOIN platform.roles r ON r.id = m.role_id
+          WHERE m.user_id = $1 AND m.state = 'active' AND b.status = 'active'
+          ORDER BY b.created_at`,
+        [uid],
+      )
+      return res.rows
+    })
     return { memberships: rows.map((b) => ({ role: workspaceRole(b.role), workspace: this.toWorkspace(b) })) }
   }
 
   /** Resolve the caller's membership for a workspace. Returns nulls when the caller is NOT a member, so
    *  the BFF never discloses a workspace the user can't access (the web layer renders 404 on null). */
   async context(user: AuthUser, slug: string) {
-    const b = await this.workspaceBySlug(slug)
-    if (!b) throw new NotFoundException('workspace not found')
     const uid = await this.userIdForSub(user.sub, user.email)
-    const { rows } = await this.pg.query<{ role: string }>(
-      `SELECT r.name AS role
-         FROM platform.memberships m
-         JOIN platform.roles r ON r.id = m.role_id
-        WHERE m.user_id = $1 AND m.brand_id = $2 AND m.state = 'active'
-        LIMIT 1`,
-      [uid, b.id],
-    )
-    if (!rows[0]) return { workspace: null, membership: null }
-    return { workspace: this.toWorkspace(b), membership: { role: workspaceRole(rows[0].role) } }
+    const ctx = await this.ac.tryContextFor(uid, slug)
+    if (!ctx) return { workspace: null, membership: null }
+    // Read the brand profile UNDER RLS (Layer 1+2) — proves the active-brand context works end to end.
+    const b = await this.ac.runInBrand(ctx, async (c) => {
+      const res = await c.query<BrandRow>(`SELECT id, name, slug, currency FROM platform.brands WHERE id = $1`, [ctx.brandId])
+      return res.rows[0]
+    })
+    if (!b) return { workspace: null, membership: null }
+    return { workspace: this.toWorkspace(b), membership: { role: workspaceRole(ctx.roleName) } }
   }
 
   /** Festivals for the workspace's region (Settings → Festivals) — from the global reference calendar. */
-  async festivals(slug: string): Promise<Array<{ date: string; name: string; multiplier: number }>> {
-    const { rows } = await this.pg.query<{ date: string; name: string; multiplier: number }>(
-      `SELECT f.date, f.name, f.multiplier
-         FROM reference.festival_calendar f
-         JOIN platform.brands b ON b.region = f.region
-        WHERE b.slug=$1 ORDER BY f.date`,
-      [slug],
-    )
-    return rows
+  async festivals(user: AuthUser, slug: string): Promise<Array<{ date: string; name: string; multiplier: number }>> {
+    const ctx = await this.requireContext(user, slug)
+    return this.ac.runInBrand(ctx, async (c) => {
+      const res = await c.query<{ date: string; name: string; multiplier: number }>(
+        `SELECT f.date, f.name, f.multiplier
+           FROM reference.festival_calendar f
+           JOIN platform.brands b ON b.region = f.region
+          WHERE b.id = $1 ORDER BY f.date`,
+        [ctx.brandId],
+      )
+      return res.rows
+    })
   }
 
   private chQuery<T>(query: string, brandId: string) {
@@ -111,9 +120,9 @@ export class BffService {
   private static readonly REALIZED =
     `financial_status NOT IN ('voided','refunded','pending','cancelled','partially_refunded','declined','expired')`
 
-  async summary(slug: string) {
-    const b = await this.workspaceBySlug(slug)
-    if (!b) throw new NotFoundException('workspace not found')
+  async summary(user: AuthUser, slug: string) {
+    const ctx = await this.requireContext(user, slug)
+    const brandId = ctx.brandId
 
     // ── Revenue & orders: source of truth is the ingested order facts (Shopify/Woo/…).
     //    total_price is Decimal major units → ×100 to integer-minor (the metric registry convention).
@@ -121,7 +130,7 @@ export class BffService {
       `SELECT countIf(${BffService.REALIZED}) AS orders,
               toInt64(round(toFloat64(sumIf(total_price, ${BffService.REALIZED})) * 100)) AS revenue_minor
          FROM brain.orders FINAL WHERE brand_id = {b:UUID}`,
-      b.id,
+      brandId,
     )
     let orders = Number(ord[0]?.orders ?? 0)
     let revenue = Number(ord[0]?.revenue_minor ?? 0)
@@ -131,7 +140,7 @@ export class BffService {
         `SELECT countIf(event_type='purchase') AS orders,
                 sumIf(toFloat64OrZero(JSONExtractString(props,'value')), event_type='purchase') AS revenue_minor
            FROM brain.customer_events WHERE brand_id = {b:UUID}`,
-        b.id,
+        brandId,
       )
       orders = Number(px[0]?.orders ?? 0)
       revenue = Number(px[0]?.revenue_minor ?? 0)
@@ -140,13 +149,13 @@ export class BffService {
     // ── Ad spend: source of truth is the normalized ad_spend facts (Google/Meta). spend_minor is already minor.
     const ad = await this.chQuery<{ spend: number }>(
       `SELECT sum(spend_minor) AS spend FROM brain.ad_spend FINAL WHERE brand_id = {b:UUID}`,
-      b.id,
+      brandId,
     )
     let spend = Number(ad[0]?.spend ?? 0)
     if (!spend) {
       const fs = await this.chQuery<{ spend: number }>(
         `SELECT sum(spend_minor) AS spend FROM brain.fact_spend WHERE brand_id = {b:UUID}`,
-        b.id,
+        brandId,
       )
       spend = Number(fs[0]?.spend ?? 0)
     }
@@ -156,7 +165,7 @@ export class BffService {
       `SELECT uniqExact(session_id) AS sessions,
               countIf(event_type='checkout_completed') AS conversions
          FROM brain.customer_events WHERE brand_id = {b:UUID}`,
-      b.id,
+      brandId,
     )
     const sessions = Number(px[0]?.sessions ?? 0)
     const conversions = Number(px[0]?.conversions ?? 0)
@@ -175,9 +184,10 @@ export class BffService {
   }
 
   /** Detail data for a surface's chart/table. Returns whichever shapes the surface's viz consumes. */
-  async detail(slug: string) {
-    const b = await this.workspaceBySlug(slug)
-    if (!b) throw new NotFoundException('workspace not found')
+  async detail(user: AuthUser, slug: string) {
+    const ctx = await this.requireContext(user, slug) // enforces membership (404 for non-members)
+    const b = { id: ctx.brandId } // ClickHouse reads are brand-scoped via brand_id = ctx.brandId
+
 
     // ── Weekly timeseries from ingested orders (revenue in minor, order count); sessions overlaid from pixel.
     let timeseries = await this.chQuery<{ label: string; realized_revenue: number; orders: number; sessions: number }>(

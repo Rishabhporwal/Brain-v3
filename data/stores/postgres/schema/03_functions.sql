@@ -35,9 +35,11 @@ BEGIN
   EXECUTE format('ALTER TABLE %s ENABLE ROW LEVEL SECURITY', tbl);
   EXECUTE format('ALTER TABLE %s FORCE  ROW LEVEL SECURITY', tbl);
   EXECUTE format('DROP POLICY IF EXISTS brand_isolation ON %s', tbl);
+  -- NULLIF(...,'') so an UNSET or empty app.current_brand → NULL → matches no row (fail closed),
+  -- instead of erroring on ''::uuid. A reused pooled connection reads a reset custom GUC as ''.
   EXECUTE format($p$CREATE POLICY brand_isolation ON %s
-      USING      (%I = current_setting('app.current_brand', true)::uuid)
-      WITH CHECK (%I = current_setting('app.current_brand', true)::uuid)$p$,
+      USING      (%I = NULLIF(current_setting('app.current_brand', true), '')::uuid)
+      WITH CHECK (%I = NULLIF(current_setting('app.current_brand', true), '')::uuid)$p$,
     tbl, brand_col, brand_col);
 END $$;
 

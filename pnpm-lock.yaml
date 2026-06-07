@@ -295,6 +295,9 @@ importers:
 
   platform/api-gateway-bff:
     dependencies:
+      '@brain/access-control':
+        specifier: workspace:*
+        version: link:../../shared/ts/access-control
       '@brain/connector-google-ads':
         specifier: workspace:*
         version: link:../../data-platform/connector-platform/connectors/google-ads
@@ -366,9 +369,69 @@ importers:
         specifier: ^4.1.8
         version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
 
+  shared/ts/access-control:
+    dependencies:
+      '@brain/authz':
+        specifier: workspace:*
+        version: link:../authz
+      '@brain/tenancy':
+        specifier: workspace:*
+        version: link:../tenancy
+      pg:
+        specifier: ^8.13.1
+        version: 8.21.0
+    devDependencies:
+      '@nestjs/common':
+        specifier: ^10.4.15
+        version: 10.4.22(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/core':
+        specifier: ^10.4.15
+        version: 10.4.22(@nestjs/common@10.4.22(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@10.4.22)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.20
+      '@types/pg':
+        specifier: ^8.11.10
+        version: 8.20.0
+      reflect-metadata:
+        specifier: ^0.2.2
+        version: 0.2.2
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.8
+        version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
+
   shared/ts/auth: {}
 
-  shared/ts/authz: {}
+  shared/ts/authz:
+    dependencies:
+      pg:
+        specifier: ^8.13.1
+        version: 8.21.0
+    devDependencies:
+      '@nestjs/common':
+        specifier: ^10.4.15
+        version: 10.4.22(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/core':
+        specifier: ^10.4.15
+        version: 10.4.22(@nestjs/common@10.4.22(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@10.4.22)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.20
+      '@types/pg':
+        specifier: ^8.11.10
+        version: 8.20.0
+      reflect-metadata:
+        specifier: ^0.2.2
+        version: 0.2.2
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.8
+        version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
 
   shared/ts/config: {}
 
@@ -396,7 +459,24 @@ importers:
 
   shared/ts/temporal: {}
 
-  shared/ts/tenancy: {}
+  shared/ts/tenancy:
+    dependencies:
+      pg:
+        specifier: ^8.13.1
+        version: 8.21.0
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.20
+      '@types/pg':
+        specifier: ^8.11.10
+        version: 8.20.0
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.8
+        version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
 
   shared/ts/testing: {}
 
