@@ -87,9 +87,16 @@ false on success; 0 / true on failure — the stale-data-withholds-recs rule). *
 **Deliverables:** ad-spend ClickHouse model + consumer; health surface.
 **Verification:** spend visible end-to-end; stale sync → health degrades → withholds high-risk recs (Brain rule).
 
-### P4 — Breadth via `_template`
-WooCommerce + payments (Razorpay/Stripe) + logistics (Shiprocket) connectors (compose `_kit`); per-connector
-deployable split; Avro/Schema-Registry; EventBridge/Pub-Sub option. Each is "fill the template."
+### P4 — Breadth via `_template`  ✅ DONE (connectors + generic receiver; hardening deferred)
+**Built + verified:** a **generic webhook receiver** (`WebhookService` + `POST /api/webhooks/:provider[/:brandId]`)
+that drives ANY push connector through the contract hooks (resolve brand+secret → verify → dedup → map →
+publish → control); Shopify refactored onto it (no behaviour change). New connectors: `@brain/connector-woocommerce`
+(storefront) + `@brain/connector-razorpay` (payments). Storefronts normalize to a shared `OrderRecord` → one
+vendor-agnostic `brain.orders`; payments → new `brain.payments` (second MV on the same Kafka-engine source).
+**Verified e2e:** Shopify + WooCommerce orders → `brain.orders` (₹999 / ₹2500, WC `completed`→`paid`); Razorpay
+payment → `brain.payments` (₹7500). Registry: 6 live connectors. 25 unit + 26 integration + e2e green.
+**Deferred hardening (needs scale/infra, not built):** per-connector deployable split, Avro/Schema-Registry,
+EventBridge/Pub-Sub delivery, Stripe + Shiprocket connectors, live-credential testing.
 
 ---
 

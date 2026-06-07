@@ -2,6 +2,8 @@ import type { ConnectorManifest } from '@brain/connector-kit'
 import { SHOPIFY_MANIFEST } from '@brain/connector-shopify'
 import { GOOGLE_ADS_MANIFEST } from '@brain/connector-google-ads'
 import { META_ADS_MANIFEST } from '@brain/connector-meta-ads'
+import { WOOCOMMERCE_MANIFEST } from '@brain/connector-woocommerce'
+import { RAZORPAY_MANIFEST } from '@brain/connector-razorpay'
 
 /**
  * The connector catalog. Today: the manifests that are implemented; the rest are declared so the connect
@@ -16,9 +18,9 @@ export const CONNECTOR_CATALOG: CatalogEntry[] = [
   { status: 'live', manifest: SHOPIFY_MANIFEST },
   { status: 'live', manifest: GOOGLE_ADS_MANIFEST },
   { status: 'live', manifest: META_ADS_MANIFEST },
-  { status: 'planned', provider: 'woocommerce', category: 'storefront', auth: 'basic', ingest: ['push'], tier: 1 },
+  { status: 'live', manifest: WOOCOMMERCE_MANIFEST },
+  { status: 'live', manifest: RAZORPAY_MANIFEST },
   { status: 'planned', provider: 'stripe', category: 'payments', auth: 'apikey', ingest: ['push'], tier: 2 },
-  { status: 'planned', provider: 'razorpay', category: 'payments', auth: 'apikey', ingest: ['push'], tier: 2 },
   { status: 'planned', provider: 'shiprocket', category: 'logistics', auth: 'apikey', ingest: ['push', 'pull'], tier: 3 },
   { status: 'planned', provider: 'whatsapp', category: 'messaging', auth: 'apikey', ingest: ['push'], tier: 3 },
 ]

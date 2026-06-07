@@ -1,4 +1,11 @@
-import { type ConnectorManifest, type WebhookContext, type WebhookMapped, verifyHmac } from '@brain/connector-kit'
+import {
+  type ConnectorHooks,
+  type ConnectorManifest,
+  type OrderRecord,
+  type WebhookContext,
+  type WebhookMapped,
+  verifyHmac,
+} from '@brain/connector-kit'
 
 /**
  * Shopify connector (push lane). Declares its manifest + webhook specifics; composes @brain/connector-kit
@@ -51,6 +58,31 @@ const DATA_STREAM_BY_TOPIC_PREFIX: Record<string, string> = {
   inventory_levels: 'inventory',
 }
 
+interface ShopifyOrder {
+  id?: number | string
+  name?: string
+  total_price?: string
+  currency?: string
+  financial_status?: string
+  fulfillment_status?: string | null
+  customer?: { id?: number | string } | null
+  created_at?: string
+}
+
+/** Normalize a Shopify order payload to the canonical OrderRecord (vendor-agnostic brain.orders). */
+function normalizeOrder(o: ShopifyOrder): OrderRecord {
+  return {
+    order_id: o.id != null ? String(o.id) : '',
+    order_name: o.name ?? '',
+    total_price: o.total_price ?? '0',
+    currency: o.currency ?? '',
+    financial_status: o.financial_status ?? '',
+    fulfillment_status: o.fulfillment_status ?? '',
+    customer_id: o.customer?.id != null ? String(o.customer.id) : '',
+    ordered_at: o.created_at ?? '',
+  }
+}
+
 /** Map a verified webhook to normalized records (or a control signal). */
 export function mapShopifyWebhook(ctx: WebhookContext): WebhookMapped {
   const topic = ctx.headers['x-shopify-topic'] ?? ''
@@ -59,12 +91,22 @@ export function mapShopifyWebhook(ctx: WebhookContext): WebhookMapped {
   if (topic === 'shop/redact' || topic === 'customers/redact' || topic === 'customers/data_request') {
     return { topic, shop, records: [], control: 'gdpr' }
   }
-  const stream = DATA_STREAM_BY_TOPIC_PREFIX[topic.split('/')[0]] ?? topic
-  let data: unknown = {}
+  let payload: Record<string, unknown> = {}
   try {
-    data = ctx.rawBody.length ? JSON.parse(ctx.rawBody.toString('utf8')) : {}
+    payload = ctx.rawBody.length ? (JSON.parse(ctx.rawBody.toString('utf8')) as Record<string, unknown>) : {}
   } catch {
-    data = {}
+    payload = {}
   }
+  const stream = DATA_STREAM_BY_TOPIC_PREFIX[topic.split('/')[0]] ?? topic
+  // Orders are normalized to the canonical OrderRecord; other streams pass through raw for now.
+  const data = stream === 'orders' ? normalizeOrder(payload as ShopifyOrder) : payload
   return { topic, shop, records: [{ stream, data }] }
+}
+
+/** Connector hooks object — lets the generic webhook receiver drive Shopify via the contract. */
+export const shopify: ConnectorHooks = {
+  manifest: SHOPIFY_MANIFEST,
+  webhookIdHeader: SHOPIFY_WEBHOOK_ID_HEADER,
+  verifyWebhook: (ctx, secret) => verifyShopifyWebhook(ctx.rawBody, ctx.headers['x-shopify-hmac-sha256'], secret),
+  mapWebhook: mapShopifyWebhook,
 }

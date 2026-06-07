@@ -6,7 +6,6 @@ import { VAULT, type Vault } from './vault'
 import { EVENT_BUS, type EventBus } from './events'
 import { safeReturnTo } from './oauth-state'
 import { SHOPIFY_WEBHOOK_TOPICS, verifyShopifyWebhook } from '@brain/connector-shopify'
-import { PgSeenStore } from './seen-store'
 import type { AuthUser } from './bff.service'
 
 /**
@@ -27,7 +26,6 @@ export class ShopifyService {
     @Inject(PG_POOL) private readonly pg: Pool,
     @Inject(VAULT) private readonly vault: Vault,
     @Inject(EVENT_BUS) private readonly bus: EventBus,
-    private readonly seen: PgSeenStore,
   ) {}
 
   private get clientId() {
@@ -238,50 +236,5 @@ export class ShopifyService {
     return verifyShopifyWebhook(rawBody, header, this.clientSecret ?? 'dev')
   }
 
-  private async brandIdByShop(shop: string): Promise<string | null> {
-    const { rows } = await this.pg.query<{ id: string }>(
-      `SELECT id FROM platform.brands WHERE store_url=$1 ORDER BY created_at DESC LIMIT 1`,
-      [shop],
-    )
-    return rows[0]?.id ?? null
-  }
-
-  /**
-   * Inbound webhook handler. Verifies the signature, resolves the brand from the shop, and publishes the
-   * raw payload to the Kafka data plane (a downstream consumer normalizes into ClickHouse). app/uninstalled
-   * disconnects the integration; GDPR topics are acknowledged. Returns the HTTP status to reply with.
-   */
-  async handleWebhook(opts: { shop?: string; topic?: string; hmac?: string; webhookId?: string; rawBody: Buffer }): Promise<{ status: number }> {
-    const { shop, topic, hmac, webhookId, rawBody } = opts
-    if (!shop || !topic) return { status: 400 }
-    if (!this.verifyWebhookHmac(rawBody, hmac)) return { status: 401 }
-
-    const normShop = shop.toLowerCase().replace(/^https?:\/\//, '').split('/')[0]
-    const brandId = await this.brandIdByShop(normShop)
-
-    // Idempotency (D4): Shopify may redeliver. Dedup on X-Shopify-Webhook-Id — already seen → ack + skip.
-    if (webhookId && (await this.seen.seen(`shopify:${webhookId}`, brandId))) {
-      return { status: 200 }
-    }
-
-    if (topic === 'app/uninstalled') {
-      if (brandId) {
-        await this.pg.query(`UPDATE integration.integrations SET status='disconnected' WHERE brand_id=$1 AND provider='shopify'`, [brandId])
-      }
-      return { status: 200 }
-    }
-    if (topic === 'shop/redact' || topic === 'customers/redact' || topic === 'customers/data_request') {
-      return { status: 200 } // GDPR compliance ack
-    }
-
-    if (!brandId) return { status: 202 } // accepted, but no brand mapped to this shop yet
-    let payload: unknown
-    try {
-      payload = rawBody.length ? JSON.parse(rawBody.toString('utf8')) : {}
-    } catch {
-      return { status: 400 }
-    }
-    this.bus.emitWebhook({ provider: 'shopify', topic, brandId, shop: normShop, payload })
-    return { status: 200 }
-  }
+  // (Inbound webhook handling moved to the generic WebhookService, driven by the Shopify connector hooks.)
 }

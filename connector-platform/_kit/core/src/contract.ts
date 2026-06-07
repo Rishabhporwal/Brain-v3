@@ -33,6 +33,29 @@ export interface IngestRecord {
   data: unknown
 }
 
+/** Canonical order shape — every storefront connector normalizes to this so brain.orders is vendor-agnostic. */
+export interface OrderRecord {
+  order_id: string
+  order_name: string
+  total_price: string // decimal string in the order currency
+  currency: string
+  financial_status: string // paid | pending | refunded | …
+  fulfillment_status: string
+  customer_id: string
+  ordered_at: string // ISO8601
+}
+
+/** Canonical payment shape — every payments connector normalizes to this for brain.payments. */
+export interface PaymentRecord {
+  payment_id: string
+  order_ref: string
+  amount_minor: string // integer-as-string, minor units
+  currency: string
+  status: string // captured | failed | refunded | …
+  method: string
+  created_at: string // ISO8601
+}
+
 export interface WebhookContext {
   rawBody: Buffer
   headers: Record<string, string | undefined>

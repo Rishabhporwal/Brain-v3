@@ -11,7 +11,9 @@
     "@brain/connector-kit": "workspace:*",
     "@brain/connector-shopify": "workspace:*",
     "@brain/connector-google-ads": "workspace:*",
-    "@brain/connector-meta-ads": "workspace:*"
+    "@brain/connector-meta-ads": "workspace:*",
+    "@brain/connector-woocommerce": "workspace:*",
+    "@brain/connector-razorpay": "workspace:*"
   },
   "devDependencies": { "@types/node": "^22.10.2", "typescript": "^5.7.2" }
 }

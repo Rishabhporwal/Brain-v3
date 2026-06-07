@@ -217,7 +217,39 @@ importers:
         specifier: ^4.1.8
         version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
 
+  connector-platform/connectors/razorpay:
+    dependencies:
+      '@brain/connector-kit':
+        specifier: workspace:*
+        version: link:../../_kit/core
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.20
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.8
+        version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
+
   connector-platform/connectors/shopify:
+    dependencies:
+      '@brain/connector-kit':
+        specifier: workspace:*
+        version: link:../../_kit/core
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.20
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.8
+        version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
+
+  connector-platform/connectors/woocommerce:
     dependencies:
       '@brain/connector-kit':
         specifier: workspace:*
@@ -244,9 +276,15 @@ importers:
       '@brain/connector-meta-ads':
         specifier: workspace:*
         version: link:../connectors/meta-ads
+      '@brain/connector-razorpay':
+        specifier: workspace:*
+        version: link:../connectors/razorpay
       '@brain/connector-shopify':
         specifier: workspace:*
         version: link:../connectors/shopify
+      '@brain/connector-woocommerce':
+        specifier: workspace:*
+        version: link:../connectors/woocommerce
     devDependencies:
       '@types/node':
         specifier: ^22.10.2
@@ -300,9 +338,15 @@ importers:
       '@brain/connector-meta-ads':
         specifier: workspace:*
         version: link:../../connector-platform/connectors/meta-ads
+      '@brain/connector-razorpay':
+        specifier: workspace:*
+        version: link:../../connector-platform/connectors/razorpay
       '@brain/connector-shopify':
         specifier: workspace:*
         version: link:../../connector-platform/connectors/shopify
+      '@brain/connector-woocommerce':
+        specifier: workspace:*
+        version: link:../../connector-platform/connectors/woocommerce
       '@clickhouse/client':
         specifier: ^1.7.0
         version: 1.20.0

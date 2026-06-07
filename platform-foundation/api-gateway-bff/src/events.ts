@@ -20,13 +20,14 @@ export interface DomainEvent {
   payload?: unknown
 }
 
-/** A raw provider webhook (data plane). */
+/** A normalized provider webhook record (data plane). */
 export interface WebhookEvent {
-  provider: string // shopify, …
-  topic: string // e.g. orders/create
+  provider: string // shopify, woocommerce, razorpay, …
+  topic: string // provider topic, e.g. orders/create
+  stream: string // canonical stream, e.g. orders | payments
   brandId: string
   shop?: string
-  payload: unknown
+  payload: unknown // canonical record (OrderRecord, PaymentRecord, …) or raw
 }
 
 /** A batch of records pulled from a provider (polling lane). */
@@ -102,11 +103,12 @@ class KafkaEventBus implements EventBus {
         received_at: new Date().toISOString(),
         provider: event.provider,
         topic: event.topic,
+        stream: event.stream,
         brand_id: event.brandId,
         shop: event.shop ?? null,
         payload: event.payload,
       },
-      `${event.provider}:${event.topic}`,
+      `${event.provider}:${event.stream}`,
     )
   }
 
