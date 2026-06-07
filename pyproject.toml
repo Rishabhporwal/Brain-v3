@@ -8,7 +8,7 @@ description = "Brain AI/ML platform — Python workspace (FastAPI, BentoML, PyTo
 members = [
   "ai-platform/services/*",
   "ai-platform/agents/*",
-  "py-libs/*",
+  "shared/python/*",
 ]
 
 [tool.uv]

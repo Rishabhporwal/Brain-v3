@@ -3,20 +3,21 @@ packages:
   - "apps/web-*"
   - "apps/mobile"
   - "apps/packages/*"
-  # Platform & domain services (NestJS)
-  - "platform-foundation/*"
-  - "first-party-data/*"
-  - "connector-platform/registry"
-  - "connector-platform/_kit/*"
-  - "connector-platform/connectors/*"
-  - "connector-platform/custom-integration-framework"
+  # ② Platform services (NestJS)
+  - "platform/*"
+  # ③ Data-platform services (NestJS) — ingestion, connectors, tracking
+  - "data-platform/first-party-data/*"
+  - "data-platform/connector-platform/registry"
+  - "data-platform/connector-platform/_kit/*"
+  - "data-platform/connector-platform/connectors/*"
+  - "data-platform/connector-platform/custom-integration-framework"
+  # ④ Intelligence & agent platforms (NestJS)
   - "commerce-intelligence/*"
   - "commerce-intelligence/domain-services/*"
   - "customer-intelligence/*"
   - "agent-platform/*"
-  - "shared-platform/*"
-  # Shared TS libraries + contracts + SDKs
-  - "libs/*"
-  - "sdks/*"
+  # ⑤ Shared TS libraries + contracts + SDKs
+  - "shared/ts/*"
+  - "sdk/*"
   - "contracts"
-# Python workspaces (ai-platform/*, py-libs/*) are managed by uv — see pyproject.toml
+# Python workspaces (ai-platform/*, shared/python/*) are managed by uv — see pyproject.toml

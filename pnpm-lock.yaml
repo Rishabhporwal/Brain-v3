@@ -160,7 +160,7 @@ importers:
         specifier: ^5
         version: 5.9.3
 
-  connector-platform/_kit/core:
+  data-platform/connector-platform/_kit/core:
     devDependencies:
       '@types/node':
         specifier: ^22.10.2
@@ -172,7 +172,7 @@ importers:
         specifier: ^4.1.8
         version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
 
-  connector-platform/connectors/_template:
+  data-platform/connector-platform/connectors/_template:
     dependencies:
       '@brain/connector-kit':
         specifier: workspace:*
@@ -185,23 +185,7 @@ importers:
         specifier: ^5.7.2
         version: 5.9.3
 
-  connector-platform/connectors/google-ads:
-    dependencies:
-      '@brain/connector-kit':
-        specifier: workspace:*
-        version: link:../../_kit/core
-    devDependencies:
-      '@types/node':
-        specifier: ^22.10.2
-        version: 22.19.20
-      typescript:
-        specifier: ^5.7.2
-        version: 5.9.3
-      vitest:
-        specifier: ^4.1.8
-        version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
-
-  connector-platform/connectors/meta-ads:
+  data-platform/connector-platform/connectors/google-ads:
     dependencies:
       '@brain/connector-kit':
         specifier: workspace:*
@@ -217,7 +201,7 @@ importers:
         specifier: ^4.1.8
         version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
 
-  connector-platform/connectors/razorpay:
+  data-platform/connector-platform/connectors/meta-ads:
     dependencies:
       '@brain/connector-kit':
         specifier: workspace:*
@@ -233,7 +217,7 @@ importers:
         specifier: ^4.1.8
         version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
 
-  connector-platform/connectors/shopify:
+  data-platform/connector-platform/connectors/razorpay:
     dependencies:
       '@brain/connector-kit':
         specifier: workspace:*
@@ -249,7 +233,7 @@ importers:
         specifier: ^4.1.8
         version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
 
-  connector-platform/connectors/woocommerce:
+  data-platform/connector-platform/connectors/shopify:
     dependencies:
       '@brain/connector-kit':
         specifier: workspace:*
@@ -265,7 +249,23 @@ importers:
         specifier: ^4.1.8
         version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
 
-  connector-platform/registry:
+  data-platform/connector-platform/connectors/woocommerce:
+    dependencies:
+      '@brain/connector-kit':
+        specifier: workspace:*
+        version: link:../../_kit/core
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.20
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.8
+        version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
+
+  data-platform/connector-platform/registry:
     dependencies:
       '@brain/connector-google-ads':
         specifier: workspace:*
@@ -293,60 +293,26 @@ importers:
         specifier: ^5.7.2
         version: 5.9.3
 
-  libs/auth: {}
-
-  libs/authz: {}
-
-  libs/config: {}
-
-  libs/contracts-ts: {}
-
-  libs/dto: {}
-
-  libs/errors: {}
-
-  libs/events: {}
-
-  libs/feature-flags: {}
-
-  libs/http: {}
-
-  libs/idempotency: {}
-
-  libs/metric-client: {}
-
-  libs/observability: {}
-
-  libs/region: {}
-
-  libs/security: {}
-
-  libs/temporal: {}
-
-  libs/tenancy: {}
-
-  libs/testing: {}
-
-  platform-foundation/api-gateway-bff:
+  platform/api-gateway-bff:
     dependencies:
       '@brain/connector-google-ads':
         specifier: workspace:*
-        version: link:../../connector-platform/connectors/google-ads
+        version: link:../../data-platform/connector-platform/connectors/google-ads
       '@brain/connector-kit':
         specifier: workspace:*
-        version: link:../../connector-platform/_kit/core
+        version: link:../../data-platform/connector-platform/_kit/core
       '@brain/connector-meta-ads':
         specifier: workspace:*
-        version: link:../../connector-platform/connectors/meta-ads
+        version: link:../../data-platform/connector-platform/connectors/meta-ads
       '@brain/connector-razorpay':
         specifier: workspace:*
-        version: link:../../connector-platform/connectors/razorpay
+        version: link:../../data-platform/connector-platform/connectors/razorpay
       '@brain/connector-shopify':
         specifier: workspace:*
-        version: link:../../connector-platform/connectors/shopify
+        version: link:../../data-platform/connector-platform/connectors/shopify
       '@brain/connector-woocommerce':
         specifier: workspace:*
-        version: link:../../connector-platform/connectors/woocommerce
+        version: link:../../data-platform/connector-platform/connectors/woocommerce
       '@clickhouse/client':
         specifier: ^1.7.0
         version: 1.20.0
@@ -393,6 +359,40 @@ importers:
       vitest:
         specifier: ^4.1.8
         version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
+
+  shared/ts/auth: {}
+
+  shared/ts/authz: {}
+
+  shared/ts/config: {}
+
+  shared/ts/contracts-ts: {}
+
+  shared/ts/dto: {}
+
+  shared/ts/errors: {}
+
+  shared/ts/events: {}
+
+  shared/ts/feature-flags: {}
+
+  shared/ts/http: {}
+
+  shared/ts/idempotency: {}
+
+  shared/ts/metric-client: {}
+
+  shared/ts/observability: {}
+
+  shared/ts/region: {}
+
+  shared/ts/security: {}
+
+  shared/ts/temporal: {}
+
+  shared/ts/tenancy: {}
+
+  shared/ts/testing: {}
 
 packages:
 

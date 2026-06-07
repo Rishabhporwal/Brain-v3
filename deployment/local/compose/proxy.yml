@@ -24,7 +24,7 @@ services:
   bff:
     image: brain-bff:local
     build:
-      context: ../../platform-foundation/api-gateway-bff
+      context: ../../platform/api-gateway-bff
     container_name: brain-local-bff
     depends_on: [postgres, clickhouse, keycloak]
     environment:

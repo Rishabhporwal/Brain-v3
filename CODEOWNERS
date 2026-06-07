@@ -6,26 +6,27 @@
 /docs/architecture/                 @brain/office-of-cto @brain/architects
 
 # Platforms → pods
-/platform-foundation/               @brain/platform-core
-/first-party-data/                  @brain/data-platform @brain/tracking-sdk
-/connector-platform/                @brain/integration
+/platform/                          @brain/platform-core
+/data-platform/                     @brain/data-platform
+/data-platform/first-party-data/    @brain/data-platform @brain/tracking-sdk
+/data-platform/connector-platform/  @brain/integration
+/data/                              @brain/data-platform
 /commerce-intelligence/             @brain/commerce @brain/platform-core
 /customer-intelligence/             @brain/cdp @brain/growth
 /agent-platform/                    @brain/platform-core @brain/ai-platform
 /ai-platform/                       @brain/ai-platform
-/data-platform/                     @brain/data-platform
-/shared-platform/region-adapter/    @brain/platform-core
-/shared-platform/llm-gateway/       @brain/ai-platform
 /apps/                              @brain/frontend
-/sdks/                              @brain/tracking-sdk
-/libs/                              @brain/platform-core
-/py-libs/                           @brain/ai-platform
-/infrastructure/                    @brain/devops-sre
-/deploy/                            @brain/devops-sre
+/sdk/                               @brain/tracking-sdk
+/shared/ts/                         @brain/platform-core
+/shared/python/                     @brain/ai-platform
+/shared/config/                     @brain/platform-core
+/infra/                             @brain/devops-sre
+/deployment/                        @brain/devops-sre
+/observability/                     @brain/devops-sre
 /.github/                           @brain/devops-sre
 
 # Money-moving paths require Security co-sign (Blueprint §11.1)
 /agent-platform/guardrail/          @brain/platform-core @brain/security
 /agent-platform/execution/          @brain/platform-core @brain/security
-/platform-foundation/audit/         @brain/security
+/platform/audit/                    @brain/security
 /tests/isolation/                   @brain/security @brain/platform-core
