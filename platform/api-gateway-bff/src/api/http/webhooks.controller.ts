@@ -1,4 +1,5 @@
 import { Controller, Headers, Param, Post, RawBodyRequest, Req, Res } from '@nestjs/common'
+import { SkipThrottle } from '@nestjs/throttler'
 import type { Request, Response } from 'express'
 import { WebhookService } from '../../application/webhook.service'
 
@@ -8,6 +9,9 @@ import { WebhookService } from '../../application/webhook.service'
  * providers (Razorpay/Stripe) carry the brand in the path (`/:provider/:brandId`). Verified payloads are
  * published to the Kafka data plane; a downstream consumer normalizes them into ClickHouse.
  */
+// SkipThrottle: providers send bursty webhook fan-out (e.g. sale-day order storms); HMAC auth + dedup are
+// the controls here, not a per-IP cap that would drop legitimate provider deliveries.
+@SkipThrottle()
 @Controller()
 export class WebhooksController {
   constructor(private readonly webhooks: WebhookService) {}

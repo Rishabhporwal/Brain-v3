@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common'
-import { APP_GUARD } from '@nestjs/core'
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { AccessControlModule } from '@brain/access-control-nest'
+import { MetricsController } from '../api/metrics.controller'
+import { MetricsInterceptor } from '../api/metrics.interceptor'
 import { dbProviders } from '../persistence/db.providers'
 import { BffService } from '../application/bff.service'
 import { BffController } from '../api/http/bff.controller'
@@ -32,9 +34,10 @@ import { InviteController } from '../api/http/invite.controller'
     AccessControlModule.forRoot(),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: Number(process.env.RATE_LIMIT_PER_MIN ?? 600) }]),
   ],
-  controllers: [HealthController, BffController, OnboardingController, TrackController, IntegrationsController, WebhooksController, InviteController],
+  controllers: [HealthController, BffController, OnboardingController, TrackController, IntegrationsController, WebhooksController, InviteController, MetricsController],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_INTERCEPTOR, useClass: MetricsInterceptor },
     ...dbProviders,
     vaultProvider,
     eventBusProvider,
