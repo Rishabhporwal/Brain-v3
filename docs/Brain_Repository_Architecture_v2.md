@@ -561,21 +561,26 @@ The **folders are created now**; services fill them by phase. Lean-core early, s
 
 ## Part 23 — Migration from the current on-disk layout (delta)
 
+**Executed** on branch `chore/repo-structure-migration` (see [Brain_Repository_Migration_Plan.md](./Brain_Repository_Migration_Plan.md)). Final actions as shipped:
+
 | Current | →  v2 | Action |
 |---|---|---|
-| `platform-foundation/` | `platform/` | rename |
-| `connector-platform/` (root) | `data-platform/connector-platform/` | move |
-| `first-party-data/` | `data-platform/tracking/` | move/fold |
-| `data-platform/{stores,warehouse}` (schemas) | `data/{postgres,clickhouse}` | extract physical layer |
-| `data-platform/{batch,replay}` | `data-platform/streaming/{spark backfills,rebuilds}` | reorganize |
-| `libs/` + `shared-platform/` + `py-libs/` | `shared/` (+ `shared/python/`) | consolidate |
-| `sdks/` | `sdk/` | rename |
-| `infrastructure/` | `infra/` | rename |
-| `deploy/` | `deployment/` (+ env ladder) | rename + add envs |
-| (o11y under deploy/infra) | `observability/` | promote to top level |
-| `config/` | `shared/config` + `tools/` | fold |
+| `platform-foundation/` | `platform/` | rename ✅ |
+| `connector-platform/` (root) | `data-platform/connector-platform/` | move ✅ |
+| `first-party-data/` | `data-platform/first-party-data/` | move whole (D1 — kept cohesive; broader than "tracking") ✅ |
+| `data-platform/{stores,warehouse}` (schemas) | `data/{stores,warehouse}` | extract physical layer ✅ |
+| `libs/` + `py-libs/` | `shared/ts/` + `shared/python/` | consolidate ✅ |
+| `shared-platform/*` (skeletons) | owning platforms (D2 — services, not libs: llm-gateway→ai-platform, region/notification/search→platform, aggregation-zone→data-platform) | dissolve ✅ |
+| `sdks/` | `sdk/` | rename ✅ |
+| `infrastructure/` | `infra/` | rename ✅ |
+| `deploy/` | `deployment/` | rename ✅ |
+| `infrastructure/observability/` | `observability/` | promote to top level ✅ |
+| `config/` | `shared/config/` | fold ✅ |
+| `data-platform/{batch,replay}` | (left in place — D3, cosmetic on skeletons) | deferred |
 
-These are **moves/renames + CODEOWNERS updates**, not rewrites — the service internals (templates) are unchanged.
+These were **moves/renames + CODEOWNERS updates**, not rewrites. Verified: `pnpm install` relinks clean,
+connector-kit + all 5 connectors + registry build, `api-gateway-bff` `nest build` succeeds, kit + BFF unit tests pass.
+The canonical per-service internal layout is specified in [nestjs-service-template.md](./nestjs-service-template.md).
 
 ---
 
