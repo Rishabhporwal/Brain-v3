@@ -58,3 +58,6 @@ services:
       KEYCLOAK_INTERNAL_ISSUER: http://keycloak:8080/idp/realms/brain
       KEYCLOAK_CLIENT_ID: brain-web
       KEYCLOAK_CLIENT_SECRET: brain-web-secret
+      # Server-side (SSR / Server Components) BFF base. Must be the in-network address — the browser-baked
+      # NEXT_PUBLIC_API_BASE_URL (http://localhost:8088/bff) is unreachable from inside the container.
+      API_BASE_URL: http://bff:4000
