@@ -150,9 +150,10 @@ export class InviteService {
            FROM platform.memberships m
            JOIN platform.roles r ON r.id = m.role_id
            JOIN platform.users u ON u.id = m.user_id
-          WHERE m.brand_id = $1 AND m.state <> 'revoked'
+          WHERE (m.brand_id = $1 OR (m.brand_id IS NULL AND m.organization_id = $2))
+            AND m.state <> 'revoked'
           ORDER BY m.created_at`,
-        [ctx.brandId],
+        [ctx.brandId, ctx.organizationId],
       )
       return res.rows.map((r) => ({
         membershipId: r.id,
