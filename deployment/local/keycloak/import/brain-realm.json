@@ -5,6 +5,23 @@
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "verifyEmail": true,
+  "otpPolicyType": "totp",
+  "otpPolicyAlgorithm": "HmacSHA1",
+  "otpPolicyDigits": 6,
+  "otpPolicyPeriod": 30,
+  "smtpServer": {
+    "host": "${SMTP_HOST:smtp.gmail.com}",
+    "port": "${SMTP_PORT:587}",
+    "from": "${SMTP_USER:}",
+    "fromDisplayName": "Brain",
+    "ssl": "false",
+    "starttls": "true",
+    "auth": "true",
+    "user": "${SMTP_USER:}",
+    "password": "${SMTP_PASS:}"
+  },
   "clients": [
     {
       "clientId": "brain-web",
