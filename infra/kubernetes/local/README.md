@@ -39,7 +39,19 @@ moving to AWS is a config change, not a rewrite.
   `secretRefs`). **Proven end-to-end**: `PG_URL`/`VAULT_KEY` removed from inline env now resolve from the
   synced secret, and `/me` returns 200 (DB read works through the secret-sourced DSN). Only the controller
   endpoint env + IRSA differ from real AWS.
-- ⏳ **M5 observability in-cluster**: kube-prometheus-stack (Prometheus/Grafana) + Loki + Tempo; ServiceMonitor for the BFF.
+- 🟡 **M5 observability in-cluster** (mostly done):
+  - ✅ **Metrics**: kube-prometheus-stack (`observability/kube-prometheus-values.yaml`) → Prometheus + Grafana
+    (admin/brain12345). BFF `ServiceMonitor` (`observability/bff-servicemonitor.yaml`) **verified**:
+    `up{service="api-gateway-bff"}=1` and `http_requests_total` ingested into Prometheus.
+  - 🟡 **Logs**: Loki + Promtail (`observability/loki-values.yaml`) — `helm install` issued; readiness was
+    interrupted by the laptop restart. Re-verify after reboot (query a BFF log line via LogQL), then add Loki as
+    a Grafana datasource.
+  - ⛔ **Traces (Tempo)**: deferred — the BFF carries `traceId` in structured logs but exports **no OTLP spans**,
+    so Tempo would ingest nothing. Add Tempo once the BFF emits OpenTelemetry spans (see deferred-hardening backlog).
+  - ⚠️ **Capacity note**: the full kube-prometheus-stack + Loki on a single laptop kind cluster strains the
+    control plane (the API server timed out twice and the BFF restarted once under load). On EKS this is a
+    non-issue; locally, consider scaling node-exporter/kube-state-metrics down or running observability in a
+    separate profile if it keeps flapping.
 - ⏳ **M6 GitOps**: ArgoCD app-of-apps (`../argocd/app-of-apps.yaml`) syncing every service Application from git.
 - ⏳ **M7 web + ingress routing**: deploy web; ingress routes `/`, `/bff`, `/idp` like the Caddy single-origin.
 
@@ -69,9 +81,36 @@ helm upgrade --install external-secrets external-secrets/external-secrets -n ext
   --set 'extraEnv[0].value=http://localstack.brain.svc.cluster.local:4566'
 kubectl apply -f infra/kubernetes/local/aws/external-secrets.yaml
 
+# M5 observability (Prometheus + Grafana, then Loki)
+helm upgrade --install kube-prom prometheus-community/kube-prometheus-stack -n monitoring --create-namespace \
+  -f infra/kubernetes/local/observability/kube-prometheus-values.yaml
+kubectl apply -f infra/kubernetes/local/observability/bff-servicemonitor.yaml
+helm upgrade --install loki grafana/loki-stack -n monitoring \
+  -f infra/kubernetes/local/observability/loki-values.yaml
+
 # verify
 kubectl -n brain port-forward svc/api-gateway-bff 4599:4000 &
 curl localhost:4599/health     # {"ok":true}
+```
+
+## Resume after a laptop reboot
+The kind cluster's containers stop when Docker stops. After restarting:
+```bash
+# 1) Is the cluster still there? (kind containers usually auto-restart with Docker)
+kind get clusters                       # expect: brain-local
+kubectl config use-context kind-brain-local
+kubectl get nodes                       # all Ready? give Docker ~1-2 min after login
+
+#   If the cluster is gone, recreate from scratch (M1 → M5) using the "Run it" commands above,
+#   then re-apply Postgres schema/seed + ClickHouse models (see commits 247de39 / 8b608f6).
+
+# 2) Wait for the data + app pods, then re-run the e2e smoke (token → onboard → /me)
+kubectl -n brain get pods
+kubectl -n brain cp /tmp/e2e.js <bff-pod>:/tmp/e2e.js && kubectl -n brain exec <bff-pod> -- node /tmp/e2e.js
+
+# 3) Finish M5: confirm Loki is Ready + ingesting BFF logs (LogQL: {namespace="brain"} |= "api-gateway-bff")
+kubectl -n monitoring rollout status statefulset/loki
+#   then continue with M6 (ArgoCD app-of-apps) and M7 (web + ingress single-origin routing).
 
 # ArgoCD UI (admin password)
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d; echo

@@ -1,0 +1,19 @@
+# M5 — Prometheus Operator ServiceMonitor for the BFF. The BFF serves RED metrics at /metrics on the
+# `http` port (prom-client). In prod the same ServiceMonitor ships with the service's Helm release.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-gateway-bff
+  namespace: brain
+  labels:
+    release: kube-prom        # match the operator's default release selector
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api-gateway-bff
+  namespaceSelector:
+    matchNames: [brain]
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
