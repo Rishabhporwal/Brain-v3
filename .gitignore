@@ -40,5 +40,9 @@ coverage/
 .engineering-os/index/
 .engineering-os/live.log
 .engineering-os/dashboard.html
-.engineering-os
 legacy frontend
+aws key
+# AWS credentials — never commit
+aws key/
+aws keys/
+*.pem

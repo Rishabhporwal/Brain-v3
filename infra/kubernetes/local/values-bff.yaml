@@ -1,0 +1,23 @@
+# Local (kind) values for the BFF via the brain-service base chart. Mirrors the prod values shape; the only
+# differences are the local image tag and pointing at in-cluster/compose data later. autoscaling off locally.
+name: api-gateway-bff
+image:
+  repository: brain-bff
+  tag: local
+  pullPolicy: IfNotPresent
+replicaCount: 1
+port: 4000
+autoscaling:
+  enabled: false
+env:
+  NODE_ENV: production
+  BRAIN_ENV: staging        # not 'production' → boot secret-guard + prod CORS-deny stay lenient locally
+  PORT: "4000"
+# readOnlyRootFilesystem off locally (the image may write tmp); on in prod values.
+securityContext:
+  runAsNonRoot: false
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities: { drop: ["ALL"] }
+serviceAccount:
+  create: true
