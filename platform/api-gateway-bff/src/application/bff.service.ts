@@ -22,7 +22,7 @@ interface BrandRow {
 function workspaceRole(name: string): 'OWNER' | 'ADMIN' | 'MANAGER' | 'ANALYST' | 'VIEWER' {
   const n = name.trim().toLowerCase()
   if (n === 'owner') return 'OWNER'
-  if (n === 'admin') return 'ADMIN'
+  if (n.includes('admin')) return 'ADMIN' // 'Admin' and 'Brand Admin'
   if (n.includes('manager')) return 'MANAGER'
   if (n.includes('analyst')) return 'ANALYST'
   return 'VIEWER'
