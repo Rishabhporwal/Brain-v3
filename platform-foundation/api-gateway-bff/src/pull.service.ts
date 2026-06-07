@@ -40,9 +40,42 @@ export class PullService {
       publish: (p, b, s, records) =>
         this.bus.emitPull({ provider: p, brandId: b, stream: s, records: records as Array<{ primaryKey?: string; data: unknown }> }),
     }
-    const results = await runConnectorSync(connector, brand.id, { cursors: this.cursorStore(), publish, accessToken })
-    this.log.log(`pull ${provider} for ${slug}: ${results.map((r) => `${r.stream}=${r.count}`).join(', ')}`)
-    return { provider, slug, results: results.map((r) => ({ stream: r.stream, count: r.count })) }
+    try {
+      const results = await runConnectorSync(connector, brand.id, { cursors: this.cursorStore(), publish, accessToken })
+      await this.recordHealth(provider, brand.id, { ok: true })
+      this.log.log(`pull ${provider} for ${slug}: ${results.map((r) => `${r.stream}=${r.count}`).join(', ')}`)
+      return { provider, slug, results: results.map((r) => ({ stream: r.stream, count: r.count })) }
+    } catch (e) {
+      await this.recordHealth(provider, brand.id, { ok: false, error: (e as Error).message })
+      throw e
+    }
+  }
+
+  // Connector health (integration.connector_health): completeness + whether stale/failed should withhold
+  // high-risk recommendations (Brain rule). Updated on every sync.
+  private async recordHealth(provider: string, brandId: string, status: { ok: boolean; error?: string }): Promise<void> {
+    const { rows } = await this.pg.query<{ id: string }>(
+      `SELECT id FROM integration.integrations WHERE brand_id=$1 AND provider=$2 LIMIT 1`,
+      [brandId, provider],
+    )
+    if (!rows[0]) return
+    const integrationId = rows[0].id
+    const completeness = status.ok ? 100 : 0
+    const errorType = status.ok ? null : (status.error ?? 'sync_failed').slice(0, 200)
+    const blocks = !status.ok
+    const upd = await this.pg.query(
+      `UPDATE integration.connector_health
+          SET completeness_score=$2, error_type=$3, blocks_recommendations=$4, updated_at=now()
+        WHERE integration_id=$1`,
+      [integrationId, completeness, errorType, blocks],
+    )
+    if (upd.rowCount === 0) {
+      await this.pg.query(
+        `INSERT INTO integration.connector_health(brand_id, integration_id, completeness_score, error_type, blocks_recommendations)
+         VALUES ($1,$2,$3,$4,$5)`,
+        [brandId, integrationId, completeness, errorType, blocks],
+      )
+    }
   }
 
   // Load the access token from the vault; refresh (and re-vault) if it's expiring and the connector supports it.

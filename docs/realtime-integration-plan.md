@@ -74,7 +74,13 @@ Meta 1 campaign on the pull topic, **cursor advanced** to today. 25 unit + 26 in
 **Deliverables:** `_kit/{sync-engine,rate-limiter,retry-engine,dlq,health}`, two connectors → `brain.integration.pull`.
 **Verification:** with real creds, one scheduled cycle lands spend rows on the pull topic; rate-limit headers respected.
 
-### P3 — Ad normalizers → ClickHouse + health
+### P3 — Ad normalizers → ClickHouse + health  ✅ DONE
+**Built + verified:** `brain.ad_spend` (ReplacingMergeTree) + Kafka-Engine consumer on `brain.integration.pull`
++ MV normalizing both providers into one shape (Google `cost_micros/1e4`, Meta `spend*100` → `spend_minor`).
+`PullService` records `integration.connector_health` on every sync (completeness 100 / blocks_recommendations
+false on success; 0 / true on failure — the stale-data-withholds-recs rule). **Verified e2e:** Google+Meta sync
+→ `brain.ad_spend` (₹1.25/₹8.40/₹4200.50, cross-provider aggregation); health row + cursor recorded.
+25 unit + 26 integration + e2e green.
 **Objective:** ad data queryable; integration health visible.
 - Consumer normalizes the pull topic → ClickHouse `fact_spend`/`ad_spend`.
 - Wire `integration.connector_health` (completeness, lag) + surface on Settings → Integrations.
