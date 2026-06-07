@@ -17,15 +17,20 @@ import { PgSeenStore } from '../persistence/seen-store'
 import { PullService } from '../application/pull.service'
 import { WebhookService } from '../application/webhook.service'
 import { IdentityService } from '../application/identity.service'
+import { MailService } from '../application/mail.service'
+import { InviteService } from '../application/invite.service'
+import { InviteController } from '../api/http/invite.controller'
 
 @Module({
-  controllers: [HealthController, BffController, OnboardingController, TrackController, IntegrationsController, WebhooksController],
+  controllers: [HealthController, BffController, OnboardingController, TrackController, IntegrationsController, WebhooksController, InviteController],
   providers: [
     ...dbProviders,
     vaultProvider,
     eventBusProvider,
     PgSeenStore,
     IdentityService,
+    MailService,
+    InviteService,
     BffService,
     OnboardingService,
     TrackService,
