@@ -47,17 +47,20 @@ ts_service() { # platform service pod phase summary  [context]
   local p="$platform/$service"
   svc_manifest "$p" "$service" "$pod" "$phase" "nestjs-ts" "$summary"
   case "$phase" in
-    P1|P2) # full DDD / hexagonal skeleton
-      note "$p/Dockerfile" "# multi-stage NestJS build — see tools/generators/service-templates/nestjs"
-      gk "$p/chart"; gk "$p/migrations"
-      for d in api/http api/grpc api/consumers \
+    P1|P2) # full DDD / Hexagonal / Clean / CQRS skeleton — canonical 8-folder src.
+           # See docs/nestjs-service-template.md + tools/templates/nestjs-service.
+      note "$p/Dockerfile" "# multi-stage NestJS build — see tools/templates/nestjs-service/Dockerfile"
+      gk "$p/chart"
+      for d in api/http api/consumers api/guards \
                application/commands application/queries application/ports application/dto \
                domain/model domain/events domain/services domain/errors \
-               infrastructure/persistence infrastructure/messaging infrastructure/clients infrastructure/config \
-               ; do gk "$p/src/$ctx/$d"; done
-      gk "$p/src/shared"
+               infrastructure/messaging infrastructure/clients infrastructure/secrets \
+               persistence/repositories persistence/entities persistence/migrations \
+               contracts/generated \
+               config \
+               ; do gk "$p/src/$d"; done
       for d in unit contract integration isolation e2e; do gk "$p/test/$d"; done
-      note "$p/src/main.ts" "// bootstrap: OTel, config validation, health probes, graceful shutdown"
+      note "$p/src/main.ts" "// composition root — bootstrap: OTel, config validation, health probes, graceful shutdown"
       ;;
     *) # reserved: dir + manifest + phase marker only
       gk "$p/src"
