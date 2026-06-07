@@ -1,1 +1,1 @@
-# buf codegen → TS (libs/contracts-ts) + Python (py-libs/contracts-py)
+# buf codegen → TS (shared/ts/contracts-ts) + Python (shared/python/contracts-py)

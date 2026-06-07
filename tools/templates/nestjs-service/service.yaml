@@ -1,0 +1,11 @@
+# Service manifest — copy + replace SERVICE_NAME/pod/phase. Machine-readable ownership.
+name: SERVICE_NAME
+owner_pod: OWNING_POD
+phase: P1
+language: nestjs-ts
+summary: >-
+  One-line purpose of this service.
+slos: { availability: "99.9%", latency_p99_ms: 250 }
+contracts: { consumes: [], produces: [] }
+data_owned: []          # tables/topics this service owns — no shared tables (Blueprint §2.14)
+on_call: OWNING_POD
