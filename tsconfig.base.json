@@ -15,6 +15,7 @@
     "baseUrl": ".",
     "paths": {
       "@brain/access-control": ["shared/ts/access-control/src"],
+      "@brain/access-control-nest": ["shared/ts/access-control-nest/src"],
       "@brain/tenancy": ["shared/ts/tenancy/src"],
       "@brain/auth": ["shared/ts/auth/src"],
       "@brain/authz": ["shared/ts/authz/src"],

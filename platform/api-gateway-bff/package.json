@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@brain/access-control": "workspace:*",
+    "@brain/access-control-nest": "workspace:*",
+    "@brain/observability": "workspace:*",
     "@brain/connector-kit": "workspace:*",
     "@brain/connector-shopify": "workspace:*",
     "@brain/connector-google-ads": "workspace:*",

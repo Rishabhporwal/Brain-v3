@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common'
+import { AccessControlModule } from '@brain/access-control-nest'
 import { dbProviders } from '../persistence/db.providers'
 import { BffService } from '../application/bff.service'
 import { BffController } from '../api/http/bff.controller'
@@ -16,19 +17,20 @@ import { eventBusProvider } from '../infrastructure/messaging/events'
 import { PgSeenStore } from '../persistence/seen-store'
 import { PullService } from '../application/pull.service'
 import { WebhookService } from '../application/webhook.service'
-import { IdentityService } from '../application/identity.service'
 import { MailService } from '../application/mail.service'
 import { InviteService } from '../application/invite.service'
 import { InviteController } from '../api/http/invite.controller'
 
 @Module({
+  // AccessControlModule provides (globally): PG_POOL, AccessControl, IdentityService, BrandContextGuard,
+  // PermissionGuard, and the fail-closed exception filter — the one-import access-control seam.
+  imports: [AccessControlModule.forRoot()],
   controllers: [HealthController, BffController, OnboardingController, TrackController, IntegrationsController, WebhooksController, InviteController],
   providers: [
     ...dbProviders,
     vaultProvider,
     eventBusProvider,
     PgSeenStore,
-    IdentityService,
     MailService,
     InviteService,
     BffService,
