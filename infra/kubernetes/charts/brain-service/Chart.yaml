@@ -1,0 +1,6 @@
+apiVersion: v2
+name: brain-service
+description: Base Helm chart for a Brain NestJS service (deployment + service + HPA + probes + security context).
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

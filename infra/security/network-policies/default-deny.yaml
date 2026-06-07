@@ -1,0 +1,26 @@
+# Default-deny baseline (audit: no network policies). Apply per service namespace, then add explicit
+# allow policies (DNS, intra-namespace, egress to RDS/MSK/ClickHouse/Redis). Zero-trust east-west.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: brain
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+# Allow DNS egress (required once default-deny is in place).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: brain
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }

@@ -1,0 +1,44 @@
+# Defaults for the brain-service base chart. Each service supplies a values-<svc>.yaml overriding name/image/env.
+name: api-gateway-bff
+image:
+  repository: ""   # e.g. <acct>.dkr.ecr.<region>.amazonaws.com/brain/api-gateway-bff
+  tag: ""          # set by CI (git sha); never "latest" in prod
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+port: 4000
+
+# Env: non-secret config inline; secrets come from a K8s Secret synced by External Secrets Operator from
+# AWS Secrets Manager (NEVER baked into the image or values). See secretRefs.
+env:
+  NODE_ENV: production
+  BRAIN_ENV: production
+secretRefs: []     # e.g. [{ name: bff-secrets }] → envFrom secretRef
+
+resources:
+  requests: { cpu: 100m, memory: 256Mi }
+  limits:   { cpu: "1",  memory: 512Mi }
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+# Health probes (every service exposes these per operational-readiness).
+probes:
+  liveness:  { path: /health, initialDelaySeconds: 10, periodSeconds: 10 }
+  readiness: { path: /health, initialDelaySeconds: 5,  periodSeconds: 10 }
+
+# Pod hardening (maps to the restricted Pod Security Standard).
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities: { drop: ["ALL"] }
+
+serviceAccount:
+  create: true
+  # IRSA: bind to an AWS IAM role for least-privilege cloud access.
+  annotations: {}   # eks.amazonaws.com/role-arn: arn:aws:iam::<acct>:role/brain-<svc>
