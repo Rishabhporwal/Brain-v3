@@ -13,8 +13,8 @@ export class BffController {
   }
 
   @Get('api/workspaces/:slug/context')
-  context(@Param('slug') slug: string) {
-    return this.svc.context(slug)
+  context(@Req() req: { user: AuthUser }, @Param('slug') slug: string) {
+    return this.svc.context(req.user, slug)
   }
 
   @Get('api/workspaces/:slug/festivals')
