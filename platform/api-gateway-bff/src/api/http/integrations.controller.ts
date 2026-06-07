@@ -1,9 +1,9 @@
 import { BadRequestException, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common'
-import { KeycloakGuard } from './keycloak.guard'
-import { ShopifyService } from './shopify.service'
-import { OAuthService } from './oauth.service'
-import { PullService } from './pull.service'
-import type { AuthUser } from './bff.service'
+import { KeycloakGuard } from '../guards/keycloak.guard'
+import { ShopifyService } from '../../application/shopify.service'
+import { OAuthService } from '../../application/oauth.service'
+import { PullService } from '../../application/pull.service'
+import type { AuthUser } from '../../application/bff.service'
 
 /**
  * One OAuth surface for every provider. `connect` is guarded (the authenticated wizard asks for the

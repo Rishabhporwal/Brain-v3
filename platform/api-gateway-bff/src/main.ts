@@ -2,7 +2,7 @@ import 'reflect-metadata'
 import { config as loadEnv } from 'dotenv'
 loadEnv() // load .env (local dev: real OAuth creds); container env still wins where set explicitly
 import { NestFactory } from '@nestjs/core'
-import { AppModule } from './app.module'
+import { AppModule } from './config/app.module'
 
 async function bootstrap() {
   // rawBody: keep the exact request bytes so inbound webhooks (Shopify HMAC) can be verified.

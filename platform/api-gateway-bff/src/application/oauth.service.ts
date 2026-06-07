@@ -1,9 +1,9 @@
 import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common'
 import { Pool } from 'pg'
-import { PG_POOL } from './db.providers'
-import { VAULT, type Vault } from './vault'
-import { EVENT_BUS, type EventBus } from './events'
-import { safeReturnTo, signOAuthState, verifyOAuthState } from './oauth-state'
+import { PG_POOL } from '../persistence/db.providers'
+import { VAULT, type Vault } from '../infrastructure/secrets/vault'
+import { EVENT_BUS, type EventBus } from '../infrastructure/messaging/events'
+import { safeReturnTo, signOAuthState, verifyOAuthState } from '../infrastructure/auth/oauth-state'
 import type { AuthUser } from './bff.service'
 
 /** Normalised token bundle stored (encrypted) in the vault. */

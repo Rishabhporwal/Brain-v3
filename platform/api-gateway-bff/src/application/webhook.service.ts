@@ -4,9 +4,9 @@ import type { ConnectorHooks, WebhookContext } from '@brain/connector-kit'
 import { shopify } from '@brain/connector-shopify'
 import { woocommerce } from '@brain/connector-woocommerce'
 import { razorpay } from '@brain/connector-razorpay'
-import { PG_POOL } from './db.providers'
-import { EVENT_BUS, type EventBus } from './events'
-import { PgSeenStore } from './seen-store'
+import { PG_POOL } from '../persistence/db.providers'
+import { EVENT_BUS, type EventBus } from '../infrastructure/messaging/events'
+import { PgSeenStore } from '../persistence/seen-store'
 
 /** Push connectors, keyed by provider. Adding a webhook provider = drop its hooks object in here. */
 const PUSH_CONNECTORS: Record<string, ConnectorHooks> = { shopify, woocommerce, razorpay }

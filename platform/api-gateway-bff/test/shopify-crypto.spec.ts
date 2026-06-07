@@ -1,6 +1,6 @@
 import { createHmac } from 'node:crypto'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { ShopifyService } from '../src/shopify.service'
+import { ShopifyService } from '../src/application/shopify.service'
 
 /**
  * M6 — security-critical, DB-free coverage for the Shopify OAuth crypto: signed-state CSRF defence and

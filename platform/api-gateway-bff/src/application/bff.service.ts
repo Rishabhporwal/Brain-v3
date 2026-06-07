@@ -1,7 +1,7 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common'
 import { Pool } from 'pg'
 import type { ClickHouseClient } from '@clickhouse/client'
-import { CH_CLIENT, PG_POOL } from './db.providers'
+import { CH_CLIENT, PG_POOL } from '../persistence/db.providers'
 
 export interface AuthUser {
   sub: string

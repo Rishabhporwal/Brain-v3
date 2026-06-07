@@ -1,11 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { Pool } from 'pg'
 import { createClient, type ClickHouseClient } from '@clickhouse/client'
-import { OnboardingService } from '../src/onboarding.service'
-import { TrackService } from '../src/track.service'
-import { ShopifyService } from '../src/shopify.service'
-import type { EventBus } from '../src/events'
-import type { AuthUser } from '../src/bff.service'
+import { OnboardingService } from '../src/application/onboarding.service'
+import { TrackService } from '../src/application/track.service'
+import { ShopifyService } from '../src/application/shopify.service'
+import type { EventBus } from '../src/infrastructure/messaging/events'
+import type { AuthUser } from '../src/application/bff.service'
 
 /**
  * M6 — integration coverage: the full provisioning → active sequence against the real local stack

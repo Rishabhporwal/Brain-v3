@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { evaluateGate } from '../src/gate'
+import { evaluateGate } from '../src/domain/gate'
 
 // M6 — unit coverage for the M2 activation gate (hard vs soft criteria).
 describe('evaluateGate', () => {

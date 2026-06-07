@@ -1,6 +1,6 @@
 import { Controller, Headers, Param, Post, RawBodyRequest, Req, Res } from '@nestjs/common'
 import type { Request, Response } from 'express'
-import { WebhookService } from './webhook.service'
+import { WebhookService } from '../../application/webhook.service'
 
 /**
  * Inbound provider webhooks (real-time data ingest). Public — authenticated by the provider's HMAC over

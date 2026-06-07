@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { signOAuthState, verifyOAuthState } from '../src/oauth-state'
+import { signOAuthState, verifyOAuthState } from '../src/infrastructure/auth/oauth-state'
 
 // Shared signed-state CSRF helper used by Google/Meta (and conceptually mirrors Shopify's).
 const SECRET = 'state-secret'

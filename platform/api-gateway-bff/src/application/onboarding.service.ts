@@ -2,9 +2,9 @@ import { BadRequestException, ConflictException, Inject, Injectable, NotFoundExc
 import { randomBytes } from 'node:crypto'
 import { Pool } from 'pg'
 import type { ClickHouseClient } from '@clickhouse/client'
-import { CH_CLIENT, PG_POOL } from './db.providers'
-import { EVENT_BUS, type EventBus } from './events'
-import { VAULT, type Vault } from './vault'
+import { CH_CLIENT, PG_POOL } from '../persistence/db.providers'
+import { EVENT_BUS, type EventBus } from '../infrastructure/messaging/events'
+import { VAULT, type Vault } from '../infrastructure/secrets/vault'
 import { ShopifyService } from './shopify.service'
 import type { AuthUser } from './bff.service'
 

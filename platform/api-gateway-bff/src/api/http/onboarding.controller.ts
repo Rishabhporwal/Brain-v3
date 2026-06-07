@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common'
-import { KeycloakGuard } from './keycloak.guard'
-import { OnboardingService } from './onboarding.service'
-import type { AuthUser } from './bff.service'
+import { KeycloakGuard } from '../guards/keycloak.guard'
+import { OnboardingService } from '../../application/onboarding.service'
+import type { AuthUser } from '../../application/bff.service'
 
 @Controller()
 @UseGuards(KeycloakGuard)

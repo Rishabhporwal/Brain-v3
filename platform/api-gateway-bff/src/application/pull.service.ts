@@ -3,9 +3,9 @@ import { Pool } from 'pg'
 import { type ConnectorHooks, type CursorStore, type PullPublisher, type TokenSet, runConnectorSync } from '@brain/connector-kit'
 import { googleAds } from '@brain/connector-google-ads'
 import { metaAds } from '@brain/connector-meta-ads'
-import { PG_POOL } from './db.providers'
-import { VAULT, type Vault } from './vault'
-import { EVENT_BUS, type EventBus } from './events'
+import { PG_POOL } from '../persistence/db.providers'
+import { VAULT, type Vault } from '../infrastructure/secrets/vault'
+import { EVENT_BUS, type EventBus } from '../infrastructure/messaging/events'
 
 /** Pull-lane connectors, keyed by the connect-layer provider id (matches integration.* + vault refs). */
 const CONNECTORS: Record<string, ConnectorHooks> = {

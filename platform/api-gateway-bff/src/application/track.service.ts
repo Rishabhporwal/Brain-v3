@@ -2,7 +2,7 @@ import { BadRequestException, Inject, Injectable, UnauthorizedException } from '
 import { randomUUID } from 'node:crypto'
 import { Pool } from 'pg'
 import type { ClickHouseClient } from '@clickhouse/client'
-import { CH_CLIENT, PG_POOL } from './db.providers'
+import { CH_CLIENT, PG_POOL } from '../persistence/db.providers'
 
 /**
  * First-party event ingest (M1). Authenticated by the **write-key** the SDK was issued in step 4 —

@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { vaultProvider, type Vault } from '../src/vault'
+import { vaultProvider, type Vault } from '../src/infrastructure/secrets/vault'
 
 // M6 — the dev vault must encrypt at rest (no plaintext on disk) and round-trip correctly.
 const PATH = '/tmp/brain-vault-spec.json'

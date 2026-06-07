@@ -1,5 +1,5 @@
 import { Body, Controller, Headers, HttpCode, Post } from '@nestjs/common'
-import { TrackService } from './track.service'
+import { TrackService } from '../../application/track.service'
 
 /**
  * Public ingest endpoint — intentionally NOT behind the Keycloak guard. Auth is the write-key.
