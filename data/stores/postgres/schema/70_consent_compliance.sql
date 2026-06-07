@@ -88,6 +88,6 @@ ALTER TABLE consent.retention_policies ENABLE ROW LEVEL SECURITY;
 ALTER TABLE consent.retention_policies FORCE  ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS brand_isolation ON consent.retention_policies;
 CREATE POLICY brand_isolation ON consent.retention_policies
-  USING      (brand_id IS NULL OR brand_id = current_setting('app.current_brand', true)::uuid)
-  WITH CHECK (brand_id IS NULL OR brand_id = current_setting('app.current_brand', true)::uuid);
+  USING      (brand_id IS NULL OR brand_id = NULLIF(current_setting('app.current_brand', true), '')::uuid)
+  WITH CHECK (brand_id IS NULL OR brand_id = NULLIF(current_setting('app.current_brand', true), '')::uuid);
 SELECT brain_meta.register('consent','retention_policies',1,'governance','aurora');

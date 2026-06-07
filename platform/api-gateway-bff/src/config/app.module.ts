@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common'
+import { APP_GUARD } from '@nestjs/core'
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
+import { AccessControlModule } from '@brain/access-control-nest'
 import { dbProviders } from '../persistence/db.providers'
 import { BffService } from '../application/bff.service'
 import { BffController } from '../api/http/bff.controller'
@@ -16,19 +19,26 @@ import { eventBusProvider } from '../infrastructure/messaging/events'
 import { PgSeenStore } from '../persistence/seen-store'
 import { PullService } from '../application/pull.service'
 import { WebhookService } from '../application/webhook.service'
-import { IdentityService } from '../application/identity.service'
 import { MailService } from '../application/mail.service'
 import { InviteService } from '../application/invite.service'
 import { InviteController } from '../api/http/invite.controller'
 
 @Module({
+  // AccessControlModule provides (globally): PG_POOL, AccessControl, IdentityService, BrandContextGuard,
+  // PermissionGuard, and the fail-closed exception filter — the one-import access-control seam.
+  // ThrottlerModule: a baseline per-IP DoS backstop (audit: BFF had no rate limiting). Generous global
+  // default; tighten per-route later (stricter on auth/refund, looser/exempt on /track + webhooks).
+  imports: [
+    AccessControlModule.forRoot(),
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: Number(process.env.RATE_LIMIT_PER_MIN ?? 600) }]),
+  ],
   controllers: [HealthController, BffController, OnboardingController, TrackController, IntegrationsController, WebhooksController, InviteController],
   providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     ...dbProviders,
     vaultProvider,
     eventBusProvider,
     PgSeenStore,
-    IdentityService,
     MailService,
     InviteService,
     BffService,

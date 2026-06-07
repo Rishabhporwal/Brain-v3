@@ -165,8 +165,14 @@ platform/api-gateway-bff/test/isolation/       # Layer-4 release gate + invite l
 ```
 
 ## 7. Known follow-ups
-- Org `Owner` is currently created as a brand-scoped membership; for multi-brand orgs, create it **org-level**
-  (`brand_id NULL`) so one Owner row reaches every brand (`resolveBrandContext` already supports both).
-- Structured request logging with `brand_id`/trace IDs (Layer-5 of propagation).
-- MFA privileged-role → Keycloak group sync.
-- Adopt `@brain/access-control` in the standalone `platform/*` service stubs as they are built out.
+- **MFA privileged-role → Keycloak group sync** — realm is MFA-ready; auto-enforcing OTP for Owners needs a
+  conditional subflow keyed on a `privileged` realm role + role sync. (Open.)
+
+Resolved:
+- ✅ Org `Owner` is now an **org-level** membership (`brand_id NULL`) created at onboarding — one row reaches
+  every brand in the org (`resolveBrandContext` + `listMembers` handle org-level rows).
+- ✅ **Structured request logging** — `@brain/observability` JSON logger + a BFF interceptor emit one line per
+  request with `traceId` + `brand_id` (PII-safe: opaque `userId`, no email).
+- ✅ **Adoption layer** — `@brain/access-control-nest` `AccessControlModule.forRoot()` is the one-import seam
+  (PG pool, `AccessControl`, `IdentityService`, `BrandContextGuard`, `PermissionGuard`, fail-closed filter);
+  the BFF consumes it, and the `platform/*` service stubs mandate it in their READMEs.

@@ -98,9 +98,12 @@ export class OnboardingService {
       )
       brandId = brand.rows[0].id
       const role = await client.query<{ id: string }>(`SELECT id FROM platform.roles WHERE scope='org' AND name='Owner' LIMIT 1`)
+      // Owner is an ORG-LEVEL membership (brand_id NULL): one row grants the registrant Owner access to
+      // EVERY brand in the org (resolveBrandContext reaches brands via org-level memberships). New brands
+      // in the same org need no extra Owner row.
       await client.query(
-        `INSERT INTO platform.memberships(user_id,organization_id,brand_id,role_id,state) VALUES ($1,$2,$3,$4,'active')`,
-        [uid, orgId, brandId, role.rows[0].id],
+        `INSERT INTO platform.memberships(user_id,organization_id,brand_id,role_id,state) VALUES ($1,$2,NULL,$3,'active')`,
+        [uid, orgId, role.rows[0].id],
       )
       await client.query('COMMIT')
     } catch (e) {

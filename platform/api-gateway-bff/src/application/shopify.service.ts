@@ -5,6 +5,7 @@ import { PG_POOL } from '../persistence/db.providers'
 import { VAULT, type Vault } from '../infrastructure/secrets/vault'
 import { EVENT_BUS, type EventBus } from '../infrastructure/messaging/events'
 import { safeReturnTo } from '../infrastructure/auth/oauth-state'
+import { signingSecret } from '../config/secrets'
 import { SHOPIFY_WEBHOOK_TOPICS, verifyShopifyWebhook } from '@brain/connector-shopify'
 import type { AuthUser } from './bff.service'
 
@@ -56,14 +57,14 @@ export class ShopifyService {
     const body = Buffer.from(
       JSON.stringify({ ...payload, nonce: randomBytes(8).toString('hex') }),
     ).toString('base64url')
-    const sig = createHmac('sha256', this.clientSecret ?? 'dev').update(body).digest('base64url')
+    const sig = createHmac('sha256', signingSecret(this.clientSecret, 'SHOPIFY_CLIENT_SECRET')).update(body).digest('base64url')
     return `${body}.${sig}`
   }
 
   verifyState(state: string): { brandId: string; shop: string; exp: number } {
     const [body, sig] = state.split('.')
     if (!body || !sig) throw new BadRequestException('malformed state')
-    const expected = createHmac('sha256', this.clientSecret ?? 'dev').update(body).digest('base64url')
+    const expected = createHmac('sha256', signingSecret(this.clientSecret, 'SHOPIFY_CLIENT_SECRET')).update(body).digest('base64url')
     if (!this.safeEqual(sig, expected)) throw new BadRequestException('bad state signature')
     const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8')) as {
       brandId: string
@@ -83,7 +84,7 @@ export class ShopifyService {
       .sort()
       .map((k) => `${k}=${rest[k]}`)
       .join('&')
-    const digest = createHmac('sha256', this.clientSecret ?? 'dev').update(message).digest('hex')
+    const digest = createHmac('sha256', signingSecret(this.clientSecret, 'SHOPIFY_CLIENT_SECRET')).update(message).digest('hex')
     return this.safeEqual(digest, hmac)
   }
 
@@ -233,7 +234,7 @@ export class ShopifyService {
 
   /** Verify a Shopify webhook signature — delegated to the connector (which composes @brain/connector-kit). */
   verifyWebhookHmac(rawBody: Buffer, header?: string): boolean {
-    return verifyShopifyWebhook(rawBody, header, this.clientSecret ?? 'dev')
+    return verifyShopifyWebhook(rawBody, header, signingSecret(this.clientSecret, 'SHOPIFY_CLIENT_SECRET'))
   }
 
   // (Inbound webhook handling moved to the generic WebhookService, driven by the Shopify connector hooks.)

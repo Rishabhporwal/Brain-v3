@@ -82,8 +82,8 @@ ALTER TABLE identity.identity_resolution_rules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE identity.identity_resolution_rules FORCE  ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS brand_isolation ON identity.identity_resolution_rules;
 CREATE POLICY brand_isolation ON identity.identity_resolution_rules
-  USING      (brand_id IS NULL OR brand_id = current_setting('app.current_brand', true)::uuid)
-  WITH CHECK (brand_id IS NULL OR brand_id = current_setting('app.current_brand', true)::uuid);
+  USING      (brand_id IS NULL OR brand_id = NULLIF(current_setting('app.current_brand', true), '')::uuid)
+  WITH CHECK (brand_id IS NULL OR brand_id = NULLIF(current_setting('app.current_brand', true), '')::uuid);
 SELECT brain_meta.register('identity','identity_resolution_rules',1,'customer-identity','aurora');
 
 -- identity_resolution_jobs — auditable resolution runs (stream + historical backfill).
