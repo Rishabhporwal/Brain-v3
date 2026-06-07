@@ -100,6 +100,8 @@ export interface ConnectorHooks {
   registerWebhooks?(account: string, accessToken: string): Promise<{ registered: number; errors: string[] }>
 
   // --- pull (polling) ---
+  /** Refresh an access token (OAuth refresh-token grant) — called by the scheduler before pull if expiring. */
+  refresh?(token: TokenSet): Promise<TokenSet>
   /** Pull one stream from a cursor; return records + the next cursor. */
   pull?(stream: string, cursor: string | undefined, accessToken: string): Promise<PullResult>
 }

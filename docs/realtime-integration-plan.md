@@ -58,7 +58,14 @@ Kafka → `brain.orders` (₹3499/paid/customer, tz-correct); `orders/updated` c
 **Deliverables:** dedup in `_kit/webhook-engine`; ClickHouse `orders` model + MV; (opt) backfill job.
 **Verification:** simulated + (tunnel) real webhook → row in ClickHouse; duplicate delivery → one row; counts match.
 
-### P2 — Polling lane (`_kit/sync-engine`) for Google + Meta
+### P2 — Polling lane (`_kit/sync-engine`) for Google + Meta  ✅ DONE
+**Built + verified:** `_kit` gained `sync-engine` (cursor-driven `runStreamSync`/`runConnectorSync`),
+`rate-limiter` (TokenBucket), `retry` (backoff + circuit breaker) — 9 kit unit tests. `@brain/connector-google-ads`
+(GAQL SearchStream + OAuth refresh) + `@brain/connector-meta-ads` (async Insights submit→poll→fetch). BFF
+`PullService` loads the vaulted token (refresh-on-expiry → `refresh_failed_at` on failure), drives the connector
+through the sync-engine (cursor in `integration.sync_state`), publishes to **`brain.integration.pull`**. Guarded
+trigger `POST …/integrations/:provider/sync`. **Verified e2e (mocks):** connect → sync → Google 2 campaigns +
+Meta 1 campaign on the pull topic, **cursor advanced** to today. 25 unit + 26 integration + e2e green.
 **Objective:** ad spend/ROAS pulled on a schedule into Kafka.
 - `_kit/sync-engine` (scheduler, per-brand cursor in `integration.sync_state`, rate-limiter, retry/circuit-breaker).
 - `connectors/google-ads`: `pull()` via **SearchStream** (GAQL daily campaign stats) + incremental via ChangeStatus.

@@ -27,7 +27,7 @@ describe.skipIf(!RUN)('onboarding provisioning → active (integration)', () => 
   beforeAll(() => {
     pg = new Pool({ connectionString: process.env.PG_URL ?? 'postgres://brain:brain@localhost:5440/brain' })
     ch = createClient({ url: process.env.CH_URL ?? 'http://localhost:8125', username: 'default', password: '' })
-    const noopBus: EventBus = { emit() {}, emitWebhook() {} }
+    const noopBus: EventBus = { emit() {}, emitWebhook() {}, emitPull() {} }
     const noopVault = { put: async () => {}, get: async () => null }
     const shopify = new ShopifyService(pg, noopVault, noopBus, new PgSeenStore(pg))
     onboarding = new OnboardingService(pg, ch, noopBus, noopVault, shopify)

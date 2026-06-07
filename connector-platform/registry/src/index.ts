@@ -1,5 +1,7 @@
 import type { ConnectorManifest } from '@brain/connector-kit'
 import { SHOPIFY_MANIFEST } from '@brain/connector-shopify'
+import { GOOGLE_ADS_MANIFEST } from '@brain/connector-google-ads'
+import { META_ADS_MANIFEST } from '@brain/connector-meta-ads'
 
 /**
  * The connector catalog. Today: the manifests that are implemented; the rest are declared so the connect
@@ -12,8 +14,8 @@ type CatalogEntry =
 
 export const CONNECTOR_CATALOG: CatalogEntry[] = [
   { status: 'live', manifest: SHOPIFY_MANIFEST },
-  { status: 'planned', provider: 'google-ads', category: 'ads', auth: 'oauth2', ingest: ['pull'], tier: 1 },
-  { status: 'planned', provider: 'meta-ads', category: 'ads', auth: 'oauth2', ingest: ['pull'], tier: 1 },
+  { status: 'live', manifest: GOOGLE_ADS_MANIFEST },
+  { status: 'live', manifest: META_ADS_MANIFEST },
   { status: 'planned', provider: 'woocommerce', category: 'storefront', auth: 'basic', ingest: ['push'], tier: 1 },
   { status: 'planned', provider: 'stripe', category: 'payments', auth: 'apikey', ingest: ['push'], tier: 2 },
   { status: 'planned', provider: 'razorpay', category: 'payments', auth: 'apikey', ingest: ['push'], tier: 2 },

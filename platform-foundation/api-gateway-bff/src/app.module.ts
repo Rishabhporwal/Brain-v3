@@ -14,6 +14,7 @@ import { WebhooksController } from './webhooks.controller'
 import { vaultProvider } from './vault'
 import { eventBusProvider } from './events'
 import { PgSeenStore } from './seen-store'
+import { PullService } from './pull.service'
 
 @Module({
   controllers: [HealthController, BffController, OnboardingController, TrackController, IntegrationsController, WebhooksController],
@@ -27,6 +28,7 @@ import { PgSeenStore } from './seen-store'
     TrackService,
     ShopifyService,
     OAuthService,
+    PullService,
   ],
 })
 export class AppModule {}

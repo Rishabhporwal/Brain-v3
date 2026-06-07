@@ -9,7 +9,7 @@ import { ShopifyService } from '../src/shopify.service'
 const SECRET = 'test-client-secret'
 
 function makeService(): ShopifyService {
-  return new ShopifyService({} as never, {} as never, { emit() {}, emitWebhook() {} })
+  return new ShopifyService({} as never, {} as never, { emit() {}, emitWebhook() {}, emitPull() {} })
 }
 
 describe('ShopifyService crypto', () => {
