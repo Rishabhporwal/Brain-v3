@@ -38,8 +38,8 @@ ALTER TABLE event_platform.event_replay_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE event_platform.event_replay_requests FORCE  ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS brand_isolation ON event_platform.event_replay_requests;
 CREATE POLICY brand_isolation ON event_platform.event_replay_requests
-  USING      (brand_id IS NULL OR brand_id = current_setting('app.current_brand', true)::uuid)
-  WITH CHECK (brand_id IS NULL OR brand_id = current_setting('app.current_brand', true)::uuid);
+  USING      (brand_id IS NULL OR brand_id = NULLIF(current_setting('app.current_brand', true), '')::uuid)
+  WITH CHECK (brand_id IS NULL OR brand_id = NULLIF(current_setting('app.current_brand', true), '')::uuid);
 SELECT brain_meta.register('event_platform','event_replay_requests',2,'data-platform','aurora');
 
 -- §19 event_replay_history — APPEND-ONLY; every rebuild pinned to its Iceberg snapshot (reproducible).
@@ -58,6 +58,6 @@ ALTER TABLE event_platform.event_replay_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE event_platform.event_replay_history FORCE  ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS brand_isolation ON event_platform.event_replay_history;
 CREATE POLICY brand_isolation ON event_platform.event_replay_history
-  USING      (brand_id IS NULL OR brand_id = current_setting('app.current_brand', true)::uuid)
-  WITH CHECK (brand_id IS NULL OR brand_id = current_setting('app.current_brand', true)::uuid);
+  USING      (brand_id IS NULL OR brand_id = NULLIF(current_setting('app.current_brand', true), '')::uuid)
+  WITH CHECK (brand_id IS NULL OR brand_id = NULLIF(current_setting('app.current_brand', true), '')::uuid);
 SELECT brain_meta.register('event_platform','event_replay_history',2,'data-platform','aurora');

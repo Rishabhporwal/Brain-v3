@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-06-07T22:12:00Z",
+  "updated_by": "orchestrator",
+  "active_requirements": [
+    {
+      "req_id": "spike-production-readiness-audit",
+      "title": "Comprehensive Engineering OS Audit & Production Readiness Review",
+      "status": "closed",
+      "stage": 8,
+      "current_owner": "\u2014",
+      "lane": "high_stakes",
+      "run_dir": ".engineering-os/runs/2026-06-07T21-36-09Z__c7d5e6__spike-production-readiness-audit__rishabhporwal",
+      "submitted_by": "rishabhporwal",
+      "submitted_at": "2026-06-07T21:36:09Z",
+      "verdict": "NO-GO (production); foundation strong",
+      "overall_score": 40,
+      "deploy": "n/a (audit spike \u2014 no code artifact)",
+      "outcome": "audit accepted; deploy N/A (spike, no code); VETO gate fail-closed (no review PASS artifacts)"
+    },
+    {
+      "req_id": "fix-p0-audit-quickwins",
+      "title": "P0 audit quick-wins (CH RLS, NULLIF, secrets fail-closed, CORS+rate-limit)",
+      "status": "awaiting-stakeholder",
+      "stage": 7,
+      "current_owner": "stakeholder",
+      "lane": "high_stakes",
+      "run_dir": ".engineering-os/runs/2026-06-07T22-10-00Z__a7a05b__fix-p0-audit-quickwins__rishabhporwal",
+      "submitted_by": "rishabhporwal",
+      "submitted_at": "2026-06-07T22:10:00Z",
+      "parent": "spike-production-readiness-audit",
+      "reviews": "security PASS (1 bounce), qa PASS, final PASS"
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import { razorpay } from '@brain/connector-razorpay'
 import { PG_POOL } from '../persistence/db.providers'
 import { EVENT_BUS, type EventBus } from '../infrastructure/messaging/events'
 import { PgSeenStore } from '../persistence/seen-store'
+import { signingSecret } from '../config/secrets'
 
 /** Push connectors, keyed by provider. Adding a webhook provider = drop its hooks object in here. */
 const PUSH_CONNECTORS: Record<string, ConnectorHooks> = { shopify, woocommerce, razorpay }
@@ -59,16 +60,18 @@ export class WebhookService {
   private async resolve(provider: string, ctx: WebhookContext, brandIdPath?: string): Promise<{ brandId: string | null; secret: string }> {
     if (provider === 'shopify') {
       const shop = (ctx.headers['x-shopify-shop-domain'] ?? '').toLowerCase().replace(/^https?:\/\//, '').split('/')[0]
-      return { brandId: await this.brandByStore(shop), secret: process.env.SHOPIFY_CLIENT_SECRET ?? 'dev' }
+      return { brandId: await this.brandByStore(shop), secret: signingSecret(process.env.SHOPIFY_CLIENT_SECRET, 'SHOPIFY_CLIENT_SECRET') }
     }
     if (provider === 'woocommerce') {
       const source = (ctx.headers['x-wc-webhook-source'] ?? '').replace(/\/+$/, '')
-      return { brandId: await this.brandByStore(source), secret: process.env.WOOCOMMERCE_WEBHOOK_SECRET ?? 'dev' }
+      return { brandId: await this.brandByStore(source), secret: signingSecret(process.env.WOOCOMMERCE_WEBHOOK_SECRET, 'WOOCOMMERCE_WEBHOOK_SECRET') }
     }
     if (provider === 'razorpay') {
-      return { brandId: brandIdPath ?? null, secret: process.env.RAZORPAY_WEBHOOK_SECRET ?? 'dev' }
+      return { brandId: brandIdPath ?? null, secret: signingSecret(process.env.RAZORPAY_WEBHOOK_SECRET, 'RAZORPAY_WEBHOOK_SECRET') }
     }
-    return { brandId: brandIdPath ?? null, secret: 'dev' }
+    // Unreachable today (handle() 404s unknown providers), but defense-in-depth: never hand back a known
+    // key. signingSecret(undefined, …) throws in prod and is an unguessable ephemeral in dev.
+    return { brandId: brandIdPath ?? null, secret: signingSecret(undefined, `${provider}_WEBHOOK_SECRET`) }
   }
 
   private async brandByStore(store: string): Promise<string | null> {

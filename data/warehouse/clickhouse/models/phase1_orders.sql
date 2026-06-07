@@ -83,3 +83,8 @@ SELECT
   parseDateTime64BestEffortOrZero(JSONExtractString(JSONExtractRaw(raw, 'payload'), 'created_at'), 3) AS created_at
 FROM brain.kafka_integration_webhooks
 WHERE JSONExtractString(raw, 'stream') = 'payments';
+
+-- §1.5 tenant isolation — brand row policies on the LIVE integration tables (fed by the Kafka MVs).
+-- Mirrors phase1.sql; without these, isolation rested only on the query gateway (audit P0).
+CREATE ROW POLICY IF NOT EXISTS brand_isolation ON brain.orders   USING brand_id = toUUID(getSetting('brain_current_brand')) TO ALL;
+CREATE ROW POLICY IF NOT EXISTS brand_isolation ON brain.payments USING brand_id = toUUID(getSetting('brain_current_brand')) TO ALL;

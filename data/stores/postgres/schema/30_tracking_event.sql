@@ -40,8 +40,8 @@ ALTER TABLE event_platform.event_metadata ENABLE ROW LEVEL SECURITY;
 ALTER TABLE event_platform.event_metadata FORCE  ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS brand_isolation ON event_platform.event_metadata;
 CREATE POLICY brand_isolation ON event_platform.event_metadata
-  USING      (brand_id IS NULL OR brand_id = current_setting('app.current_brand', true)::uuid)
-  WITH CHECK (brand_id IS NULL OR brand_id = current_setting('app.current_brand', true)::uuid);
+  USING      (brand_id IS NULL OR brand_id = NULLIF(current_setting('app.current_brand', true), '')::uuid)
+  WITH CHECK (brand_id IS NULL OR brand_id = NULLIF(current_setting('app.current_brand', true), '')::uuid);
 SELECT brain_meta.register('event_platform','event_metadata',1,'tracking','aurora');
 
 -- §19.1 event_schema_versions — GLOBAL reference; mirrors the Kafka Schema Registry. No brand_id, no RLS.
@@ -102,6 +102,6 @@ ALTER TABLE event_platform.event_dead_letter_queue ENABLE ROW LEVEL SECURITY;
 ALTER TABLE event_platform.event_dead_letter_queue FORCE  ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS brand_isolation ON event_platform.event_dead_letter_queue;
 CREATE POLICY brand_isolation ON event_platform.event_dead_letter_queue
-  USING      (brand_id IS NULL OR brand_id = current_setting('app.current_brand', true)::uuid)
-  WITH CHECK (brand_id IS NULL OR brand_id = current_setting('app.current_brand', true)::uuid);
+  USING      (brand_id IS NULL OR brand_id = NULLIF(current_setting('app.current_brand', true), '')::uuid)
+  WITH CHECK (brand_id IS NULL OR brand_id = NULLIF(current_setting('app.current_brand', true), '')::uuid);
 SELECT brain_meta.register('event_platform','event_dead_letter_queue',1,'event-ingestion','aurora');

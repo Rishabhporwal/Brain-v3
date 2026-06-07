@@ -53,3 +53,6 @@ SELECT
   parseDateTime64BestEffortOrZero(JSONExtractString(raw, 'pulled_at'), 3)                   AS pulled_at
 FROM brain.kafka_integration_pull
 WHERE JSONExtractString(raw, 'stream') = 'ad_spend';
+
+-- §1.5 tenant isolation — brand row policy on the LIVE ad_spend table (fed by the Kafka MV).
+CREATE ROW POLICY IF NOT EXISTS brand_isolation ON brain.ad_spend USING brand_id = toUUID(getSetting('brain_current_brand')) TO ALL;

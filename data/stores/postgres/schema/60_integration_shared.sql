@@ -115,6 +115,6 @@ ALTER TABLE shared.notification_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shared.notification_log FORCE  ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS brand_isolation ON shared.notification_log;
 CREATE POLICY brand_isolation ON shared.notification_log
-  USING      (brand_id IS NULL OR brand_id = current_setting('app.current_brand', true)::uuid)
-  WITH CHECK (brand_id IS NULL OR brand_id = current_setting('app.current_brand', true)::uuid);
+  USING      (brand_id IS NULL OR brand_id = NULLIF(current_setting('app.current_brand', true), '')::uuid)
+  WITH CHECK (brand_id IS NULL OR brand_id = NULLIF(current_setting('app.current_brand', true), '')::uuid);
 SELECT brain_meta.register('shared','notification_log',1,'notification','aurora');

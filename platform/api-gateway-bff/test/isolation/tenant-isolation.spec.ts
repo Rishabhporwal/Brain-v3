@@ -135,4 +135,18 @@ describe.skipIf(!RUN)('four-layer tenant isolation (fail closed)', () => {
     expect(() => assertBrandOwnership([{ brand_id: B.brandId }], A.brandId)).toThrow(CrossTenantViolationError)
     expect(assertBrandOwnership([{ brand_id: A.brandId }], A.brandId)).toHaveLength(1)
   })
+
+  // Regression: nullable-brand RLS policies (event_metadata, dlq, identity rules, consent sources, …) must
+  // FAIL CLOSED (0 rows), not throw, when the app.current_brand GUC is unset/empty on a pooled connection.
+  // Before the NULLIF(... ,'') fix these `current_setting(...)::uuid` policies raised "invalid input for uuid".
+  it('NULLIF RLS: nullable-brand tables resolve (0+ rows), never error, with no brand context', async () => {
+    const n = await withControlPlane(pg, async (c) => {
+      await c.query('BEGIN')
+      await c.query('SET LOCAL ROLE brain_app') // RLS-subject role, NO app.current_brand set
+      const res = await c.query(`SELECT count(*)::int AS n FROM event_platform.event_metadata`)
+      await c.query('ROLLBACK')
+      return res.rows[0].n as number
+    })
+    expect(typeof n).toBe('number') // resolved, did not throw → fail-closed, not fail-broken
+  })
 })
