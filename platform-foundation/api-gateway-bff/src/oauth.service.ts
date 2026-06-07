@@ -130,14 +130,32 @@ export class OAuthService {
     return `${this.webBase}${returnTo}${returnTo.includes('?') ? '&' : '?'}connected=${provider}`
   }
 
-  /** List a brand's integrations (for the Settings → Integrations surface). */
-  async listForBrand(slug: string): Promise<Array<{ provider: string; status: string; quality_level: string }>> {
+  /** List a brand's integrations with account detail + sync/health (Settings → Integrations). */
+  async listForBrand(slug: string): Promise<
+    Array<{ provider: string; status: string; quality_level: string; account: string | null; last_sync_at: string | null; completeness: number | null }>
+  > {
     const brand = await this.brand(slug)
-    const { rows } = await this.pg.query<{ provider: string; status: string; quality_level: string }>(
-      `SELECT provider, status, quality_level FROM integration.integrations WHERE brand_id=$1 ORDER BY provider`,
+    const { rows } = await this.pg.query(
+      `SELECT i.provider, i.status, i.quality_level,
+              CASE WHEN i.provider IN ('shopify','woocommerce') THEN b.store_url END AS account,
+              s.last_sync_at,
+              h.completeness_score AS completeness
+         FROM integration.integrations i
+         JOIN platform.brands b ON b.id = i.brand_id
+         LEFT JOIN integration.sync_state s ON s.integration_id = i.id
+         LEFT JOIN integration.connector_health h ON h.integration_id = i.id
+        WHERE i.brand_id=$1 ORDER BY i.provider`,
       [brand.id],
     )
-    return rows
+    return rows as never
+  }
+
+  /** Disconnect an integration: mark disconnected, drop the vaulted token + its ref. */
+  async disconnect(slug: string, provider: string): Promise<{ ok: true }> {
+    const brand = await this.brand(slug)
+    await this.pg.query(`UPDATE integration.integrations SET status='disconnected' WHERE brand_id=$1 AND provider=$2`, [brand.id, provider])
+    await this.pg.query(`DELETE FROM integration.oauth_tokens WHERE secret_ref=$1`, [`${provider}:${brand.id}`])
+    return { ok: true }
   }
 
   // ---- per-provider specifics ------------------------------------------------------------------

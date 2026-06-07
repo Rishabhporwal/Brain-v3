@@ -62,6 +62,18 @@ export class BffService {
     return { workspace: this.toWorkspace(b), membership: { role: 'OWNER' } }
   }
 
+  /** Festivals for the workspace's region (Settings → Festivals) — from the global reference calendar. */
+  async festivals(slug: string): Promise<Array<{ date: string; name: string; multiplier: number }>> {
+    const { rows } = await this.pg.query<{ date: string; name: string; multiplier: number }>(
+      `SELECT f.date, f.name, f.multiplier
+         FROM reference.festival_calendar f
+         JOIN platform.brands b ON b.region = f.region
+        WHERE b.slug=$1 ORDER BY f.date`,
+      [slug],
+    )
+    return rows
+  }
+
   private chQuery<T>(query: string, brandId: string) {
     return this.ch
       .query({ query, query_params: { b: brandId }, clickhouse_settings: { brain_current_brand: brandId }, format: 'JSONEachRow' })

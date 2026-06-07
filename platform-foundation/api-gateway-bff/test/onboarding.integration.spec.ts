@@ -21,7 +21,6 @@ describe.skipIf(!RUN)('onboarding provisioning → active (integration)', () => 
   let onboarding: OnboardingService
   let track: TrackService
   const slug = `it${Date.now()}`
-  const orgName = `IT Co ${slug}` // organizations.name is UNIQUE → keep it per-run
 
   beforeAll(() => {
     pg = new Pool({ connectionString: process.env.PG_URL ?? 'postgres://brain:brain@localhost:5440/brain' })
@@ -34,37 +33,46 @@ describe.skipIf(!RUN)('onboarding provisioning → active (integration)', () => 
   })
 
   afterAll(async () => {
+    const org = await pg?.query<{ organization_id: string }>(`SELECT organization_id FROM platform.brands WHERE slug=$1`, [slug]).catch(() => null)
     await pg?.query(`DELETE FROM platform.memberships WHERE brand_id IN (SELECT id FROM platform.brands WHERE slug=$1)`, [slug]).catch(() => {})
     await pg?.query(`DELETE FROM platform.brands WHERE slug=$1`, [slug]).catch(() => {})
-    await pg?.query(`DELETE FROM platform.organizations WHERE name=$1`, [orgName]).catch(() => {})
+    if (org?.rows[0]) await pg?.query(`DELETE FROM platform.organizations WHERE id=$1`, [org.rows[0].organization_id]).catch(() => {})
     await pg?.end().catch(() => {})
     await ch?.close().catch(() => {})
   })
 
-  it('blocks activation until tracking is verified with real events AND costs are set', async () => {
-    const started = await onboarding.start(user, { orgName, brandName: 'IT Brand', slug })
-    expect(started.slug).toBe(slug)
+  it('completes onboarding (active brand) and supports costs + tracking settings', async () => {
+    // Single-shot onboarding → brand created ACTIVE immediately, with the chosen region.
+    const res = await onboarding.complete(user, {
+      fullName: 'IT User',
+      role: 'founder',
+      brandName: 'IT Brand',
+      slug,
+      region: 'AE',
+      platform: 'shopify',
+      connectShopify: false,
+    })
+    expect(res.redirectTo).toBe(`/w/${slug}/dashboard`)
 
-    // Gate must reject before any signals.
-    await expect(onboarding.activate(user, slug)).rejects.toThrow()
+    const brand = await pg.query<{ status: string; region: string; currency: string }>(
+      `SELECT status, region, currency FROM platform.brands WHERE slug=$1`,
+      [slug],
+    )
+    expect(brand.rows[0].status).toBe('active')
+    expect(brand.rows[0].region).toBe('AE')
+    expect(brand.rows[0].currency).toBe('AED')
 
-    // Configure costs + issue a write-key, then ingest a real event.
+    // Settings → Costs roundtrip.
     await onboarding.configureCosts(user, slug, { cogsPct: 40, shippingMinor: 8000, codFeeMinor: 3000, gatewayPct: 2 })
+    const costs = await onboarding.getCosts(slug)
+    expect(costs.cogsPct).toBe(40)
+    expect(costs.shippingMinor).toBe(8000)
+
+    // Settings → Tracking: issue a key, ingest a real event, verify against ClickHouse.
     const { writeKey } = await onboarding.issueTracking(user, slug)
     await track.ingest(writeKey, { event: 'page_view', anonymousId: 'it-anon' })
-
-    // Verification now finds the event and flips verified.
     const verified = await onboarding.verifyTracking(user, slug)
     expect(verified.verified).toBe(true)
     expect(verified.events).toBeGreaterThanOrEqual(1)
-
-    // Gate now passes; brand flips to active and re-activation is idempotent.
-    const activated = await onboarding.activate(user, slug)
-    expect(activated.slug).toBe(slug)
-    const again = await onboarding.activate(user, slug)
-    expect((again as { alreadyActive?: boolean }).alreadyActive).toBe(true)
-
-    const { rows } = await pg.query<{ status: string }>(`SELECT status FROM platform.brands WHERE slug=$1`, [slug])
-    expect(rows[0].status).toBe('active')
   })
 })

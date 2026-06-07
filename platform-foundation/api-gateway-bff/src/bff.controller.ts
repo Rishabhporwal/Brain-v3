@@ -17,6 +17,11 @@ export class BffController {
     return this.svc.context(slug)
   }
 
+  @Get('api/workspaces/:slug/festivals')
+  festivals(@Param('slug') slug: string) {
+    return this.svc.festivals(slug)
+  }
+
   @Get('api/workspaces/:slug/:surface/summary')
   summary(@Param('slug') slug: string) {
     return this.svc.summary(slug)

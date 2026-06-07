@@ -5,18 +5,18 @@ import { useParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { IconCheck, IconLoader2 } from '@tabler/icons-react'
 import { ApiError } from '@/lib/api/types'
-import { CONNECTORS, listIntegrations, startConnect, type IntegrationRow } from '@/lib/integrations'
+import { CONNECTORS, disconnectIntegration, listIntegrations, startConnect, type IntegrationRow } from '@/lib/integrations'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 
-type StatusMap = Record<string, string> // provider → status ('connected' | 'degraded' | 'disconnected')
+type RowMap = Record<string, IntegrationRow> // provider → row
 
 export function IntegrationsGrid() {
   const params = useParams<{ slug: string }>()
   const slug = params.slug
-  const [status, setStatus] = useState<StatusMap>({})
+  const [rows, setRows] = useState<RowMap>({})
   const [busy, setBusy] = useState<string | null>(null)
   const [needShop, setNeedShop] = useState(false)
   const [shop, setShop] = useState('')
@@ -24,8 +24,8 @@ export function IntegrationsGrid() {
   const refresh = useCallback(async () => {
     if (!slug) return
     try {
-      const rows: IntegrationRow[] = await listIntegrations(slug)
-      setStatus(Object.fromEntries(rows.map((r) => [r.provider, r.status])))
+      const list: IntegrationRow[] = await listIntegrations(slug)
+      setRows(Object.fromEntries(list.map((r) => [r.provider, r])))
     } catch {
       /* unauthenticated / not provisioned — leave empty */
     }
@@ -69,10 +69,25 @@ export function IntegrationsGrid() {
     }
   }
 
+  async function disconnect(provider: string) {
+    if (!slug) return
+    setBusy(provider)
+    try {
+      await disconnectIntegration(slug, provider)
+      toast.success('Disconnected')
+      await refresh()
+    } catch {
+      toast.error('Could not disconnect')
+    } finally {
+      setBusy(null)
+    }
+  }
+
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {CONNECTORS.map((c) => {
-        const s = status[c.id]
+        const row = rows[c.id]
+        const s = row?.status
         const isConnected = s === 'connected'
         const label = isConnected ? 'Connected' : s === 'degraded' ? 'Degraded' : 'Not connected'
         const variant = isConnected ? 'outline' : s === 'degraded' ? 'destructive' : 'secondary'
@@ -106,6 +121,21 @@ export function IntegrationsGrid() {
                   )}
                 </div>
               </div>
+              {/* Account detail + sync/health + disconnect, when connected */}
+              {isConnected ? (
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <div className="text-muted-foreground space-y-0.5">
+                    {row?.account ? <div>{row.account}</div> : null}
+                    <div>
+                      {row?.last_sync_at ? `Last sync ${new Date(row.last_sync_at).toLocaleString()}` : 'No sync yet'}
+                      {row?.completeness != null ? ` · ${Math.round(Number(row.completeness))}% complete` : ''}
+                    </div>
+                  </div>
+                  <Button size="sm" variant="ghost" className="text-destructive h-7" onClick={() => disconnect(c.id)} disabled={busy !== null}>
+                    Disconnect
+                  </Button>
+                </div>
+              ) : null}
               {c.id === 'shopify' && needShop && !isConnected ? (
                 <div className="flex items-center gap-2">
                   <Input

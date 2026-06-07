@@ -90,6 +90,7 @@ export const sidebarNavSections: SidebarNavSection[] = [
     items: [
       { title: "General", path: "settings", icon: IconSettings, minRole: 'ANALYST' },
       { title: "Integrations", path: "settings/integrations", icon: IconPlugConnected, minRole: 'MANAGER' },
+      { title: "Tracking", path: "settings/tracking", icon: IconChartLine, minRole: 'MANAGER' },
       { title: "Backfill", path: "settings/ads-backfill", icon: IconRefresh, minRole: 'MANAGER' },
       { title: "Festivals", path: "settings/festivals", icon: IconCalendar, featureKey: 'festivals', minRole: 'ANALYST' },
       { title: "Ad campaigns", path: "settings/ad-campaigns", icon: IconBrandMeta, featureKey: 'ad_campaigns', minRole: 'ANALYST' },
