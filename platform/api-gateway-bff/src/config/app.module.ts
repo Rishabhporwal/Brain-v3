@@ -16,6 +16,7 @@ import { eventBusProvider } from '../infrastructure/messaging/events'
 import { PgSeenStore } from '../persistence/seen-store'
 import { PullService } from '../application/pull.service'
 import { WebhookService } from '../application/webhook.service'
+import { IdentityService } from '../application/identity.service'
 
 @Module({
   controllers: [HealthController, BffController, OnboardingController, TrackController, IntegrationsController, WebhooksController],
@@ -24,6 +25,7 @@ import { WebhookService } from '../application/webhook.service'
     vaultProvider,
     eventBusProvider,
     PgSeenStore,
+    IdentityService,
     BffService,
     OnboardingService,
     TrackService,

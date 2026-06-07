@@ -17,6 +17,13 @@ export class BffController {
     return this.svc.context(req.user, slug)
   }
 
+  // Level 2 of the three-level RBAC model: the UI reads this to show/hide controls. NOT a security
+  // boundary — every protected route is independently enforced server-side (Level 1).
+  @Get('api/workspaces/:slug/permissions')
+  permissions(@Req() req: { user: AuthUser }, @Param('slug') slug: string) {
+    return this.svc.permissions(req.user, slug)
+  }
+
   @Get('api/workspaces/:slug/festivals')
   festivals(@Req() req: { user: AuthUser }, @Param('slug') slug: string) {
     return this.svc.festivals(req.user, slug)
