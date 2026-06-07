@@ -3,6 +3,7 @@ import { Pool } from 'pg'
 import type { ClickHouseClient } from '@clickhouse/client'
 import { AccessControl, type BrandContext } from '@brain/access-control'
 import { CH_CLIENT, PG_POOL } from '../persistence/db.providers'
+import { IdentityService } from './identity.service'
 
 export interface AuthUser {
   sub: string
@@ -21,7 +22,7 @@ interface BrandRow {
 function workspaceRole(name: string): 'OWNER' | 'ADMIN' | 'MANAGER' | 'ANALYST' | 'VIEWER' {
   const n = name.trim().toLowerCase()
   if (n === 'owner') return 'OWNER'
-  if (n === 'admin') return 'ADMIN'
+  if (n.includes('admin')) return 'ADMIN' // 'Admin' and 'Brand Admin'
   if (n.includes('manager')) return 'MANAGER'
   if (n.includes('analyst')) return 'ANALYST'
   return 'VIEWER'
@@ -33,6 +34,7 @@ export class BffService {
     @Inject(PG_POOL) private readonly pg: Pool,
     @Inject(CH_CLIENT) private readonly ch: ClickHouseClient,
     private readonly ac: AccessControl,
+    private readonly identity: IdentityService,
   ) {}
 
   /**
@@ -40,7 +42,7 @@ export class BffService {
    * so a non-member can never read a brand's data. Use for every tenant-scoped read.
    */
   private async requireContext(user: AuthUser, slug: string): Promise<BrandContext> {
-    const uid = await this.userIdForSub(user.sub, user.email)
+    const uid = await this.identity.userIdForSub(user.sub, user.email)
     return this.ac.contextFor(uid, slug)
   }
 
@@ -48,18 +50,14 @@ export class BffService {
     return { id: b.id, name: b.name, slug: b.slug, logoUrl: null, plan: 'growth', currency: b.currency, features: null }
   }
 
-  private async userIdForSub(sub: string, email?: string): Promise<string> {
-    const { rows } = await this.pg.query<{ id: string }>(
-      `INSERT INTO platform.users(email_hash, display_name) VALUES ($1, $2)
-       ON CONFLICT (email_hash) DO UPDATE SET display_name = COALESCE(platform.users.display_name, $2)
-       RETURNING id`,
-      [sub, email ?? null],
-    )
-    return rows[0].id
+  /** The caller's permission set for a brand (drives UI visibility; enforcement is server-side). */
+  async permissions(user: AuthUser, slug: string) {
+    const ctx = await this.requireContext(user, slug)
+    return this.ac.permissionsFor(ctx)
   }
 
   async me(user: AuthUser) {
-    const uid = await this.userIdForSub(user.sub, user.email)
+    const uid = await this.identity.userIdForSub(user.sub, user.email)
     // Control-plane: spans every brand the user belongs to, so it cannot be brand-RLS-bound. Explicitly
     // scoped by user_id. Org-level memberships (brand_id NULL) reach every brand in the org.
     const rows = await this.ac.controlPlane(async (c) => {
@@ -81,7 +79,7 @@ export class BffService {
   /** Resolve the caller's membership for a workspace. Returns nulls when the caller is NOT a member, so
    *  the BFF never discloses a workspace the user can't access (the web layer renders 404 on null). */
   async context(user: AuthUser, slug: string) {
-    const uid = await this.userIdForSub(user.sub, user.email)
+    const uid = await this.identity.userIdForSub(user.sub, user.email)
     const ctx = await this.ac.tryContextFor(uid, slug)
     if (!ctx) return { workspace: null, membership: null }
     // Read the brand profile UNDER RLS (Layer 1+2) — proves the active-brand context works end to end.
@@ -326,7 +324,7 @@ export class BffService {
     const taken = await this.pg.query(`SELECT 1 FROM platform.brands WHERE slug = $1 LIMIT 1`, [slug])
     if (taken.rowCount) throw new ConflictException('That handle is already taken')
 
-    const uid = await this.userIdForSub(user.sub, user.email)
+    const uid = await this.identity.userIdForSub(user.sub, user.email)
     const client = await this.pg.connect()
     try {
       await client.query('BEGIN')

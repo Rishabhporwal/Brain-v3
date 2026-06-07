@@ -6,6 +6,7 @@ import { CH_CLIENT, PG_POOL } from '../persistence/db.providers'
 import { EVENT_BUS, type EventBus } from '../infrastructure/messaging/events'
 import { VAULT, type Vault } from '../infrastructure/secrets/vault'
 import { ShopifyService } from './shopify.service'
+import { emailHash } from './identity.service'
 import type { AuthUser } from './bff.service'
 
 interface CompleteBody {
@@ -192,13 +193,16 @@ export class OnboardingService {
 
   private async userId(sub: string, email?: string, fullName?: string, role?: string): Promise<string> {
     const name = fullName?.trim() || email || null
+    // Key on the verified email (same scheme as IdentityService) so the registrant resolves to the SAME
+    // platform.users row on every subsequent request. Falls back to sub only when no email is present.
+    const key = email ? emailHash(email) : sub
     const { rows } = await this.pg.query<{ id: string }>(
       `INSERT INTO platform.users(email_hash, display_name, job_role) VALUES ($1,$2,$3)
        ON CONFLICT (email_hash) DO UPDATE SET
          display_name = COALESCE($2, platform.users.display_name),
          job_role     = COALESCE($3, platform.users.job_role)
        RETURNING id`,
-      [sub, name, role || null],
+      [key, name, role || null],
     )
     return rows[0].id
   }

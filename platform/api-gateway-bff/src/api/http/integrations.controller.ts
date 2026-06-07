@@ -1,9 +1,14 @@
 import { BadRequestException, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common'
+import { PermissionGuard, PERMISSIONS, RequirePermission } from '@brain/access-control'
 import { KeycloakGuard } from '../guards/keycloak.guard'
+import { BrandContextGuard } from '../guards/brand-context.guard'
 import { ShopifyService } from '../../application/shopify.service'
 import { OAuthService } from '../../application/oauth.service'
 import { PullService } from '../../application/pull.service'
 import type { AuthUser } from '../../application/bff.service'
+
+// Brand-scoped guard chain: authenticate → resolve+require membership (404 for non-members) → permission.
+const BRAND_GUARDS = [KeycloakGuard, BrandContextGuard, PermissionGuard] as const
 
 /**
  * One OAuth surface for every provider. `connect` is guarded (the authenticated wizard asks for the
@@ -21,26 +26,30 @@ export class IntegrationsController {
 
   // Trigger a polling-lane sync for a connected ad provider (google/meta). Manual/ops + tested path;
   // a scheduler runs this on an interval in production.
-  @UseGuards(KeycloakGuard)
+  @UseGuards(...BRAND_GUARDS)
+  @RequirePermission(PERMISSIONS.INTEGRATIONS_WRITE)
   @Post('api/workspaces/:slug/integrations/:provider/sync')
   sync(@Param('slug') slug: string, @Param('provider') provider: string) {
     return this.pull.runSync(provider, slug)
   }
 
   // Lists the brand's integrations (Settings → Integrations).
-  @UseGuards(KeycloakGuard)
+  @UseGuards(...BRAND_GUARDS)
+  @RequirePermission(PERMISSIONS.INTEGRATIONS_READ)
   @Get('api/workspaces/:slug/integrations')
   list(@Param('slug') slug: string) {
     return this.oauth.listForBrand(slug)
   }
 
-  @UseGuards(KeycloakGuard)
+  @UseGuards(...BRAND_GUARDS)
+  @RequirePermission(PERMISSIONS.INTEGRATIONS_WRITE)
   @Post('api/workspaces/:slug/integrations/:provider/disconnect')
   disconnect(@Param('slug') slug: string, @Param('provider') provider: string) {
     return this.oauth.disconnect(slug, provider)
   }
 
-  @UseGuards(KeycloakGuard)
+  @UseGuards(...BRAND_GUARDS)
+  @RequirePermission(PERMISSIONS.INTEGRATIONS_WRITE)
   @Get('api/workspaces/:slug/integrations/:provider/connect')
   connect(
     @Req() req: { user: AuthUser },

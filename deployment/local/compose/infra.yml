@@ -93,6 +93,11 @@ services:
       # keycloak/import/brain-realm.json. Values come from deployment/local/.env (gitignored).
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      # Realm SMTP (verification, password-reset, magic emails) — same ${ENV} substitution. From .env.
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
     ports:
       - '8080:8080'
     volumes:

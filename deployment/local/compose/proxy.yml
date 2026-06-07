@@ -40,6 +40,13 @@ services:
       # Integration data backbone: integration.connected + (future) webhook ingest events → Redpanda.
       # Onboarding lifecycle does NOT go here. Remove to no-op.
       KAFKA_BROKERS: redpanda:9092
+      # Transactional email for invitations (from deployment/local/.env; unset → MailService logs instead).
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-}
 
   web:
     image: brain-web:proxy
