@@ -26,8 +26,12 @@ moving to AWS is a config change, not a rewrite.
   `brain` imported. BFF wired to in-cluster DSNs (`values-bff.yaml`). **End-to-end verified in kind**: direct-grant
   token → `POST /api/onboarding/complete` (writes org+brand+OWNER) → `/me` → `/context` → `/permissions` all 200/201.
   RLS isolation proven in-cluster (brand A↔B isolated, empty GUC fail-closed).
-- ⏳ **M3b data layer (ClickHouse + Redpanda + Redis)**: ClickHouse needs `config.d/brain.xml` for the
-  `brain_current_brand` row-policy setting; Redpanda for `integration.connected` + webhook ingest; Redis for cache.
+- ✅ **M3b data layer (ClickHouse + Redpanda + Redis)**: `data/data-stores-m3b.yaml` deploys ClickHouse 24
+  (with `config.d/brain.xml` declaring the `brain_` custom-settings prefix so row policies read
+  `getSetting('brain_current_brand')`) + Redpanda 24 (Kafka API `redpanda:9092`) + Redis 7. All 5 phase models
+  applied: **35 tables, 28 row policies**, both Kafka-engine tables wired to Redpanda. CH row-policy isolation
+  proven in-cluster (brand A↔B isolated; empty setting fail-closed — `toUUID('')` rejects the query). BFF wired
+  (`CH_URL`, `KAFKA_BROKERS`) and confirmed reaching ClickHouse.
 - ⏳ **M4 AWS sim**: LocalStack (S3, Secrets Manager, KMS, SES) + External Secrets Operator → K8s Secrets.
 - ⏳ **M5 observability in-cluster**: kube-prometheus-stack (Prometheus/Grafana) + Loki + Tempo; ServiceMonitor for the BFF.
 - ⏳ **M6 GitOps**: ArgoCD app-of-apps (`../argocd/app-of-apps.yaml`) syncing every service Application from git.
