@@ -89,6 +89,10 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      # Google identity-provider brokering creds — resolved by Keycloak's ${ENV} substitution in
+      # keycloak/import/brain-realm.json. Values come from deployment/local/.env (gitignored).
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
     ports:
       - '8080:8080'
     volumes:

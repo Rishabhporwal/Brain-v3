@@ -132,11 +132,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const expiresAt = token.expiresAt as number | undefined
       if (typeof expiresAt === 'number' && Date.now() < expiresAt * 1000) return token
 
-      // Access token expired — refresh it via Keycloak.
+      // Access token expired — refresh it via Keycloak. Use tokenBase (the container-reachable internal
+      // issuer in proxy mode), NOT the public `issuer`: this callback runs server-side, where the public
+      // host (e.g. localhost:8088) is unreachable from inside the web container.
       const refreshToken = token.refreshToken as string | undefined
-      if (!issuer || !refreshToken) return token
+      if (!tokenBase || !refreshToken) return token
       try {
-        const res = await fetch(`${issuer}/protocol/openid-connect/token`, {
+        const res = await fetch(`${tokenBase}/protocol/openid-connect/token`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: new URLSearchParams({
