@@ -35,6 +35,12 @@ export class IntegrationsController {
   }
 
   @UseGuards(KeycloakGuard)
+  @Post('api/workspaces/:slug/integrations/:provider/disconnect')
+  disconnect(@Param('slug') slug: string, @Param('provider') provider: string) {
+    return this.oauth.disconnect(slug, provider)
+  }
+
+  @UseGuards(KeycloakGuard)
   @Get('api/workspaces/:slug/integrations/:provider/connect')
   connect(
     @Req() req: { user: AuthUser },

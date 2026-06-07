@@ -12,7 +12,14 @@ export const CONNECTORS = [
 
 export type Connector = (typeof CONNECTORS)[number]
 export type ConnectResult = { mode: 'oauth'; url: string } | { mode: 'stub'; connected: true }
-export type IntegrationRow = { provider: string; status: string; quality_level: string }
+export type IntegrationRow = {
+  provider: string
+  status: string
+  quality_level: string
+  account: string | null
+  last_sync_at: string | null
+  completeness: number | null
+}
 
 /**
  * Ask the BFF to start a connection. Configured OAuth providers return a consent URL (the caller navigates
@@ -33,4 +40,8 @@ export function startConnect(
 
 export function listIntegrations(slug: string): Promise<IntegrationRow[]> {
   return apiJson<IntegrationRow[]>(`/api/workspaces/${slug}/integrations`)
+}
+
+export function disconnectIntegration(slug: string, provider: string): Promise<{ ok: true }> {
+  return apiJson<{ ok: true }>(`/api/workspaces/${slug}/integrations/${provider}/disconnect`, { method: 'POST' })
 }
