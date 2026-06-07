@@ -1,1 +1,17 @@
-{ "name": "@brain/tenancy", "version": "0.0.0", "private": true }
+{
+  "name": "@brain/tenancy",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Tenant isolation primitives — BrandContext resolution, RLS-bound transactions (app.current_brand), control-plane lookups, and runtime row-ownership assertions. Layer 1 + Layer 3 of the four-layer isolation model.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "scripts": { "build": "tsc -p tsconfig.json", "test": "vitest run" },
+  "dependencies": { "pg": "^8.13.1" },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.8"
+  }
+}

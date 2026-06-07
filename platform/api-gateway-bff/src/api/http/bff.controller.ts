@@ -18,17 +18,17 @@ export class BffController {
   }
 
   @Get('api/workspaces/:slug/festivals')
-  festivals(@Param('slug') slug: string) {
-    return this.svc.festivals(slug)
+  festivals(@Req() req: { user: AuthUser }, @Param('slug') slug: string) {
+    return this.svc.festivals(req.user, slug)
   }
 
   @Get('api/workspaces/:slug/:surface/summary')
-  summary(@Param('slug') slug: string) {
-    return this.svc.summary(slug)
+  summary(@Req() req: { user: AuthUser }, @Param('slug') slug: string) {
+    return this.svc.summary(req.user, slug)
   }
 
   @Get('api/workspaces/:slug/:surface/detail')
-  detail(@Param('slug') slug: string) {
-    return this.svc.detail(slug)
+  detail(@Req() req: { user: AuthUser }, @Param('slug') slug: string) {
+    return this.svc.detail(req.user, slug)
   }
 }
