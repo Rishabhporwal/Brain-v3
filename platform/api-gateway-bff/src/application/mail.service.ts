@@ -1,6 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common'
 import nodemailer, { type Transporter } from 'nodemailer'
 
+/** Redact an email for logs (never log PII): "alice@example.com" → "a***@example.com". */
+function redactEmail(email: string): string {
+  const [local, domain] = email.split('@')
+  if (!domain) return '***'
+  return `${local.slice(0, 1)}***@${domain}`
+}
+
 /**
  * Transactional email (invitations, verification, password reset). Uses SMTP when SMTP_HOST is configured
  * (deployment/local/.env → Gmail), otherwise logs the message so local dev / CI works without a mail
@@ -25,16 +32,17 @@ export class MailService {
   }
 
   async send(to: string, subject: string, text: string): Promise<void> {
+    const who = redactEmail(to) // never log PII (full email) — redact to a@***.com
     if (!this.transport) {
-      this.logger.warn(`(SMTP not configured) would send "${subject}" to ${to}`)
+      this.logger.warn(`(SMTP not configured) would send "${subject}" to ${who}`)
       return
     }
     try {
       await this.transport.sendMail({ from: this.from, to, subject, text })
-      this.logger.log(`sent "${subject}" to ${to}`)
+      this.logger.log(`sent "${subject}" to ${who}`)
     } catch (err) {
       // Don't fail the request if email delivery hiccups — the action (e.g. invite) already persisted.
-      this.logger.error(`failed to send "${subject}" to ${to}: ${(err as Error).message}`)
+      this.logger.error(`failed to send "${subject}" to ${who}: ${(err as Error).message}`)
     }
   }
 }
