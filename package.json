@@ -12,7 +12,7 @@
     "codegen": "turbo run codegen",
     "dev": "turbo run dev",
     "affected:build": "turbo run build --affected",
-    "local:up": "make -C deploy/local up",
+    "local:up": "make -C deployment/local up",
     "scaffold": "bash tools/scaffold_repo.sh"
   },
   "devDependencies": {
