@@ -32,7 +32,13 @@ moving to AWS is a config change, not a rewrite.
   applied: **35 tables, 28 row policies**, both Kafka-engine tables wired to Redpanda. CH row-policy isolation
   proven in-cluster (brand A↔B isolated; empty setting fail-closed — `toUUID('')` rejects the query). BFF wired
   (`CH_URL`, `KAFKA_BROKERS`) and confirmed reaching ClickHouse.
-- ⏳ **M4 AWS sim**: LocalStack (S3, Secrets Manager, KMS, SES) + External Secrets Operator → K8s Secrets.
+- ✅ **M4 AWS sim**: LocalStack (`aws/localstack.yaml`) runs S3 + Secrets Manager + KMS + SES for `ap-south-1`;
+  a provision Job creates the staging resources (bucket `brain-staging-data-ap-south-1`, `alias/brain-staging`,
+  secret `brain/staging/app`, SES sender). External Secrets Operator (`aws/external-secrets.yaml`) syncs
+  `brain/staging/app` → K8s Secret `brain-app-secrets`; the BFF loads it via `envFrom` (`values-bff.yaml`
+  `secretRefs`). **Proven end-to-end**: `PG_URL`/`VAULT_KEY` removed from inline env now resolve from the
+  synced secret, and `/me` returns 200 (DB read works through the secret-sourced DSN). Only the controller
+  endpoint env + IRSA differ from real AWS.
 - ⏳ **M5 observability in-cluster**: kube-prometheus-stack (Prometheus/Grafana) + Loki + Tempo; ServiceMonitor for the BFF.
 - ⏳ **M6 GitOps**: ArgoCD app-of-apps (`../argocd/app-of-apps.yaml`) syncing every service Application from git.
 - ⏳ **M7 web + ingress routing**: deploy web; ingress routes `/`, `/bff`, `/idp` like the Caddy single-origin.
@@ -47,6 +53,21 @@ kind delete cluster --name brain-local
 kind load docker-image brain-bff:local --name brain-local
 helm upgrade --install bff infra/kubernetes/charts/brain-service \
   -f infra/kubernetes/local/values-bff.yaml -n brain --create-namespace
+
+# M3 data layer (Postgres + Keycloak, then ClickHouse + Redpanda + Redis)
+kubectl create configmap brain-realm-local -n brain \
+  --from-file=brain-realm-local.json=infra/kubernetes/local/data/brain-realm-local.json
+kubectl apply -f infra/kubernetes/local/data/data-stores.yaml
+kubectl apply -f infra/kubernetes/local/data/data-stores-m3b.yaml
+#   then apply canonical Postgres schema/seed + ClickHouse phase models (see commit history for the cat|psql / clickhouse-client one-liners)
+
+# M4 AWS sim (LocalStack + External Secrets Operator)
+kubectl apply -f infra/kubernetes/local/aws/localstack.yaml
+helm upgrade --install external-secrets external-secrets/external-secrets -n external-secrets \
+  --create-namespace --set installCRDs=true \
+  --set 'extraEnv[0].name=AWS_SECRETSMANAGER_ENDPOINT' \
+  --set 'extraEnv[0].value=http://localstack.brain.svc.cluster.local:4566'
+kubectl apply -f infra/kubernetes/local/aws/external-secrets.yaml
 
 # verify
 kubectl -n brain port-forward svc/api-gateway-bff 4599:4000 &

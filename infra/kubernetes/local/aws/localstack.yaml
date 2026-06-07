@@ -1,0 +1,104 @@
+# M4 — AWS simulation via LocalStack (namespace: brain). Mirrors the ap-south-1 / staging resources the
+# prod Terraform will create: S3 data bucket, KMS key+alias, Secrets Manager app secret, SES identity.
+# Endpoint in-cluster: http://localstack:4566 (region ap-south-1, creds test/test).
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: localstack
+  namespace: brain
+  labels: { app: localstack }
+spec:
+  selector: { app: localstack }
+  ports:
+    - { name: edge, port: 4566, targetPort: 4566 }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: localstack
+  namespace: brain
+  labels: { app: localstack }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: localstack }
+  template:
+    metadata:
+      labels: { app: localstack }
+    spec:
+      containers:
+        - name: localstack
+          image: localstack/localstack:3
+          env:
+            - { name: SERVICES, value: "s3,secretsmanager,kms,ses" }
+            - { name: DEFAULT_REGION, value: "ap-south-1" }
+            - { name: DEBUG, value: "0" }
+          ports:
+            - { containerPort: 4566 }
+          readinessProbe:
+            httpGet: { path: /_localstack/health, port: 4566 }
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 30
+---
+# Provision the staging AWS resources once LocalStack is up (idempotent; re-runnable).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: localstack-init
+  namespace: brain
+data:
+  provision.sh: |
+    #!/bin/sh
+    set -e
+    E="--endpoint-url=http://localstack:4566 --region ap-south-1"
+    echo "waiting for localstack..."
+    until aws $E s3 ls >/dev/null 2>&1; do sleep 2; done
+
+    echo "S3: data bucket"
+    aws $E s3api create-bucket --bucket brain-staging-data-ap-south-1 \
+      --create-bucket-configuration LocationConstraint=ap-south-1 2>/dev/null || true
+
+    echo "KMS: app key + alias/brain-staging"
+    KID=$(aws $E kms create-key --description "brain staging app key" --query KeyMetadata.KeyId --output text)
+    aws $E kms create-alias --alias-name alias/brain-staging --target-key-id "$KID" 2>/dev/null || true
+
+    echo "Secrets Manager: brain/staging/app"
+    aws $E secretsmanager create-secret --name brain/staging/app \
+      --secret-string '{"PG_URL":"postgres://brain:brain@postgres:5432/brain","VAULT_KEY":"brain-local-dev-vault-key-change-me"}' \
+      2>/dev/null || \
+    aws $E secretsmanager put-secret-value --secret-id brain/staging/app \
+      --secret-string '{"PG_URL":"postgres://brain:brain@postgres:5432/brain","VAULT_KEY":"brain-local-dev-vault-key-change-me"}'
+
+    echo "SES: verify sender identity"
+    aws $E ses verify-email-identity --email-address no-reply@brain.dev 2>/dev/null || true
+
+    echo "provisioned. listing:"
+    aws $E s3 ls
+    aws $E secretsmanager list-secrets --query 'SecretList[].Name'
+    aws $E kms list-aliases --query 'Aliases[?AliasName==`alias/brain-staging`].AliasName'
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: localstack-provision
+  namespace: brain
+spec:
+  backoffLimit: 6
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: provision
+          image: amazon/aws-cli:2.17.0
+          command: ["/bin/sh", "/init/provision.sh"]
+          env:
+            - { name: AWS_ACCESS_KEY_ID, value: "test" }
+            - { name: AWS_SECRET_ACCESS_KEY, value: "test" }
+            - { name: AWS_DEFAULT_REGION, value: "ap-south-1" }
+          volumeMounts:
+            - { name: init, mountPath: /init }
+      volumes:
+        - name: init
+          configMap: { name: localstack-init }
