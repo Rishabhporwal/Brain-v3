@@ -13,6 +13,15 @@ env:
   NODE_ENV: production
   BRAIN_ENV: staging        # not 'production' → boot secret-guard + prod CORS-deny stay lenient locally
   PORT: "4000"
+  # --- in-cluster data layer (M3a/M3b) — service DNS within the `brain` namespace ---
+  # NOTE: PG_URL + VAULT_KEY are intentionally NOT here — they come from the ESO-synced
+  # secret (secretRefs below). k8s gives inline `env` precedence over `envFrom`, so listing
+  # them here would mask the secret; omitting them proves the secret is actually consumed.
+  CH_URL: http://clickhouse:8123
+  KAFKA_BROKERS: redpanda:9092
+  KEYCLOAK_ISSUER: http://keycloak:8080/realms/brain
+  KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/brain/protocol/openid-connect/certs
+  VAULT_PATH: /tmp/brain-dev-vault.json
 # readOnlyRootFilesystem off locally (the image may write tmp); on in prod values.
 securityContext:
   runAsNonRoot: false
@@ -21,3 +30,7 @@ securityContext:
   capabilities: { drop: ["ALL"] }
 serviceAccount:
   create: true
+# Prod pattern: ESO syncs AWS Secrets Manager (brain/staging/app) → K8s Secret brain-app-secrets;
+# the pod loads it via envFrom. PG_URL/VAULT_KEY here OVERRIDE the inline env above (envFrom wins).
+secretRefs:
+  - name: brain-app-secrets

@@ -1,0 +1,34 @@
+{
+  "realm": "brain",
+  "enabled": true,
+  "sslRequired": "none",
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "clients": [
+    {
+      "clientId": "brain-web",
+      "name": "Brain Founder Console",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "brain-web-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["*"],
+      "webOrigins": ["*"]
+    }
+  ],
+  "users": [
+    {
+      "username": "founder",
+      "email": "founder@brain.dev",
+      "firstName": "Brand",
+      "lastName": "Founder",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "brain12345", "temporary": false }],
+      "realmRoles": ["default-roles-brain"]
+    }
+  ]
+}
