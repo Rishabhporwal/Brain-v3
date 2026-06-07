@@ -15,6 +15,17 @@ interface BrandRow {
   currency: string
 }
 
+/** Map a platform.roles name (e.g. "Owner", "Marketing Manager", "Read Only") to the web app's coarse
+ *  WorkspaceRole ('OWNER' | 'ADMIN' | 'MANAGER' | 'ANALYST' | 'VIEWER'). */
+function workspaceRole(name: string): 'OWNER' | 'ADMIN' | 'MANAGER' | 'ANALYST' | 'VIEWER' {
+  const n = name.trim().toLowerCase()
+  if (n === 'owner') return 'OWNER'
+  if (n === 'admin') return 'ADMIN'
+  if (n.includes('manager')) return 'MANAGER'
+  if (n.includes('analyst')) return 'ANALYST'
+  return 'VIEWER'
+}
+
 @Injectable()
 export class BffService {
   constructor(
@@ -46,20 +57,34 @@ export class BffService {
 
   async me(user: AuthUser) {
     const uid = await this.userIdForSub(user.sub, user.email)
-    const { rows } = await this.pg.query<BrandRow>(
-      `SELECT b.id, b.name, b.slug, b.currency
-         FROM platform.memberships m JOIN platform.brands b ON b.id = m.brand_id
+    const { rows } = await this.pg.query<BrandRow & { role: string }>(
+      `SELECT b.id, b.name, b.slug, b.currency, r.name AS role
+         FROM platform.memberships m
+         JOIN platform.brands b ON b.id = m.brand_id
+         JOIN platform.roles r ON r.id = m.role_id
         WHERE m.user_id = $1 AND m.state = 'active' AND b.status = 'active'
         ORDER BY m.created_at`,
       [uid],
     )
-    return { memberships: rows.map((b) => ({ role: 'OWNER', workspace: this.toWorkspace(b) })) }
+    return { memberships: rows.map((b) => ({ role: workspaceRole(b.role), workspace: this.toWorkspace(b) })) }
   }
 
-  async context(slug: string) {
+  /** Resolve the caller's membership for a workspace. Returns nulls when the caller is NOT a member, so
+   *  the BFF never discloses a workspace the user can't access (the web layer renders 404 on null). */
+  async context(user: AuthUser, slug: string) {
     const b = await this.workspaceBySlug(slug)
     if (!b) throw new NotFoundException('workspace not found')
-    return { workspace: this.toWorkspace(b), membership: { role: 'OWNER' } }
+    const uid = await this.userIdForSub(user.sub, user.email)
+    const { rows } = await this.pg.query<{ role: string }>(
+      `SELECT r.name AS role
+         FROM platform.memberships m
+         JOIN platform.roles r ON r.id = m.role_id
+        WHERE m.user_id = $1 AND m.brand_id = $2 AND m.state = 'active'
+        LIMIT 1`,
+      [uid, b.id],
+    )
+    if (!rows[0]) return { workspace: null, membership: null }
+    return { workspace: this.toWorkspace(b), membership: { role: workspaceRole(rows[0].role) } }
   }
 
   /** Festivals for the workspace's region (Settings → Festivals) — from the global reference calendar. */
