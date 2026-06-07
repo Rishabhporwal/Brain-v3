@@ -1,0 +1,103 @@
+# M3 — in-cluster data layer for the kind parity stack (namespace: brain).
+# Postgres (Aurora stand-in) + Keycloak (identity). ClickHouse/Redpanda/Redis follow in M3b.
+# Plain Deployment+Service (no PVC — local, ephemeral; schema/seed re-applied on (re)create).
+# DSNs the BFF uses in-cluster: postgres://brain:brain@postgres:5432/brain , http://keycloak:8080/realms/brain
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: brain
+  labels: { app: postgres }
+spec:
+  selector: { app: postgres }
+  ports:
+    - name: pg
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: brain
+  labels: { app: postgres }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: postgres }
+  template:
+    metadata:
+      labels: { app: postgres }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          env:
+            - { name: POSTGRES_USER, value: brain }
+            - { name: POSTGRES_PASSWORD, value: brain }
+            - { name: POSTGRES_DB, value: brain }
+            # data dir under a subdir so the emptyDir mount doesn't fight initdb on the mount root
+            - { name: PGDATA, value: /var/lib/postgresql/data/pgdata }
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            exec: { command: ["sh", "-c", "pg_isready -U brain -d brain"] }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/postgresql/data }
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: brain
+  labels: { app: keycloak }
+spec:
+  selector: { app: keycloak }
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: brain
+  labels: { app: keycloak }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: keycloak }
+  template:
+    metadata:
+      labels: { app: keycloak }
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.0
+          args: ["start-dev", "--import-realm"]
+          env:
+            - { name: KC_BOOTSTRAP_ADMIN_USERNAME, value: admin }
+            - { name: KC_BOOTSTRAP_ADMIN_PASSWORD, value: admin }
+            - { name: KC_HEALTH_ENABLED, value: "true" }
+            # issuer must match what the BFF validates against (in-cluster service DNS)
+            - { name: KC_HOSTNAME_STRICT, value: "false" }
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet: { path: /realms/brain, port: 8080 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 30
+          volumeMounts:
+            - { name: realm, mountPath: /opt/keycloak/data/import, readOnly: true }
+      volumes:
+        - name: realm
+          configMap:
+            name: brain-realm-local

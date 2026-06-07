@@ -21,8 +21,13 @@ moving to AWS is a config change, not a rewrite.
 - ✅ **M1 cluster**: 3-node kind cluster (`kind-cluster.yaml`), ingress-nginx + ArgoCD installed & running.
 - ✅ **M2 app deploy proven**: BFF deployed via the base Helm chart (`charts/brain-service` + `values-bff.yaml`);
   `/health` 200 + `/metrics` served in-cluster. The image → Helm → k8s path works.
-- ⏳ **M3 data layer in-cluster**: Postgres + Redpanda + ClickHouse + Redis (Bitnami/official charts) +
-  apply the canonical schema/seed; point the BFF at in-cluster DSNs.
+- ✅ **M3a data layer (Postgres + Keycloak)**: `data/data-stores.yaml` deploys Postgres 16 + Keycloak 26 into
+  the `brain` ns; canonical schema (60 tables) + seed (11 roles, 14 permissions, 7 connectors) applied; realm
+  `brain` imported. BFF wired to in-cluster DSNs (`values-bff.yaml`). **End-to-end verified in kind**: direct-grant
+  token → `POST /api/onboarding/complete` (writes org+brand+OWNER) → `/me` → `/context` → `/permissions` all 200/201.
+  RLS isolation proven in-cluster (brand A↔B isolated, empty GUC fail-closed).
+- ⏳ **M3b data layer (ClickHouse + Redpanda + Redis)**: ClickHouse needs `config.d/brain.xml` for the
+  `brain_current_brand` row-policy setting; Redpanda for `integration.connected` + webhook ingest; Redis for cache.
 - ⏳ **M4 AWS sim**: LocalStack (S3, Secrets Manager, KMS, SES) + External Secrets Operator → K8s Secrets.
 - ⏳ **M5 observability in-cluster**: kube-prometheus-stack (Prometheus/Grafana) + Loki + Tempo; ServiceMonitor for the BFF.
 - ⏳ **M6 GitOps**: ArgoCD app-of-apps (`../argocd/app-of-apps.yaml`) syncing every service Application from git.
