@@ -23,7 +23,14 @@ migration, EventBridge/Pub-Sub delivery, the full 100 connectors (we build the f
 
 ## Phases
 
-### P0 — Connector framework foundation (`_kit` + registry + contract)
+### P0 — Connector framework foundation (`_kit` + registry + contract)  ✅ DONE
+**Built:** `@brain/connector-kit` (contract incl. **connect/authorize hooks** — authorize→token→ingest is
+enforced for every app — plus oauth signed-state, `verifyHmac`, `SeenStore` idempotency; 5 unit tests),
+`@brain/connector-shopify` (manifest + topics + `verifyShopifyWebhook` composing the kit),
+`@brain/connector-template` (cookiecutter showing connect→ingest), `@brain/connector-registry` (catalog).
+The BFF now **consumes** the kit/connector (oauth-state + webhook HMAC + topics routed through them) — proven
+through `nest build` (workspace package resolution) with **no behaviour change**: 25 BFF tests + webhook
+200/401 + onboarding e2e all green.
 **Objective:** the seams that make 100+ cheap, by lifting the *working* BFF logic — no behaviour change.
 - Define the **connector contract** (manifest + hooks) as a shared TS package.
 - `_kit/oauth` (from `ShopifyService`/`OAuthService` + `vault`), `_kit/webhook-engine` (from `WebhooksController`
@@ -36,7 +43,13 @@ migration, EventBridge/Pub-Sub delivery, the full 100 connectors (we build the f
 the contract.
 **Risk:** scope creep — keep it a *refactor with seams*, not a rewrite.
 
-### P1 — Close the Shopify loop (push → ClickHouse, end-to-end)
+### P1 — Close the Shopify loop (push → ClickHouse, end-to-end)  ✅ DONE
+**Built + verified:** idempotency via `X-Shopify-Webhook-Id` → `integration.webhook_receipts` (Postgres
+`PgSeenStore` implementing the kit's `SeenStore`) — 2 deliveries = **1** Kafka event; ClickHouse consumer
+(`brain.kafka_integration_webhooks` Kafka-Engine → `brain.mv_orders` MV → `brain.orders` ReplacingMergeTree)
+normalizing Shopify `orders/create|updated`. Proven end-to-end: order webhook → BFF (verify+dedup+resolve) →
+Kafka → `brain.orders` (₹3499/paid/customer, tz-correct); `orders/updated` collapses to **one** row (latest).
+25 unit + 26 integration + onboarding e2e green.
 **Objective:** a real Shopify order webhook becomes a queryable ClickHouse row.
 - **Idempotency**: dedup on `X-Shopify-Webhook-Id` (store choice below).
 - **Consumer**: ClickHouse **Kafka-Engine table + MV → MergeTree** consuming `brain.integration.webhooks`,
@@ -45,7 +58,14 @@ the contract.
 **Deliverables:** dedup in `_kit/webhook-engine`; ClickHouse `orders` model + MV; (opt) backfill job.
 **Verification:** simulated + (tunnel) real webhook → row in ClickHouse; duplicate delivery → one row; counts match.
 
-### P2 — Polling lane (`_kit/sync-engine`) for Google + Meta
+### P2 — Polling lane (`_kit/sync-engine`) for Google + Meta  ✅ DONE
+**Built + verified:** `_kit` gained `sync-engine` (cursor-driven `runStreamSync`/`runConnectorSync`),
+`rate-limiter` (TokenBucket), `retry` (backoff + circuit breaker) — 9 kit unit tests. `@brain/connector-google-ads`
+(GAQL SearchStream + OAuth refresh) + `@brain/connector-meta-ads` (async Insights submit→poll→fetch). BFF
+`PullService` loads the vaulted token (refresh-on-expiry → `refresh_failed_at` on failure), drives the connector
+through the sync-engine (cursor in `integration.sync_state`), publishes to **`brain.integration.pull`**. Guarded
+trigger `POST …/integrations/:provider/sync`. **Verified e2e (mocks):** connect → sync → Google 2 campaigns +
+Meta 1 campaign on the pull topic, **cursor advanced** to today. 25 unit + 26 integration + e2e green.
 **Objective:** ad spend/ROAS pulled on a schedule into Kafka.
 - `_kit/sync-engine` (scheduler, per-brand cursor in `integration.sync_state`, rate-limiter, retry/circuit-breaker).
 - `connectors/google-ads`: `pull()` via **SearchStream** (GAQL daily campaign stats) + incremental via ChangeStatus.
@@ -54,16 +74,29 @@ the contract.
 **Deliverables:** `_kit/{sync-engine,rate-limiter,retry-engine,dlq,health}`, two connectors → `brain.integration.pull`.
 **Verification:** with real creds, one scheduled cycle lands spend rows on the pull topic; rate-limit headers respected.
 
-### P3 — Ad normalizers → ClickHouse + health
+### P3 — Ad normalizers → ClickHouse + health  ✅ DONE
+**Built + verified:** `brain.ad_spend` (ReplacingMergeTree) + Kafka-Engine consumer on `brain.integration.pull`
++ MV normalizing both providers into one shape (Google `cost_micros/1e4`, Meta `spend*100` → `spend_minor`).
+`PullService` records `integration.connector_health` on every sync (completeness 100 / blocks_recommendations
+false on success; 0 / true on failure — the stale-data-withholds-recs rule). **Verified e2e:** Google+Meta sync
+→ `brain.ad_spend` (₹1.25/₹8.40/₹4200.50, cross-provider aggregation); health row + cursor recorded.
+25 unit + 26 integration + e2e green.
 **Objective:** ad data queryable; integration health visible.
 - Consumer normalizes the pull topic → ClickHouse `fact_spend`/`ad_spend`.
 - Wire `integration.connector_health` (completeness, lag) + surface on Settings → Integrations.
 **Deliverables:** ad-spend ClickHouse model + consumer; health surface.
 **Verification:** spend visible end-to-end; stale sync → health degrades → withholds high-risk recs (Brain rule).
 
-### P4 — Breadth via `_template`
-WooCommerce + payments (Razorpay/Stripe) + logistics (Shiprocket) connectors (compose `_kit`); per-connector
-deployable split; Avro/Schema-Registry; EventBridge/Pub-Sub option. Each is "fill the template."
+### P4 — Breadth via `_template`  ✅ DONE (connectors + generic receiver; hardening deferred)
+**Built + verified:** a **generic webhook receiver** (`WebhookService` + `POST /api/webhooks/:provider[/:brandId]`)
+that drives ANY push connector through the contract hooks (resolve brand+secret → verify → dedup → map →
+publish → control); Shopify refactored onto it (no behaviour change). New connectors: `@brain/connector-woocommerce`
+(storefront) + `@brain/connector-razorpay` (payments). Storefronts normalize to a shared `OrderRecord` → one
+vendor-agnostic `brain.orders`; payments → new `brain.payments` (second MV on the same Kafka-engine source).
+**Verified e2e:** Shopify + WooCommerce orders → `brain.orders` (₹999 / ₹2500, WC `completed`→`paid`); Razorpay
+payment → `brain.payments` (₹7500). Registry: 6 live connectors. 25 unit + 26 integration + e2e green.
+**Deferred hardening (needs scale/infra, not built):** per-connector deployable split, Avro/Schema-Registry,
+EventBridge/Pub-Sub delivery, Stripe + Shiprocket connectors, live-credential testing.
 
 ---
 

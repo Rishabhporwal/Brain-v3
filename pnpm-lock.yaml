@@ -160,6 +160,139 @@ importers:
         specifier: ^5
         version: 5.9.3
 
+  connector-platform/_kit/core:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.20
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.8
+        version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
+
+  connector-platform/connectors/_template:
+    dependencies:
+      '@brain/connector-kit':
+        specifier: workspace:*
+        version: link:../../_kit/core
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.20
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  connector-platform/connectors/google-ads:
+    dependencies:
+      '@brain/connector-kit':
+        specifier: workspace:*
+        version: link:../../_kit/core
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.20
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.8
+        version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
+
+  connector-platform/connectors/meta-ads:
+    dependencies:
+      '@brain/connector-kit':
+        specifier: workspace:*
+        version: link:../../_kit/core
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.20
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.8
+        version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
+
+  connector-platform/connectors/razorpay:
+    dependencies:
+      '@brain/connector-kit':
+        specifier: workspace:*
+        version: link:../../_kit/core
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.20
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.8
+        version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
+
+  connector-platform/connectors/shopify:
+    dependencies:
+      '@brain/connector-kit':
+        specifier: workspace:*
+        version: link:../../_kit/core
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.20
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.8
+        version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
+
+  connector-platform/connectors/woocommerce:
+    dependencies:
+      '@brain/connector-kit':
+        specifier: workspace:*
+        version: link:../../_kit/core
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.20
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.8
+        version: 4.1.8(@types/node@22.19.20)(msw@2.14.6(@types/node@22.19.20)(typescript@5.9.3))(vite@8.0.16(@types/node@22.19.20)(jiti@2.7.0)(terser@5.48.0))
+
+  connector-platform/registry:
+    dependencies:
+      '@brain/connector-google-ads':
+        specifier: workspace:*
+        version: link:../connectors/google-ads
+      '@brain/connector-kit':
+        specifier: workspace:*
+        version: link:../_kit/core
+      '@brain/connector-meta-ads':
+        specifier: workspace:*
+        version: link:../connectors/meta-ads
+      '@brain/connector-razorpay':
+        specifier: workspace:*
+        version: link:../connectors/razorpay
+      '@brain/connector-shopify':
+        specifier: workspace:*
+        version: link:../connectors/shopify
+      '@brain/connector-woocommerce':
+        specifier: workspace:*
+        version: link:../connectors/woocommerce
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.20
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
   libs/auth: {}
 
   libs/authz: {}
@@ -196,6 +329,24 @@ importers:
 
   platform-foundation/api-gateway-bff:
     dependencies:
+      '@brain/connector-google-ads':
+        specifier: workspace:*
+        version: link:../../connector-platform/connectors/google-ads
+      '@brain/connector-kit':
+        specifier: workspace:*
+        version: link:../../connector-platform/_kit/core
+      '@brain/connector-meta-ads':
+        specifier: workspace:*
+        version: link:../../connector-platform/connectors/meta-ads
+      '@brain/connector-razorpay':
+        specifier: workspace:*
+        version: link:../../connector-platform/connectors/razorpay
+      '@brain/connector-shopify':
+        specifier: workspace:*
+        version: link:../../connector-platform/connectors/shopify
+      '@brain/connector-woocommerce':
+        specifier: workspace:*
+        version: link:../../connector-platform/connectors/woocommerce
       '@clickhouse/client':
         specifier: ^1.7.0
         version: 1.20.0
@@ -7674,7 +7825,7 @@ snapshots:
 
   '@types/set-cookie-parser@2.4.10':
     dependencies:
-      '@types/node': 20.19.42
+      '@types/node': 22.19.20
 
   '@types/statuses@2.0.6': {}
 
@@ -8782,7 +8933,7 @@ snapshots:
       '@next/eslint-plugin-next': 16.1.6
       eslint: 9.39.4(jiti@2.7.0)
       eslint-import-resolver-node: 0.3.10
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.60.1(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.4(jiti@2.7.0)))(eslint@9.39.4(jiti@2.7.0))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.4(jiti@2.7.0))
       eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.60.1(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4(jiti@2.7.0))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.4(jiti@2.7.0))
       eslint-plugin-react: 7.37.5(eslint@9.39.4(jiti@2.7.0))
@@ -8805,7 +8956,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.60.1(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.4(jiti@2.7.0)))(eslint@9.39.4(jiti@2.7.0)):
+  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.4(jiti@2.7.0)):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.3
@@ -8820,14 +8971,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.13.0(@typescript-eslint/parser@8.60.1(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3))(eslint-import-resolver-node@0.3.10)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.60.1(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.4(jiti@2.7.0)))(eslint@9.39.4(jiti@2.7.0)))(eslint@9.39.4(jiti@2.7.0)):
+  eslint-module-utils@2.13.0(@typescript-eslint/parser@8.60.1(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3))(eslint-import-resolver-node@0.3.10)(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4(jiti@2.7.0)):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 8.60.1(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3)
       eslint: 9.39.4(jiti@2.7.0)
       eslint-import-resolver-node: 0.3.10
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.60.1(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.4(jiti@2.7.0)))(eslint@9.39.4(jiti@2.7.0))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.4(jiti@2.7.0))
     transitivePeerDependencies:
       - supports-color
 
@@ -8842,7 +8993,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.39.4(jiti@2.7.0)
       eslint-import-resolver-node: 0.3.10
-      eslint-module-utils: 2.13.0(@typescript-eslint/parser@8.60.1(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3))(eslint-import-resolver-node@0.3.10)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.60.1(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.4(jiti@2.7.0)))(eslint@9.39.4(jiti@2.7.0)))(eslint@9.39.4(jiti@2.7.0))
+      eslint-module-utils: 2.13.0(@typescript-eslint/parser@8.60.1(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3))(eslint-import-resolver-node@0.3.10)(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4(jiti@2.7.0))
       hasown: 2.0.4
       is-core-module: 2.16.2
       is-glob: 4.0.3

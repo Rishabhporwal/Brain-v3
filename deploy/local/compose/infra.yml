@@ -38,6 +38,10 @@ services:
       - ./clickhouse/users.d:/etc/clickhouse-server/users.d:ro
       # canonical analytical schema, auto-applied on first boot
       - ../../data-platform/warehouse/clickhouse/models/phase1.sql:/docker-entrypoint-initdb.d/phase1.sql:ro
+      # order facts via Kafka-Engine + MV → MergeTree (runs after phase1; consumes brain.integration.webhooks)
+      - ../../data-platform/warehouse/clickhouse/models/phase1_orders.sql:/docker-entrypoint-initdb.d/phase1_orders.sql:ro
+      # ad-spend facts via Kafka-Engine + MV → MergeTree (consumes brain.integration.pull)
+      - ../../data-platform/warehouse/clickhouse/models/phase1_ad_spend.sql:/docker-entrypoint-initdb.d/phase1_ad_spend.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -nv -t1 -qO- http://127.0.0.1:8123/ping || exit 1"]
       interval: 3s

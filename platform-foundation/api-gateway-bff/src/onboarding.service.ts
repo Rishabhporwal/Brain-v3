@@ -162,6 +162,8 @@ export class OnboardingService {
        ON CONFLICT (brand_id,provider) DO UPDATE SET status='connected',quality_level='green' RETURNING id`,
       [brandId],
     )
+    // Pin the store URL on the brand so inbound WooCommerce webhooks resolve store → brand.
+    await this.pg.query(`UPDATE platform.brands SET store_url=$1 WHERE id=$2`, [storeUrl.replace(/\/+$/, ''), brandId])
     const secretRef = `woocommerce:${brandId}`
     await this.vault.put(secretRef, JSON.stringify({ storeUrl: storeUrl.replace(/\/+$/, ''), consumerKey: key, consumerSecret: secret }))
     await this.pg.query(

@@ -1,7 +1,8 @@
-import { BadRequestException, Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common'
+import { BadRequestException, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common'
 import { KeycloakGuard } from './keycloak.guard'
 import { ShopifyService } from './shopify.service'
 import { OAuthService } from './oauth.service'
+import { PullService } from './pull.service'
 import type { AuthUser } from './bff.service'
 
 /**
@@ -15,7 +16,16 @@ export class IntegrationsController {
   constructor(
     private readonly shopify: ShopifyService,
     private readonly oauth: OAuthService,
+    private readonly pull: PullService,
   ) {}
+
+  // Trigger a polling-lane sync for a connected ad provider (google/meta). Manual/ops + tested path;
+  // a scheduler runs this on an interval in production.
+  @UseGuards(KeycloakGuard)
+  @Post('api/workspaces/:slug/integrations/:provider/sync')
+  sync(@Param('slug') slug: string, @Param('provider') provider: string) {
+    return this.pull.runSync(provider, slug)
+  }
 
   // Lists the brand's integrations (Settings → Integrations).
   @UseGuards(KeycloakGuard)

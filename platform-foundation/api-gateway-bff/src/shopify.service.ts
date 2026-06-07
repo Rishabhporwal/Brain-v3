@@ -5,6 +5,7 @@ import { PG_POOL } from './db.providers'
 import { VAULT, type Vault } from './vault'
 import { EVENT_BUS, type EventBus } from './events'
 import { safeReturnTo } from './oauth-state'
+import { SHOPIFY_WEBHOOK_TOPICS, verifyShopifyWebhook } from '@brain/connector-shopify'
 import type { AuthUser } from './bff.service'
 
 /**
@@ -196,20 +197,8 @@ export class ShopifyService {
   }
 
   // ---- webhooks (real-time data) ---------------------------------------------------------------
-
-  // Topics we subscribe to for live data. Data topics fan out to Kafka; app/uninstalled + GDPR are control.
-  private static readonly WEBHOOK_TOPICS = [
-    'orders/create',
-    'orders/updated',
-    'orders/cancelled',
-    'products/create',
-    'products/update',
-    'products/delete',
-    'customers/create',
-    'customers/update',
-    'inventory_levels/update',
-    'app/uninstalled',
-  ] as const
+  // Topics + signature verification are owned by the Shopify connector (@brain/connector-shopify),
+  // which composes @brain/connector-kit. The BFF just wires DB/Kafka around them (P0 framework seam).
 
   private get apiVersion() {
     return process.env.SHOPIFY_API_VERSION ?? '2025-01'
@@ -225,7 +214,7 @@ export class ShopifyService {
     const address = this.webhookAddress
     const errors: string[] = []
     let registered = 0
-    for (const topic of ShopifyService.WEBHOOK_TOPICS) {
+    for (const topic of SHOPIFY_WEBHOOK_TOPICS) {
       try {
         const res = await fetch(`${adminBase}/admin/api/${this.apiVersion}/webhooks.json`, {
           method: 'POST',
@@ -238,58 +227,14 @@ export class ShopifyService {
         errors.push(`${topic}: ${(e as Error).message}`)
       }
     }
-    this.log.log(`shopify webhooks registered ${registered}/${ShopifyService.WEBHOOK_TOPICS.length} for ${shop}`)
+    this.log.log(`shopify webhooks registered ${registered}/${SHOPIFY_WEBHOOK_TOPICS.length} for ${shop}`)
     return { registered, errors }
   }
 
-  /** Verify a Shopify webhook: HMAC-SHA256 of the RAW body with the app secret, base64, constant-time. */
+  /** Verify a Shopify webhook signature — delegated to the connector (which composes @brain/connector-kit). */
   verifyWebhookHmac(rawBody: Buffer, header?: string): boolean {
-    if (!header) return false
-    const digest = createHmac('sha256', this.clientSecret ?? 'dev').update(rawBody).digest('base64')
-    const a = Buffer.from(digest)
-    const b = Buffer.from(header)
-    return a.length === b.length && timingSafeEqual(a, b)
+    return verifyShopifyWebhook(rawBody, header, this.clientSecret ?? 'dev')
   }
 
-  private async brandIdByShop(shop: string): Promise<string | null> {
-    const { rows } = await this.pg.query<{ id: string }>(
-      `SELECT id FROM platform.brands WHERE store_url=$1 ORDER BY created_at DESC LIMIT 1`,
-      [shop],
-    )
-    return rows[0]?.id ?? null
-  }
-
-  /**
-   * Inbound webhook handler. Verifies the signature, resolves the brand from the shop, and publishes the
-   * raw payload to the Kafka data plane (a downstream consumer normalizes into ClickHouse). app/uninstalled
-   * disconnects the integration; GDPR topics are acknowledged. Returns the HTTP status to reply with.
-   */
-  async handleWebhook(opts: { shop?: string; topic?: string; hmac?: string; rawBody: Buffer }): Promise<{ status: number }> {
-    const { shop, topic, hmac, rawBody } = opts
-    if (!shop || !topic) return { status: 400 }
-    if (!this.verifyWebhookHmac(rawBody, hmac)) return { status: 401 }
-
-    const normShop = shop.toLowerCase().replace(/^https?:\/\//, '').split('/')[0]
-    const brandId = await this.brandIdByShop(normShop)
-
-    if (topic === 'app/uninstalled') {
-      if (brandId) {
-        await this.pg.query(`UPDATE integration.integrations SET status='disconnected' WHERE brand_id=$1 AND provider='shopify'`, [brandId])
-      }
-      return { status: 200 }
-    }
-    if (topic === 'shop/redact' || topic === 'customers/redact' || topic === 'customers/data_request') {
-      return { status: 200 } // GDPR compliance ack
-    }
-
-    if (!brandId) return { status: 202 } // accepted, but no brand mapped to this shop yet
-    let payload: unknown
-    try {
-      payload = rawBody.length ? JSON.parse(rawBody.toString('utf8')) : {}
-    } catch {
-      return { status: 400 }
-    }
-    this.bus.emitWebhook({ provider: 'shopify', topic, brandId, shop: normShop, payload })
-    return { status: 200 }
-  }
+  // (Inbound webhook handling moved to the generic WebhookService, driven by the Shopify connector hooks.)
 }
