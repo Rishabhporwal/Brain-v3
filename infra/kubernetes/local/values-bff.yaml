@@ -37,6 +37,10 @@ env:
   META_REDIRECT_URI: http://localhost:3000/api/integrations/meta/callback
   META_API_VERSION: v21.0
   META_SCOPES: ads_read,ads_management
+  # Polling-lane scheduler cadence. Ad platforms have no push API, so "real-time" = poll on this interval
+  # (the BFF SyncSchedulerService auto-runs every connected Google/Meta pull). 30s locally for snappy
+  # feedback; prod uses a larger value (and leader election across replicas).
+  SYNC_INTERVAL_SECONDS: "30"
 # readOnlyRootFilesystem off locally (the image may write tmp); on in prod values.
 securityContext:
   runAsNonRoot: false

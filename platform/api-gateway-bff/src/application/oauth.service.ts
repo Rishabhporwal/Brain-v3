@@ -4,6 +4,7 @@ import { PG_POOL } from '../persistence/db.providers'
 import { VAULT, type Vault } from '../infrastructure/secrets/vault'
 import { EVENT_BUS, type EventBus } from '../infrastructure/messaging/events'
 import { safeReturnTo, signOAuthState, verifyOAuthState } from '../infrastructure/auth/oauth-state'
+import { PullService } from './pull.service'
 import type { AuthUser } from './bff.service'
 
 /** Normalised token bundle stored (encrypted) in the vault. */
@@ -36,6 +37,7 @@ export class OAuthService {
     @Inject(PG_POOL) private readonly pg: Pool,
     @Inject(VAULT) private readonly vault: Vault,
     @Inject(EVENT_BUS) private readonly bus: EventBus,
+    private readonly pull: PullService,
   ) {}
 
   private stateSecret(): string {
@@ -127,7 +129,21 @@ export class OAuthService {
        VALUES ($1,$2,$3,$4) ON CONFLICT (secret_ref) DO UPDATE SET expires_at=$4, updated_at=now()`,
       [payload.brandId, integrationId, secretRef, expiresAt],
     )
+    // Immediate first sync so data appears right after connect (don't wait for the next scheduler tick).
+    // Fire-and-forget: a pull failure must not break the OAuth redirect. The scheduler keeps it fresh after.
+    void this.kickFirstSync(provider, payload.brandId)
     return `${this.webBase}${returnTo}${returnTo.includes('?') ? '&' : '?'}connected=${provider}`
+  }
+
+  /** Kick an immediate pull sync for a just-connected pull provider (google/meta). Best-effort. */
+  private async kickFirstSync(provider: string, brandId: string): Promise<void> {
+    if (!OAuthService.PROVIDERS.includes(provider as never)) return
+    try {
+      const { rows } = await this.pg.query<{ slug: string }>(`SELECT slug FROM platform.brands WHERE id=$1 LIMIT 1`, [brandId])
+      if (rows[0]) await this.pull.runSync(provider, rows[0].slug)
+    } catch (e) {
+      this.log.warn(`first sync for ${provider} failed: ${(e as Error).message}`)
+    }
   }
 
   /** List a brand's integrations with account detail + sync/health (Settings → Integrations). */
