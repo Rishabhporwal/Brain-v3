@@ -11,6 +11,12 @@ kind: Ingress
 metadata:
   name: brain-origin-web
   namespace: brain
+  annotations:
+    # Auth.js session cookies are large and chunked (authjs.session-token.0/.1), so the Set-Cookie
+    # response headers overflow nginx's default 4k/8k proxy buffer → 502 on the credentials callback.
+    # Bump the buffer so the login redirect's headers fit.
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "32k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
 spec:
   ingressClassName: nginx
   rules:
