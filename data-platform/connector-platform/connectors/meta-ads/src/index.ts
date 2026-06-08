@@ -27,6 +27,7 @@ interface InsightRow {
   spend?: string
   impressions?: string
   clicks?: string
+  account_currency?: string
 }
 
 export const metaAds: ConnectorHooks = {
@@ -39,7 +40,7 @@ export const metaAds: ConnectorHooks = {
     const since = cursor ?? daysAgo(7)
     const until = isoDate(new Date())
     const acct = adAccountId()
-    const fields = 'spend,impressions,clicks,campaign_id,campaign_name'
+    const fields = 'spend,impressions,clicks,campaign_id,campaign_name,account_currency'
     const timeRange = encodeURIComponent(JSON.stringify({ since, until }))
 
     // 1) Submit async job → report_run_id
@@ -74,6 +75,7 @@ export const metaAds: ConnectorHooks = {
         spend: row.spend,
         impressions: row.impressions,
         clicks: row.clicks,
+        currency: row.account_currency, // account currency → ad_spend.currency_code
       },
     }))
     return { records, nextCursor: until }

@@ -20,8 +20,8 @@ data:
         if (req.method === 'POST' && req.url.includes('googleAds:searchStream')) {
           const results = []
           for (let i = 0; i < 3; i++) {
-            results.push({ campaign: { id: '111', name: 'Brand Search' },     metrics: { costMicros: String(1250000 + i * 90000),  clicks: String(40 + i * 5),  conversions: 3 + i }, segments: { date: day(i) } })
-            results.push({ campaign: { id: '222', name: 'Prospecting PMax' },  metrics: { costMicros: String(3400000 + i * 220000), clicks: String(120 + i * 9), conversions: 7 + i }, segments: { date: day(i) } })
+            results.push({ campaign: { id: '111', name: 'Brand Search' },     metrics: { costMicros: String(1250000 + i * 90000),  clicks: String(40 + i * 5),  conversions: 3 + i }, segments: { date: day(i) }, customer: { currencyCode: 'INR' } })
+            results.push({ campaign: { id: '222', name: 'Prospecting PMax' },  metrics: { costMicros: String(3400000 + i * 220000), clicks: String(120 + i * 9), conversions: 7 + i }, segments: { date: day(i) }, customer: { currencyCode: 'INR' } })
           }
           res.writeHead(200, { 'content-type': 'application/json' })
           res.end(JSON.stringify([{ results }]))

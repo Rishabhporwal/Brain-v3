@@ -27,6 +27,7 @@ interface GoogleAdsRow {
   campaign?: { id?: string; name?: string }
   metrics?: { costMicros?: string; clicks?: string; conversions?: number }
   segments?: { date?: string }
+  customer?: { currencyCode?: string }
 }
 
 export const googleAds: ConnectorHooks = {
@@ -53,7 +54,7 @@ export const googleAds: ConnectorHooks = {
   async pull(stream: string, cursor: string | undefined, accessToken: string): Promise<PullResult> {
     const from = cursor ?? daysAgo(7)
     const to = isoDate(new Date())
-    const query = `SELECT campaign.id, campaign.name, metrics.cost_micros, metrics.clicks, metrics.conversions, segments.date FROM campaign WHERE segments.date BETWEEN '${from}' AND '${to}'`
+    const query = `SELECT campaign.id, campaign.name, metrics.cost_micros, metrics.clicks, metrics.conversions, segments.date, customer.currency_code FROM campaign WHERE segments.date BETWEEN '${from}' AND '${to}'`
     const res = await fetch(`${apiBase()}/${apiVer()}/customers/${customerId()}/googleAds:searchStream`, {
       method: 'POST',
       headers: {
@@ -79,6 +80,7 @@ export const googleAds: ConnectorHooks = {
             cost_micros: row.metrics?.costMicros,
             clicks: row.metrics?.clicks,
             conversions: row.metrics?.conversions,
+            currency: row.customer?.currencyCode, // account currency → ad_spend.currency_code
           },
         })
       }
