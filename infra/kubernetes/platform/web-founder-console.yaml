@@ -8,10 +8,10 @@ spec:
   project: default
   sources:
     - repoURL: https://github.com/Rishabhporwal/Brain-v3.git
-      targetRevision: feat/observability-and-throttle-tuning
+      targetRevision: master
       ref: values
     - repoURL: https://github.com/Rishabhporwal/Brain-v3.git
-      targetRevision: feat/observability-and-throttle-tuning
+      targetRevision: master
       path: infra/kubernetes/charts/brain-service
       helm:
         valueFiles:
