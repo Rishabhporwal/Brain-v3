@@ -1,0 +1,65 @@
+# LOCAL TEST FIXTURE ONLY — a stand-in Google Ads API so the polling-lane scheduler can be demonstrated
+# end-to-end without clearing Google's real OAuth/verification hurdles. Point the BFF at it with
+#   kubectl -n brain set env deploy/api-gateway-bff GOOGLE_ADS_API_URL=http://google-ads-mock:8080
+# (temporary — never commit that override into values; real connects must hit real Google).
+# Responds to POST /<ver>/customers/<id>/googleAds:searchStream with a few days of campaign spend.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: google-ads-mock-src
+  namespace: brain
+data:
+  server.js: |
+    const http = require('http')
+    const day = (n) => new Date(Date.now() - n * 86400000).toISOString().slice(0, 10)
+    const server = http.createServer((req, res) => {
+      let body = ''
+      req.on('data', (c) => (body += c))
+      req.on('end', () => {
+        if (req.method === 'POST' && req.url.includes('googleAds:searchStream')) {
+          const results = []
+          for (let i = 0; i < 3; i++) {
+            results.push({ campaign: { id: '111', name: 'Brand Search' },     metrics: { costMicros: String(1250000 + i * 90000),  clicks: String(40 + i * 5),  conversions: 3 + i }, segments: { date: day(i) } })
+            results.push({ campaign: { id: '222', name: 'Prospecting PMax' },  metrics: { costMicros: String(3400000 + i * 220000), clicks: String(120 + i * 9), conversions: 7 + i }, segments: { date: day(i) } })
+          }
+          res.writeHead(200, { 'content-type': 'application/json' })
+          res.end(JSON.stringify([{ results }]))
+          console.log(`searchStream -> ${results.length} rows`)
+        } else {
+          res.writeHead(404, { 'content-type': 'application/json' })
+          res.end('{}')
+        }
+      })
+    })
+    server.listen(8080, () => console.log('google-ads-mock listening on :8080'))
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: google-ads-mock
+  namespace: brain
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: google-ads-mock } }
+  template:
+    metadata: { labels: { app: google-ads-mock } }
+    spec:
+      containers:
+        - name: mock
+          image: node:22-alpine
+          command: ["node", "/app/server.js"]
+          ports: [{ containerPort: 8080 }]
+          volumeMounts: [{ name: src, mountPath: /app }]
+      volumes:
+        - name: src
+          configMap: { name: google-ads-mock-src }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: google-ads-mock
+  namespace: brain
+spec:
+  selector: { app: google-ads-mock }
+  ports: [{ port: 8080, targetPort: 8080 }]
