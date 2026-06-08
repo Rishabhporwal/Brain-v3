@@ -56,10 +56,10 @@ moving to AWS is a config change, not a rewrite.
 - ✅ **M6 GitOps**: ArgoCD app-of-apps (`../argocd/app-of-apps.yaml`) → per-service Applications under
   `../platform/` (`api-gateway-bff.yaml`, `web-founder-console.yaml`), each rendering the `brain-service` base
   chart with its local values file via the `$values` multi-source ref. **Verified**: `brain-root` →
-  `api-gateway-bff` + `web-founder-console` all **Synced/Healthy**, pulled live from the GitHub feature branch
-  (public repo, no creds). The BFF was handed off from the manual `helm install` to ArgoCD ownership; the e2e
-  smoke still passes through the GitOps-managed pod. `targetRevision` tracks this feature branch locally;
-  on EKS it flips to `main` (merge → ArgoCD syncs).
+  `api-gateway-bff` + `web-founder-console` all **Synced/Healthy**, pulled live from the GitHub repo
+  (public, no creds). The BFF was handed off from the manual `helm install` to ArgoCD ownership; the e2e
+  smoke still passes through the GitOps-managed pod. `targetRevision` tracks the trunk (`master`) — feature
+  branches merge to master → ArgoCD syncs. Same source local + EKS.
 - ✅ **M7 web + ingress routing**: `web-founder-console` (Next.js) deployed via the same base chart
   (`values-web.yaml`). Single-origin ingress (`ingress.yaml`, mirrors the legacy Caddyfile) **verified** on
   host `:8081`: `/` → web (307 auth redirect), `/bff/health` → BFF `{"ok":true}` (prefix stripped),
