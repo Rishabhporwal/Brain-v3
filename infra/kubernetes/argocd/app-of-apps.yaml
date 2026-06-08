@@ -10,7 +10,8 @@ spec:
   project: default
   source:
     repoURL: https://github.com/Rishabhporwal/Brain-v3.git
-    targetRevision: main
+    # Local parity tracks the active feature branch; on EKS this flips to `main` (merge → ArgoCD syncs).
+    targetRevision: feat/observability-and-throttle-tuning
     path: infra/kubernetes/platform
   destination:
     server: https://kubernetes.default.svc

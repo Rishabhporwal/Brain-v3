@@ -1,0 +1,27 @@
+# M5 — kube-prometheus-stack values tuned for a local kind cluster (small footprint).
+# Picks up ServiceMonitors in ANY namespace (so the BFF ServiceMonitor in `brain` is scraped).
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    retention: 2h
+    resources:
+      requests: { cpu: 100m, memory: 256Mi }
+      limits: { memory: 700Mi }
+# Alertmanager off locally — noise we don't need for parity build/test.
+alertmanager:
+  enabled: false
+grafana:
+  adminPassword: brain12345
+  defaultDashboardsTimezone: Asia/Kolkata
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+# Trim node/kubelet exporters' overhead on a laptop; keep core control-plane + service scraping.
+nodeExporter:
+  enabled: true
+kubeStateMetrics:
+  enabled: true
+prometheus-node-exporter:
+  resources:
+    requests: { cpu: 20m, memory: 32Mi }
