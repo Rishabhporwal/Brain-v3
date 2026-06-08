@@ -112,6 +112,11 @@ kubectl -n argocd get applications -w                              # wait Synced
 
 # M7 single-origin ingress
 kubectl apply -f infra/kubernetes/local/ingress.yaml
+# Auth.js chunks a large session cookie; bump the controller's request-header buffer or the browser
+# gets nginx "400 Request Header Or Cookie Too Large" on every authenticated request. (Controller-wide
+# ConfigMap — the upstream ingress-nginx install isn't a repo manifest, so it's set live here.)
+kubectl -n ingress-nginx patch configmap ingress-nginx-controller --type merge \
+  -p '{"data":{"large-client-header-buffers":"4 32k"}}'
 
 # verify
 curl -H 'Host: localhost' localhost:8081/bff/health          # {"ok":true}
