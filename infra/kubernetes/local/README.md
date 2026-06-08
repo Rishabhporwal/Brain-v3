@@ -39,21 +39,32 @@ moving to AWS is a config change, not a rewrite.
   `secretRefs`). **Proven end-to-end**: `PG_URL`/`VAULT_KEY` removed from inline env now resolve from the
   synced secret, and `/me` returns 200 (DB read works through the secret-sourced DSN). Only the controller
   endpoint env + IRSA differ from real AWS.
-- 🟡 **M5 observability in-cluster** (mostly done):
+- ✅ **M5 observability in-cluster**:
   - ✅ **Metrics**: kube-prometheus-stack (`observability/kube-prometheus-values.yaml`) → Prometheus + Grafana
     (admin/brain12345). BFF `ServiceMonitor` (`observability/bff-servicemonitor.yaml`) **verified**:
     `up{service="api-gateway-bff"}=1` and `http_requests_total` ingested into Prometheus.
-  - 🟡 **Logs**: Loki + Promtail (`observability/loki-values.yaml`) — `helm install` issued; readiness was
-    interrupted by the laptop restart. Re-verify after reboot (query a BFF log line via LogQL), then add Loki as
-    a Grafana datasource.
+  - ✅ **Logs**: Loki + Promtail (`observability/loki-values.yaml`) **verified** — BFF structured JSON logs
+    (with `traceId`) queryable via LogQL `{namespace="brain"} |= "api-gateway-bff"`. Loki registered as a
+    Grafana datasource declaratively (`observability/loki-grafana-datasource.yaml`, picked up by the Grafana
+    sidecar — Grafana now serves Prometheus + Loki + Alertmanager).
   - ⛔ **Traces (Tempo)**: deferred — the BFF carries `traceId` in structured logs but exports **no OTLP spans**,
     so Tempo would ingest nothing. Add Tempo once the BFF emits OpenTelemetry spans (see deferred-hardening backlog).
   - ⚠️ **Capacity note**: the full kube-prometheus-stack + Loki on a single laptop kind cluster strains the
     control plane (the API server timed out twice and the BFF restarted once under load). On EKS this is a
     non-issue; locally, consider scaling node-exporter/kube-state-metrics down or running observability in a
     separate profile if it keeps flapping.
-- ⏳ **M6 GitOps**: ArgoCD app-of-apps (`../argocd/app-of-apps.yaml`) syncing every service Application from git.
-- ⏳ **M7 web + ingress routing**: deploy web; ingress routes `/`, `/bff`, `/idp` like the Caddy single-origin.
+- ✅ **M6 GitOps**: ArgoCD app-of-apps (`../argocd/app-of-apps.yaml`) → per-service Applications under
+  `../platform/` (`api-gateway-bff.yaml`, `web-founder-console.yaml`), each rendering the `brain-service` base
+  chart with its local values file via the `$values` multi-source ref. **Verified**: `brain-root` →
+  `api-gateway-bff` + `web-founder-console` all **Synced/Healthy**, pulled live from the GitHub feature branch
+  (public repo, no creds). The BFF was handed off from the manual `helm install` to ArgoCD ownership; the e2e
+  smoke still passes through the GitOps-managed pod. `targetRevision` tracks this feature branch locally;
+  on EKS it flips to `main` (merge → ArgoCD syncs).
+- ✅ **M7 web + ingress routing**: `web-founder-console` (Next.js) deployed via the same base chart
+  (`values-web.yaml`). Single-origin ingress (`ingress.yaml`, mirrors the legacy Caddyfile) **verified** on
+  host `:8081`: `/` → web (307 auth redirect), `/bff/health` → BFF `{"ok":true}` (prefix stripped),
+  `/idp/realms/brain` → Keycloak realm JSON (prefix stripped). Full browser OAuth login (Keycloak hostname
+  config + two-issuer wiring) is deferred — out of scope for the routing-topology milestone.
 
 ## Run it
 ```bash
@@ -87,10 +98,25 @@ helm upgrade --install kube-prom prometheus-community/kube-prometheus-stack -n m
 kubectl apply -f infra/kubernetes/local/observability/bff-servicemonitor.yaml
 helm upgrade --install loki grafana/loki-stack -n monitoring \
   -f infra/kubernetes/local/observability/loki-values.yaml
+kubectl apply -f infra/kubernetes/local/observability/loki-grafana-datasource.yaml   # Loki → Grafana
+
+# M6 GitOps — hand the workloads to ArgoCD (pulls the pushed branch). Build/load the web image first
+# so the chart's brain-web:local resolves locally (kind load, like the BFF).
+docker build -f apps/web-founder-console/Dockerfile -t brain-web:local \
+  --build-arg NEXT_PUBLIC_API_BASE_URL=http://localhost:8081/bff \
+  --build-arg NEXT_PUBLIC_APP_URL=http://localhost:8081 .
+kind load docker-image brain-web:local --name brain-local
+helm uninstall bff -n brain 2>/dev/null   # let ArgoCD own the BFF instead of the manual helm release
+kubectl apply -f infra/kubernetes/argocd/app-of-apps.yaml          # brain-root → platform/*.yaml
+kubectl -n argocd get applications -w                              # wait Synced/Healthy
+
+# M7 single-origin ingress
+kubectl apply -f infra/kubernetes/local/ingress.yaml
 
 # verify
-kubectl -n brain port-forward svc/api-gateway-bff 4599:4000 &
-curl localhost:4599/health     # {"ok":true}
+curl -H 'Host: localhost' localhost:8081/bff/health          # {"ok":true}
+curl -H 'Host: localhost' localhost:8081/idp/realms/brain    # realm JSON
+curl -so /dev/null -w '%{http_code}\n' -H 'Host: localhost' localhost:8081/   # 307 (web)
 ```
 
 ## Resume after a laptop reboot
