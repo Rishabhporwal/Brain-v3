@@ -23,7 +23,10 @@ env:
   # Auth.js (NextAuth) seam. Browser-facing issuer goes through the ingress /idp prefix; server-side
   # discovery uses the in-cluster Keycloak DNS. Full browser OAuth needs Keycloak hostname config
   # (deferred) — these let the app boot and the routing topology be verified.
-  AUTH_SECRET: dev-only-change-me-please-32-characters
+  # Must match apps/web-founder-console/.env.local so sessions are interchangeable between local `npm dev`
+  # (:3000) and the kind stack (:8081) — cookies are per-host (localhost), so a mismatch makes the other
+  # instance's session cookie undecryptable ("no matching decryption secret"). Local dev throwaway value.
+  AUTH_SECRET: brain-local-dev-auth-secret-please-change-32
   AUTH_URL: http://localhost:8081
   AUTH_TRUST_HOST: "true"
   KEYCLOAK_ISSUER: http://localhost:8081/idp/realms/brain
