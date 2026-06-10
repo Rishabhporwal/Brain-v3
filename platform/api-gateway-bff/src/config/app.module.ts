@@ -25,6 +25,8 @@ import { SyncSchedulerService } from '../application/sync-scheduler.service'
 import { WebhookService } from '../application/webhook.service'
 import { FreshnessService } from '../application/freshness.service'
 import { RecommendationGateService } from '../application/recommendation-gate.service'
+import { McpService } from '../application/mcp.service'
+import { McpController } from '../api/http/mcp.controller'
 import { MailService } from '../application/mail.service'
 import { InviteService } from '../application/invite.service'
 import { InviteController } from '../api/http/invite.controller'
@@ -40,7 +42,7 @@ import { InviteController } from '../api/http/invite.controller'
     // Drives the polling-lane scheduler (SyncSchedulerService) — automatic Google/Meta ad-spend sync.
     ScheduleModule.forRoot(),
   ],
-  controllers: [HealthController, BffController, OnboardingController, TrackController, IntegrationsController, WebhooksController, InviteController, MetricsController],
+  controllers: [HealthController, BffController, OnboardingController, TrackController, IntegrationsController, WebhooksController, InviteController, McpController, MetricsController],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_INTERCEPTOR, useClass: MetricsInterceptor },
@@ -60,6 +62,7 @@ import { InviteController } from '../api/http/invite.controller'
     WebhookService,
     FreshnessService,
     RecommendationGateService,
+    McpService,
   ],
 })
 export class AppModule {}
