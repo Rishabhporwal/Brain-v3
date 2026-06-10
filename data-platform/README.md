@@ -1,8 +1,11 @@
 # Data Platform — ingestion, connectors, streaming (Data Platform pod)
 
-**Live:** `connector-platform/` — the connector kit (`_kit/core`), the connector
-`registry`, and one deployable per live provider
-(`connectors/{shopify,meta-ads,google-ads,razorpay,woocommerce,stripe,shiprocket}`).
+**Live:**
+- `connector-platform/` — the connector kit (`_kit/core`), the connector `registry`, and one
+  deployable per live provider (`connectors/{shopify,meta-ads,google-ads,razorpay,woocommerce,stripe,shiprocket}`).
+- `raw-archiver/` — raw-as-received archive of every integration topic to S3/MinIO
+  (BRD §10.4: the warehouse keeps raw data exactly as received; Hive-partitioned
+  `topic/brand_id/dt`, at-least-once, offsets committed only after the object is durable).
 
 **Planned** (manifests in [`tools/service-catalog/data-platform/`](../tools/service-catalog/data-platform/)):
 
