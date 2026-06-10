@@ -12,7 +12,8 @@ topics:
     key: brand_id (or "platform" for non-brand events)
     schema: schemas/integration.event.v1.schema.json
     producers: [platform/api-gateway-bff]
-    consumers: []          # control-plane consumers (webhook auto-registration) — planned
+    consumers:
+      - data-platform/raw-archiver (raw archive, group raw-archiver)
     notes: integration.connected / integration.disconnected lifecycle; NOT onboarding (that is audit_logs)
 
   - name: brain.integration.webhooks
@@ -27,6 +28,7 @@ topics:
     producers: [platform/api-gateway-bff (WebhookService → any push connector)]
     consumers:
       - clickhouse brain.kafka_integration_webhooks → mv_orders / mv_payments / mv_shipments (JSONAsString)
+      - data-platform/raw-archiver (raw archive, group raw-archiver)
 
   - name: brain.integration.pull
     lane: data/pull
@@ -38,6 +40,7 @@ topics:
     producers: [platform/api-gateway-bff (PullService scheduler → google-ads / meta-ads connectors)]
     consumers:
       - clickhouse brain.kafka_integration_pull → mv_ad_spend (JSONAsString)
+      - data-platform/raw-archiver (raw archive, group raw-archiver)
 
   # ── planned (Arch v2 §6.3 stage topics; created when their producer lands) ───────────────────
   - { name: brain.raw_events,        lane: data,    status: planned, notes: tracking SDK / event-ingestion }
