@@ -19,6 +19,22 @@ exact envelopes the producer emits (via the exported `build*Envelope` functions)
 validates them — plus canonical record fixtures — against these schemas with ajv on every
 test run. Changing the producer shape without updating the schema (or vice versa) fails CI.
 
+## Registry tooling
+
+`tools/scripts/schema-registry.mjs` publishes these schemas to the (Redpanda) Schema
+Registry and gates changes on **BACKWARD** compatibility:
+
+```
+pnpm schemas:check     # compatibility check vs latest registered (exit 1 on breaking)
+pnpm schemas:publish   # register new versions (sets BACKWARD compat per subject)
+```
+
+Registry URL: `$SCHEMA_REGISTRY_URL` or `http://localhost:18081` (local Redpanda).
+Subjects follow TopicNameStrategy (`<topic>-value`); cross-schema `brain://` refs are
+bundled (inlined) so each subject is self-contained. `--dry-run` validates bundling
+without a registry. Wire `schemas:check` into CI once the pipeline has a registry
+(or run it with `--dry-run` until then).
+
 ## Evolution rules (until the registry enforces them)
 
 - **Additive only within v1**: new optional fields are fine; never remove or re-type a field
