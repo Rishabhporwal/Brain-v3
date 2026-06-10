@@ -56,6 +56,20 @@ export interface PaymentRecord {
   created_at: string // ISO8601
 }
 
+/** Canonical ad-spend shape — every ads connector normalizes cost to integer minor units (brain.ad_spend). */
+export interface AdSpendRecord {
+  date: string // YYYY-MM-DD
+  campaign_id: string // external campaign id
+  campaign_name: string
+  spend_minor: string // integer-as-string, minor units of `currency`
+  currency: string
+  impressions?: string
+  clicks?: string
+  conversions?: string
+  cost_micros?: string // provider-native (google) — retained for replay/debug
+  spend?: string // provider-native (meta, major units) — retained for replay/debug
+}
+
 export interface WebhookContext {
   rawBody: Buffer
   headers: Record<string, string | undefined>

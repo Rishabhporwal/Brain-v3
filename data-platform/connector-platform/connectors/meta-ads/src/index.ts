@@ -72,7 +72,9 @@ export const metaAds: ConnectorHooks = {
         date: row.date_start,
         campaign_id: row.campaign_id,
         campaign_name: row.campaign_name,
-        spend: row.spend,
+        // canonical money: major-unit decimal string → integer minor units
+        spend_minor: String(Math.round(Number(row.spend ?? '0') * 100)),
+        spend: row.spend, // provider-native, retained for replay/debug
         impressions: row.impressions,
         clicks: row.clicks,
         currency: row.account_currency, // account currency → ad_spend.currency_code

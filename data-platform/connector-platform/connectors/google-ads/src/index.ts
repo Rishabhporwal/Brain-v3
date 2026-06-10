@@ -77,7 +77,9 @@ export const googleAds: ConnectorHooks = {
             date: row.segments?.date,
             campaign_id: row.campaign?.id,
             campaign_name: row.campaign?.name,
-            cost_micros: row.metrics?.costMicros,
+            // canonical money: micros → integer minor units (1e6 micros = 1 major = 100 minor)
+            spend_minor: String(Math.round(Number(row.metrics?.costMicros ?? '0') / 10_000)),
+            cost_micros: row.metrics?.costMicros, // provider-native, retained for replay/debug
             clicks: row.metrics?.clicks,
             conversions: row.metrics?.conversions,
             currency: row.customer?.currencyCode, // account currency → ad_spend.currency_code
