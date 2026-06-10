@@ -108,7 +108,7 @@ describe('event envelope ↔ contracts/events schema parity', () => {
         { provider: 'google', brandId: BRAND, stream: 'ad_spend', records: [] },
         {
           primaryKey: '222333:2026-06-10',
-          data: { date: '2026-06-10', campaign_id: '222333', campaign_name: 'Brand-IN', cost_micros: '12340000', clicks: '57', conversions: '3.0', currency: 'INR' },
+          data: { date: '2026-06-10', campaign_id: '222333', campaign_name: 'Brand-IN', spend_minor: '1234', cost_micros: '12340000', clicks: '57', conversions: '3.0', currency: 'INR' },
         },
         NOW,
       ),
@@ -122,7 +122,7 @@ describe('event envelope ↔ contracts/events schema parity', () => {
         { provider: 'meta', brandId: BRAND, stream: 'ad_spend', records: [] },
         {
           primaryKey: '120208:2026-06-10',
-          data: { date: '2026-06-10', campaign_id: '120208', campaign_name: 'Prospecting', spend: '845.67', impressions: '10233', clicks: '188', currency: 'INR' },
+          data: { date: '2026-06-10', campaign_id: '120208', campaign_name: 'Prospecting', spend_minor: '84567', spend: '845.67', impressions: '10233', clicks: '188', currency: 'INR' },
         },
         NOW,
       ),

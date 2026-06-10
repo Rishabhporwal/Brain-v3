@@ -33,7 +33,11 @@ SETTINGS kafka_broker_list = 'redpanda:9092',
          kafka_format = 'JSONAsString',
          kafka_num_consumers = 1;
 
--- MV: parse the pull envelope; normalize spend per provider (Google = cost_micros/1e4, Meta = spend*100).
+-- MV: parse the pull envelope. Connectors emit canonical `spend_minor` (integer minor units, kit
+-- AdSpendRecord) — prefer it; the provider-variant fallback (Google = cost_micros/1e4, Meta = spend*100)
+-- only serves replays of pre-upgrade messages.
+-- NB existing clusters: `CREATE ... IF NOT EXISTS` won't update a live MV — re-apply with
+--   DROP TABLE brain.mv_ad_spend; then re-run this file (the ad_spend data table is untouched).
 CREATE MATERIALIZED VIEW IF NOT EXISTS brain.mv_ad_spend TO brain.ad_spend AS
 SELECT
   toUUIDOrZero(JSONExtractString(raw, 'brand_id'))                                          AS brand_id,
@@ -41,7 +45,9 @@ SELECT
   JSONExtractString(JSONExtractRaw(raw, 'payload'), 'campaign_id')                          AS campaign_id,
   JSONExtractString(JSONExtractRaw(raw, 'payload'), 'campaign_name')                        AS campaign_name,
   toDate(parseDateTimeBestEffortOrZero(JSONExtractString(JSONExtractRaw(raw, 'payload'), 'date'))) AS date,
-  if(
+  multiIf(
+    JSONExtractString(JSONExtractRaw(raw, 'payload'), 'spend_minor') != '',
+    toInt64OrZero(JSONExtractString(JSONExtractRaw(raw, 'payload'), 'spend_minor')),
     JSONExtractString(raw, 'provider') = 'google',
     toInt64(toFloat64OrZero(JSONExtractString(JSONExtractRaw(raw, 'payload'), 'cost_micros')) / 10000),
     toInt64(round(toFloat64OrZero(JSONExtractString(JSONExtractRaw(raw, 'payload'), 'spend')) * 100))
