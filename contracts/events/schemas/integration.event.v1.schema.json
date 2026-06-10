@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "brain://events/integration.event.v1",
+  "title": "brain.integration.events envelope (v1)",
+  "description": "Control-plane integration lifecycle event (integration.connected, integration.disconnected, ...). Kafka key = brand_id or 'platform'.",
+  "type": "object",
+  "required": ["schema_version", "occurred_at", "type", "brand_id", "actor"],
+  "properties": {
+    "schema_version": { "const": "1" },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "type": { "type": "string", "pattern": "^integration\\.[a-z_.]+$" },
+    "brand_id": { "type": ["string", "null"], "format": "uuid" },
+    "actor": { "type": "string", "minLength": 1 },
+    "payload": {}
+  },
+  "additionalProperties": false
+}

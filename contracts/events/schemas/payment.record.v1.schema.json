@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "brain://events/payment.record.v1",
+  "title": "Canonical PaymentRecord (v1)",
+  "description": "Vendor-agnostic payment shape (kit contract.ts PaymentRecord). Money is integer minor units as a string. brain.payments keys on (brand_id, provider, payment_id).",
+  "type": "object",
+  "required": ["payment_id", "amount_minor", "currency", "status", "created_at"],
+  "properties": {
+    "payment_id": { "type": "string", "minLength": 1 },
+    "order_ref": { "type": "string" },
+    "amount_minor": { "type": "string", "pattern": "^-?[0-9]+$", "description": "integer-as-string, minor units" },
+    "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+    "status": { "type": "string", "description": "captured | failed | refunded | ..." },
+    "method": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": true
+}

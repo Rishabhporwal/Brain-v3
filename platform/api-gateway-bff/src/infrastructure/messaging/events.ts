@@ -44,6 +44,45 @@ export interface EventBus {
   emitPull(batch: PullBatch): void
 }
 
+// ── Envelope builders — the wire format, contract-tested against contracts/events/schemas ──────
+// (events.contract.spec.ts validates these against the JSON Schemas; change both together.)
+
+export function buildDomainEnvelope(event: DomainEvent, occurredAt: string): object {
+  return {
+    schema_version: '1',
+    occurred_at: occurredAt,
+    type: event.type,
+    brand_id: event.brandId,
+    actor: event.actor,
+    payload: event.payload ?? null,
+  }
+}
+
+export function buildWebhookEnvelope(event: WebhookEvent, receivedAt: string): object {
+  return {
+    schema_version: '1',
+    received_at: receivedAt,
+    provider: event.provider,
+    topic: event.topic,
+    stream: event.stream,
+    brand_id: event.brandId,
+    shop: event.shop ?? null,
+    payload: event.payload,
+  }
+}
+
+export function buildPullEnvelope(batch: PullBatch, rec: PullBatch['records'][number], pulledAt: string): object {
+  return {
+    schema_version: '1',
+    pulled_at: pulledAt,
+    provider: batch.provider,
+    brand_id: batch.brandId,
+    stream: batch.stream,
+    primary_key: rec.primaryKey ?? null,
+    payload: rec.data,
+  }
+}
+
 /** No brokers configured → events are a no-op (local/CI without Kafka still runs unchanged). */
 class NoopEventBus implements EventBus {
   emit(): void {}
@@ -79,56 +118,17 @@ class KafkaEventBus implements EventBus {
   }
 
   emit(event: DomainEvent): void {
-    this.send(
-      INTEGRATION_TOPIC,
-      event.brandId ?? 'platform',
-      {
-        schema_version: '1',
-        occurred_at: new Date().toISOString(),
-        type: event.type,
-        brand_id: event.brandId,
-        actor: event.actor,
-        payload: event.payload ?? null,
-      },
-      event.type,
-    )
+    this.send(INTEGRATION_TOPIC, event.brandId ?? 'platform', buildDomainEnvelope(event, new Date().toISOString()), event.type)
   }
 
   emitWebhook(event: WebhookEvent): void {
-    this.send(
-      WEBHOOK_TOPIC,
-      event.brandId,
-      {
-        schema_version: '1',
-        received_at: new Date().toISOString(),
-        provider: event.provider,
-        topic: event.topic,
-        stream: event.stream,
-        brand_id: event.brandId,
-        shop: event.shop ?? null,
-        payload: event.payload,
-      },
-      `${event.provider}:${event.stream}`,
-    )
+    this.send(WEBHOOK_TOPIC, event.brandId, buildWebhookEnvelope(event, new Date().toISOString()), `${event.provider}:${event.stream}`)
   }
 
   emitPull(batch: PullBatch): void {
     const pulledAt = new Date().toISOString()
     for (const rec of batch.records) {
-      this.send(
-        PULL_TOPIC,
-        batch.brandId,
-        {
-          schema_version: '1',
-          pulled_at: pulledAt,
-          provider: batch.provider,
-          brand_id: batch.brandId,
-          stream: batch.stream,
-          primary_key: rec.primaryKey ?? null,
-          payload: rec.data,
-        },
-        `${batch.provider}:${batch.stream}`,
-      )
+      this.send(PULL_TOPIC, batch.brandId, buildPullEnvelope(batch, rec, pulledAt), `${batch.provider}:${batch.stream}`)
     }
   }
 }

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "brain://events/order.record.v1",
+  "title": "Canonical OrderRecord (v1)",
+  "description": "Vendor-agnostic order shape every storefront connector normalizes to (kit contract.ts OrderRecord). brain.orders keys on (brand_id, provider, order_id).",
+  "type": "object",
+  "required": ["order_id", "total_price", "currency", "financial_status", "ordered_at"],
+  "properties": {
+    "order_id": { "type": "string", "minLength": 1 },
+    "order_name": { "type": "string" },
+    "total_price": { "type": "string", "pattern": "^-?[0-9]+(\\.[0-9]+)?$", "description": "decimal string in the order currency" },
+    "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+    "financial_status": { "type": "string", "description": "paid | pending | refunded | ..." },
+    "fulfillment_status": { "type": "string" },
+    "customer_id": { "type": "string" },
+    "ordered_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": true
+}

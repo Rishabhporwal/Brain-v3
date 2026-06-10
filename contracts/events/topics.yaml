@@ -1,1 +1,46 @@
-# canonical topic registry: raw / normalized / attributed / signals / decisions (partition key = workspace_id)
+# Canonical topic registry — every Kafka/Redpanda topic in flight or planned.
+# Partition key is ALWAYS the tenant key (brand_id) so per-brand ordering + isolation hold (Arch v2 §6.3).
+# Wire format today: versioned JSON envelope (schema_version field), validated against
+# contracts/events/schemas/*.schema.json (CI: BFF contract spec). Registry-enforced compatibility
+# (Redpanda schema registry, local :18081) lands with data-platform/first-party-data/schema-registry-svc.
+
+topics:
+  # ── live (produced by platform/api-gateway-bff, consumed by ClickHouse Kafka engine) ─────────
+  - name: brain.integration.events
+    lane: control
+    status: live
+    key: brand_id (or "platform" for non-brand events)
+    schema: schemas/integration.event.v1.schema.json
+    producers: [platform/api-gateway-bff]
+    consumers: []          # control-plane consumers (webhook auto-registration) — planned
+    notes: integration.connected / integration.disconnected lifecycle; NOT onboarding (that is audit_logs)
+
+  - name: brain.integration.webhooks
+    lane: data/push
+    status: live
+    key: brand_id
+    schema: schemas/integration.webhook.v1.schema.json
+    payload_schemas:
+      orders: schemas/order.record.v1.schema.json        # canonical OrderRecord (kit contract)
+      payments: schemas/payment.record.v1.schema.json    # canonical PaymentRecord
+    producers: [platform/api-gateway-bff (WebhookService → any push connector)]
+    consumers:
+      - clickhouse brain.kafka_integration_webhooks → mv_orders / mv_payments (JSONAsString)
+
+  - name: brain.integration.pull
+    lane: data/pull
+    status: live
+    key: brand_id
+    schema: schemas/integration.pull.v1.schema.json
+    payload_schemas:
+      ad_spend: schemas/ad-spend.record.v1.schema.json   # provider-variant cost field (cost_micros|spend)
+    producers: [platform/api-gateway-bff (PullService scheduler → google-ads / meta-ads connectors)]
+    consumers:
+      - clickhouse brain.kafka_integration_pull → mv_ad_spend (JSONAsString)
+
+  # ── planned (Arch v2 §6.3 stage topics; created when their producer lands) ───────────────────
+  - { name: brain.raw_events,        lane: data,    status: planned, notes: tracking SDK / event-ingestion }
+  - { name: brain.normalized_events, lane: data,    status: planned, notes: event-processing output }
+  - { name: brain.customer_events,   lane: data,    status: planned, notes: identity-stitched stream }
+  - { name: brain.signals,           lane: data,    status: planned, notes: signal-detection output }
+  - { name: brain.decisions,         lane: control, status: planned, notes: decision-log feed }
