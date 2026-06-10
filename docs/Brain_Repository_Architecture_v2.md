@@ -617,16 +617,17 @@ unreadable — live and dead were indistinguishable. Executed changes:
 `apps/web-founder-console`, `shared/{ts,python,config}`, `contracts/`, `data/`, `infra/`,
 `deployment/local`, `observability/`, `tools/`, `docs/`.
 
-**Known interim exceptions (tracked, not silent):**
-- The console reads numbers without `commerce-intelligence/metric-engine` in front
-  (invariant 1) — acceptable until the metric engine ships in P1/P2; the BFF read-model is
-  the seam where it will slot in.
-- Live events flow with only `contracts/events/topics.yaml` — Avro schemas + registry are
-  deferred hardening; the longer they wait, the more drift accrues on the proven webhook lane.
-- No guardrail layer exists before `agent-platform/guardrail` ships (P4/P5), but BRD §18/§21
-  require confidence/staleness gates on any surfaced recommendation from Phase 1. Until then,
-  a lean gate (staleness check + confidence floor + decision-log write) must live in the
-  BFF/read-model path — see ADR-0004.
+**Known interim exceptions (tracked, not silent) — status as of 2026-06-11 (PRs #18–#26):**
+- ~~Console reads numbers without `metric-engine`~~ **RESOLVED**: the Tier-0 engine is live
+  (formula book `contracts/metrics/registry.yaml`, two-way parity gate); the BFF quotes it when
+  `METRIC_ENGINE_URL` is set. Remaining: deploy the engine everywhere, then delete the BFF's
+  inline fallback.
+- Event contracts: JSON Schemas + producer contract test (PR #18) + registry BACKWARD-compat
+  gate (PR #21) exist; remaining is the **Avro wire-encoding switch** (schema-registry-svc).
+- Lean recommendation gate implemented in the BFF (PR #22, ADR-0004); the full guardrail
+  engine stays P4/P5.
+- Raw-as-received archive live (PR #24); Iceberg table format + compaction remain the
+  lakehouse upgrade.
 
 **Gap corrections from the BRD coverage review (2026-06-11):** the review (Engineering Advisor
 + Architect) found two P0 requirements with no architectural home and two phase mismatches.
