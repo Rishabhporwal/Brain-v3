@@ -18,4 +18,3 @@ contracts:
   produces: [events/avro/billing.invoice.issued.avsc, events/avro/billing.usage.metered.avsc]
 data_owned: [billing.invoice, billing.tier_config, billing.usage_meter, billing.activation_window]
 on_call: finance
-path: platform/billing

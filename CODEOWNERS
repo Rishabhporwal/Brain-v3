@@ -26,6 +26,8 @@
 /.github/                           @brain/devops-sre
 
 # Money-moving paths require Security co-sign (Blueprint §11.1)
+/platform/billing/                  @brain/platform-core @brain/security
+/data/stores/postgres/schema/80_billing.sql  @brain/data-platform @brain/security
 /agent-platform/guardrail/          @brain/platform-core @brain/security
 /agent-platform/execution/          @brain/platform-core @brain/security
 /platform/audit/                    @brain/security
