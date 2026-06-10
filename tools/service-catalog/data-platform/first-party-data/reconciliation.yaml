@@ -1,0 +1,16 @@
+# Service manifest — machine-readable ownership / SLO / contract registry.
+name: reconciliation
+owner_pod: data-platform
+phase: P2
+language: nestjs-ts
+summary: >-
+  Realization-tail corrections (with realized-revenue-ledger).
+slos:
+  availability: "99.9%"
+  latency_p99_ms: 250
+contracts:
+  consumes: []          # e.g. [proto/commerce/metric.proto, events/avro/order.normalized.avsc]
+  produces: []
+data_owned: []          # tables/topics this service owns (no shared tables — Blueprint §2.14)
+on_call: data-platform
+path: data-platform/first-party-data/reconciliation

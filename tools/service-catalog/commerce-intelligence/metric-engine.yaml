@@ -1,0 +1,16 @@
+# Service manifest — machine-readable ownership / SLO / contract registry.
+name: metric-engine
+owner_pod: platform-core
+phase: P2
+language: nestjs-ts
+summary: >-
+  Tier-0 deterministic CM1/CM2/CM3 + MER/CAC/RTO/COD; versioned formula registry. ONLY source of numbers.
+slos:
+  availability: "99.9%"
+  latency_p99_ms: 250
+contracts:
+  consumes: []          # e.g. [proto/commerce/metric.proto, events/avro/order.normalized.avsc]
+  produces: []
+data_owned: []          # tables/topics this service owns (no shared tables — Blueprint §2.14)
+on_call: platform-core
+path: commerce-intelligence/metric-engine

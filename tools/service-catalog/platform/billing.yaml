@@ -1,0 +1,21 @@
+# Service manifest — machine-readable ownership / SLO / contract registry.
+name: billing
+owner_pod: finance
+phase: P1
+language: nestjs-ts
+summary: >-
+  GMV-percent / enterprise billing (BRD §23): realized-GMV-% invoicing above per-tier
+  minimum monthly fee, lower-of(%-GMV, CM2-affordability cap), Day-0–14 activation period
+  before first invoice. Minimum-fee + activation-period ship at P1; the GMV-% computation
+  graduates when realized-revenue-ledger (P2) lands. Consumes realized GMV + CM2 from
+  metric-engine/realized-revenue-ledger; never computes its own numbers (invariant 1).
+  Money-moving path — requires @brain/security co-sign (CODEOWNERS).
+slos:
+  availability: "99.9%"
+  latency_p99_ms: 250
+contracts:
+  consumes: [proto/commerce/metric.proto, events/avro/revenue.realized.avsc]
+  produces: [events/avro/billing.invoice.issued.avsc, events/avro/billing.usage.metered.avsc]
+data_owned: [billing.invoice, billing.tier_config, billing.usage_meter, billing.activation_window]
+on_call: finance
+path: platform/billing

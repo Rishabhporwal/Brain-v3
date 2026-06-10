@@ -174,6 +174,9 @@ platform/
 ├── billing/         # GMV-percent / enterprise billing
 ├── api-gateway-bff/ # the single sync edge: verifies Keycloak JWTs, serves the console read-model,
 │                    #   exposes approved-action APIs. NOT a domain service.
+│                    #   ALSO HOSTS the customer-facing MCP server (P1, BRD §8.10/§10.10): per-brand
+│                    #   warehouse access via the read-model/metric-engine seam, same JWT → scope →
+│                    #   brand-tenant → tool-gate → audit chain as the console. One edge, not two.
 └── _template/       # cookiecutter NestJS service
 ```
 
@@ -517,7 +520,10 @@ deploys within that platform. Connectors/agents are **per-service deployables** 
 
 ## Part 20 — Phase 1 → Phase 6 evolution (structure is fixed; services land per phase)
 
-The **folders are created now**; services fill them by phase. Lean-core early, split as load/ownership justifies.
+The **top level is fixed now**; service directories are created **on demand** when work on
+them begins. The full target landscape lives as machine-readable manifests in
+`tools/service-catalog/` (see Part 24) — a folder on disk means a service being built,
+never a placeholder. Lean-core early, split as load/ownership justifies.
 
 | Phase | Theme | Lands |
 |---|---|---|
@@ -583,6 +589,54 @@ connector-kit + all 5 connectors + registry build, `api-gateway-bff` `nest build
 The canonical per-service internal layout is specified in [nestjs-service-template.md](./nestjs-service-template.md).
 
 ---
+
+## Part 24 — Structure simplification: catalog-not-skeletons (2026-06-11)
+
+The literal materialization of Parts 4–10 had put the **entire Phase 0–5 target state on
+disk as ~80 empty service skeletons** (stub `main.ts`/`main.py`, `.gitkeep` test trees,
+Dockerfiles, charts) while only a handful of services were live. That made the repo
+unreadable — live and dead were indistinguishable. Executed changes:
+
+1. **Catalog, not folders.** Every skeleton's `service.yaml` manifest (owner, phase, SLOs,
+   contracts) moved to **`tools/service-catalog/<platform>/…`** with a `path:` field for its
+   canonical future location (78 services). The skeleton directories were deleted. The
+   generator scaffolds from the catalog when a phase begins (golden path in the catalog README).
+2. **Duplicates/residue removed:** `platform/notification-svc` (duplicate of `notification`;
+   `notification` is canonical), `platform/_shared`, `data-platform/stores` (W1 leftover),
+   `data-platform/contracts` (root `contracts/` is the only contracts home — rule 22.3).
+3. **Workspace configs trimmed** to live packages only (`pnpm-workspace.yaml`,
+   `pyproject.toml` uv members), with comments saying what to re-add when scaffolding.
+4. **Naming authority clarified:** on-disk and catalog service names follow the
+   **Solution Architecture** (e.g. `metric-engine`, `realized-revenue-ledger`,
+   `apps/web-founder-console`); where this doc's Parts 4–10 differ, the catalog is authoritative.
+5. **`legacy frontend/`** (the V1 app) is **out of architecture** — kept in-repo for reference
+   by deliberate decision, frozen; it is not a workspace member and must not be extended.
+
+**Live on disk after simplification:** `platform/api-gateway-bff`,
+`data-platform/connector-platform` (`_kit`, `registry`, 5 provider connectors + `_template`),
+`apps/web-founder-console`, `shared/{ts,python,config}`, `contracts/`, `data/`, `infra/`,
+`deployment/local`, `observability/`, `tools/`, `docs/`.
+
+**Known interim exceptions (tracked, not silent):**
+- The console reads numbers without `commerce-intelligence/metric-engine` in front
+  (invariant 1) — acceptable until the metric engine ships in P1/P2; the BFF read-model is
+  the seam where it will slot in.
+- Live events flow with only `contracts/events/topics.yaml` — Avro schemas + registry are
+  deferred hardening; the longer they wait, the more drift accrues on the proven webhook lane.
+- No guardrail layer exists before `agent-platform/guardrail` ships (P4/P5), but BRD §18/§21
+  require confidence/staleness gates on any surfaced recommendation from Phase 1. Until then,
+  a lean gate (staleness check + confidence floor + decision-log write) must live in the
+  BFF/read-model path — see ADR-0004.
+
+**Gap corrections from the BRD coverage review (2026-06-11):** the review (Engineering Advisor
++ Architect) found two P0 requirements with no architectural home and two phase mismatches.
+Corrected: **`platform/billing`** manifest added (BRD §23 — realized-GMV-% invoicing, minimum
+fee, CM2 cap, activation period; P1 with GMV-% graduating when the ledger lands);
+**`commerce-intelligence/domain-services/lifecycle`** manifest added (Solution Architecture §4.2
+P1 domain service, BRD §15); the **MCP server** is registered (catalog row `platform/mcp-server.yaml`)
+and hosted inside `api-gateway-bff` (Part 5); **consent** moved P3 → P1 (tracking must be
+consent-gated from Phase 1). Phase-numbering reconciliation across BRD / Solution Architecture /
+this doc: ADR-0004.
 
 ## Appendix — the five gating invariants, structurally enforced
 1. **Metric integrity** → only `commerce-intelligence/metrics-engine` produces numbers (CODEOWNERS + CI parity).

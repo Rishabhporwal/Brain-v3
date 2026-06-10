@@ -1,23 +1,18 @@
 packages:
   # ① Product Applications
   - "apps/web-*"
-  - "apps/mobile"
   - "apps/packages/*"
   # ② Platform services (NestJS)
   - "platform/*"
-  # ③ Data-platform services (NestJS) — ingestion, connectors, tracking
-  - "data-platform/first-party-data/*"
+  # ③ Data-platform services (NestJS) — connectors land per provider
   - "data-platform/connector-platform/registry"
   - "data-platform/connector-platform/_kit/*"
   - "data-platform/connector-platform/connectors/*"
-  - "data-platform/connector-platform/custom-integration-framework"
-  # ④ Intelligence & agent platforms (NestJS)
-  - "commerce-intelligence/*"
-  - "commerce-intelligence/domain-services/*"
-  - "customer-intelligence/*"
-  - "agent-platform/*"
-  # ⑤ Shared TS libraries + contracts + SDKs
+  # ④ Intelligence & agent platforms — no live packages yet.
+  #    Planned services live in tools/service-catalog/; when one is scaffolded, re-add
+  #    its glob here (commerce-intelligence/*, customer-intelligence/*, agent-platform/*,
+  #    data-platform/first-party-data/*, apps/mobile, sdk/*).
+  # ⑤ Shared TS libraries + contracts
   - "shared/ts/*"
-  - "sdk/*"
   - "contracts"
-# Python workspaces (ai-platform/*, shared/python/*) are managed by uv — see pyproject.toml
+# Python workspaces (ai-platform, shared/python/*) are managed by uv — see pyproject.toml
