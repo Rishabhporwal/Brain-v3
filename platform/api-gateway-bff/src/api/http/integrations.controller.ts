@@ -5,6 +5,7 @@ import { BrandContextGuard } from '../guards/brand-context.guard'
 import { ShopifyService } from '../../application/shopify.service'
 import { OAuthService } from '../../application/oauth.service'
 import { PullService } from '../../application/pull.service'
+import { FreshnessService } from '../../application/freshness.service'
 import type { AuthUser } from '../../application/bff.service'
 
 // Brand-scoped guard chain: authenticate → resolve+require membership (404 for non-members) → permission.
@@ -22,7 +23,17 @@ export class IntegrationsController {
     private readonly shopify: ShopifyService,
     private readonly oauth: OAuthService,
     private readonly pull: PullService,
+    private readonly freshness: FreshnessService,
   ) {}
+
+  // Per-stream evidence freshness (integration health: BRD §13 lag visibility; also feeds the
+  // recommendation gate). lagMinutes=null means the stream has never landed for this brand.
+  @UseGuards(...BRAND_GUARDS)
+  @RequirePermission(PERMISSIONS.INTEGRATIONS_READ)
+  @Get('api/workspaces/:slug/integrations/freshness')
+  integrationFreshness(@Param('slug') slug: string) {
+    return this.freshness.forBrand(slug)
+  }
 
   // Trigger a polling-lane sync for a connected ad provider (google/meta). Manual/ops + tested path;
   // a scheduler runs this on an interval in production.
