@@ -8,10 +8,10 @@ packages:
   - "data-platform/connector-platform/registry"
   - "data-platform/connector-platform/_kit/*"
   - "data-platform/connector-platform/connectors/*"
-  # ④ Intelligence & agent platforms — no live packages yet.
-  #    Planned services live in tools/service-catalog/; when one is scaffolded, re-add
-  #    its glob here (commerce-intelligence/*, customer-intelligence/*, agent-platform/*,
-  #    data-platform/first-party-data/*, apps/mobile, sdk/*).
+  # ④ Intelligence & agent platforms — live services only.
+  #    Planned services live in tools/service-catalog/; when one is scaffolded, add it here
+  #    (customer-intelligence/*, agent-platform/*, data-platform/first-party-data/*, apps/mobile, sdk/*).
+  - "commerce-intelligence/metric-engine"
   # ⑤ Shared TS libraries + contracts
   - "shared/ts/*"
   - "contracts"

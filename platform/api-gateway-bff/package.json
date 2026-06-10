@@ -36,7 +36,8 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "@brain/connector-stripe": "workspace:*",
-    "@brain/connector-shiprocket": "workspace:*"
+    "@brain/connector-shiprocket": "workspace:*",
+    "@brain/metric-client": "workspace:*"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.9",

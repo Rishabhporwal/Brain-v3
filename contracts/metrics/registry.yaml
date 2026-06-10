@@ -1,4 +1,66 @@
 # THE FORMULA BOOK — single source of truth for every metric (TS + Python generated from here).
 # Only the metric-engine computes these; shared/ts/metric-client + shared/python/metrics generate clients.
+# Money values are ALWAYS integer minor units. `estimated: true` marks values produced from a
+# fallback evidence path (e.g. pixel purchases before a store is connected) — surfaces must label them.
+# Known v1 limitation (documented, not hidden): aggregates assume a single brand currency; multi-currency
+# normalization arrives with the realized-revenue ledger.
 version: 1
-metrics: []   # e.g. { id: cm2, formula_version: 1, definition: "...", inputs: [...] }
+metrics:
+  - id: realized_revenue
+    formula_version: 1
+    unit: minor_units
+    definition: >-
+      Sum of order total_price (×100 → minor units) over orders whose financial_status is not in
+      (voided, refunded, pending, cancelled, partially_refunded, declined, expired). Fallback when the
+      brand has no order facts: sum of first-party purchase-event values (estimated=true).
+    inputs: [brain.orders, brain.customer_events]
+  - id: orders
+    formula_version: 1
+    unit: count
+    definition: Count of realized orders (same realization filter). Fallback = count of purchase events (estimated).
+    inputs: [brain.orders, brain.customer_events]
+  - id: aov
+    formula_version: 1
+    unit: minor_units
+    definition: realized_revenue / orders, rounded to integer minor units.
+    inputs: [realized_revenue, orders]
+  - id: sessions
+    formula_version: 1
+    unit: count
+    definition: uniqExact(session_id) over first-party events.
+    inputs: [brain.customer_events]
+  - id: conversions
+    formula_version: 1
+    unit: count
+    definition: Count of checkout_completed first-party events.
+    inputs: [brain.customer_events]
+  - id: conversion_rate
+    formula_version: 1
+    unit: percent
+    definition: conversions / sessions × 100, one decimal.
+    inputs: [conversions, sessions]
+  - id: spend
+    formula_version: 1
+    unit: minor_units
+    definition: Sum of normalized ad spend_minor (canonical AdSpendRecord). Fallback = brain.fact_spend.
+    inputs: [brain.ad_spend, brain.fact_spend]
+  - id: mer
+    formula_version: 1
+    unit: ratio
+    definition: realized_revenue / spend, two decimals. (Blended marketing efficiency; roas aliases this until per-channel attribution lands.)
+    inputs: [realized_revenue, spend]
+  - id: roas
+    formula_version: 1
+    unit: ratio
+    definition: Alias of mer until attribution-engine provides attributed revenue per channel.
+    inputs: [mer]
+  - id: payments_captured
+    formula_version: 1
+    unit: minor_units
+    definition: Sum of amount_minor over payment facts with status='captured'.
+    inputs: [brain.payments]
+  - id: rto_rate
+    formula_version: 1
+    unit: percent
+    definition: Shipments in (rto, rto_delivered, undelivered) / all shipments × 100, one decimal.
+    inputs: [brain.shipments]

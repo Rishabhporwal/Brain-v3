@@ -2,6 +2,7 @@ import { ConflictException, Inject, Injectable } from '@nestjs/common'
 import { Pool } from 'pg'
 import type { ClickHouseClient } from '@clickhouse/client'
 import { AccessControl, type BrandContext } from '@brain/access-control'
+import { metricClientFromEnv } from '@brain/metric-client'
 import { CH_CLIENT, PG_POOL } from '../persistence/db.providers'
 import { IdentityService } from './identity.service'
 
@@ -121,6 +122,24 @@ export class BffService {
   async summary(user: AuthUser, slug: string) {
     const ctx = await this.requireContext(user, slug)
     const brandId = ctx.brandId
+
+    // Invariant 1 slot-in (Arch v2 Appendix / ADR-0004): when a metric engine is configured the
+    // read-model quotes IT — the inline computation below survives only as the no-engine fallback
+    // and degrades explicitly (engine unreachable → fallback, never a silent wrong number).
+    const engine = metricClientFromEnv()
+    if (engine) {
+      const res = await engine.getMetrics(brandId)
+      if (res) {
+        const m: Record<string, number> = {}
+        for (const v of res.metrics) m[v.id] = v.value
+        return {
+          metrics: m,
+          asOf: res.computed_at.slice(0, 10),
+          source: 'metric-engine',
+          estimated: res.metrics.filter((v) => v.estimated).map((v) => v.id),
+        }
+      }
+    }
 
     // ── Revenue & orders: source of truth is the ingested order facts (Shopify/Woo/…).
     //    total_price is Decimal major units → ×100 to integer-minor (the metric registry convention).
