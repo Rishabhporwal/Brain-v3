@@ -1,0 +1,24 @@
+# ArgoCD Application — web-founder-console (Next.js). Same base chart, web values file.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: web-founder-console
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/Rishabhporwal/Brain-v3.git
+      targetRevision: master
+      ref: values
+    - repoURL: https://github.com/Rishabhporwal/Brain-v3.git
+      targetRevision: master
+      path: infra/kubernetes/charts/brain-service
+      helm:
+        valueFiles:
+          - $values/infra/kubernetes/local/values-web.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: brain
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true]

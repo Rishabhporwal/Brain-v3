@@ -1,1 +1,74 @@
-# isolation-gate — see architecture doc §22
+# isolation-gate — release-blocking tenant-isolation + RBAC tests (architecture doc §12.4 / §22).
+# Cross-brand access MUST fail closed; this job proves it on every PR and blocks merge on any leak.
+# Postgres-only (the isolation + invite suites don't need ClickHouse/Keycloak), so it's fast.
+name: isolation-gate
+
+on:
+  pull_request:
+    paths:
+      - 'shared/ts/tenancy/**'
+      - 'shared/ts/authz/**'
+      - 'shared/ts/access-control/**'
+      - 'platform/api-gateway-bff/**'
+      - 'data/stores/postgres/**'
+      - '.github/workflows/isolation-gate.yml'
+  workflow_dispatch:
+
+jobs:
+  isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: brain
+          POSTGRES_PASSWORD: brain
+          POSTGRES_DB: brain
+        ports: ['5440:5432']
+        options: >-
+          --health-cmd "pg_isready -U brain" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      RUN_DB_TESTS: '1'
+      PG_URL: postgres://brain:brain@localhost:5440/brain
+      PGPASSWORD: brain
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Ensure psql client
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client
+
+      # Apply the canonical schema then seed, in order — mirrors deployment/local/postgres/initdb.
+      # Includes 90_grants.sql (brain_app DML → RLS actually enforces) and the RBAC role/permission seed.
+      - name: Apply schema + seed
+        run: |
+          for f in data/stores/postgres/schema/*.sql; do
+            echo "  • schema $(basename "$f")"
+            psql -h localhost -p 5440 -U brain -d brain -v ON_ERROR_STOP=1 -q -f "$f"
+          done
+          for f in data/stores/postgres/seed/*.sql; do
+            echo "  • seed $(basename "$f")"
+            psql -h localhost -p 5440 -U brain -d brain -v ON_ERROR_STOP=1 -q -f "$f"
+          done
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Build the access-control dependency closure (tenancy + authz + access-control) so the suites can
+      # import @brain/access-control from its built output.
+      - name: Build access-control packages
+        run: pnpm --filter "@brain/access-control..." build
+
+      # The release gate: tenant-isolation (read/insert/update/delete fail-closed, access-control,
+      # Layer-3) + the invite lifecycle. RUN_DB_TESTS=1 activates them; failure blocks the PR.
+      - name: Tenant-isolation + invite-lifecycle suites
+        run: pnpm --filter @brain/api-gateway-bff exec vitest run test/isolation/

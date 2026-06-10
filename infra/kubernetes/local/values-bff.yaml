@@ -1,0 +1,59 @@
+# Local (kind) values for the BFF via the brain-service base chart. Mirrors the prod values shape; the only
+# differences are the local image tag and pointing at in-cluster/compose data later. autoscaling off locally.
+name: api-gateway-bff
+image:
+  repository: brain-bff
+  tag: local
+  pullPolicy: IfNotPresent
+replicaCount: 1
+port: 4000
+autoscaling:
+  enabled: false
+env:
+  NODE_ENV: production
+  BRAIN_ENV: staging        # not 'production' → boot secret-guard + prod CORS-deny stay lenient locally
+  PORT: "4000"
+  # --- in-cluster data layer (M3a/M3b) — service DNS within the `brain` namespace ---
+  # NOTE: PG_URL + VAULT_KEY are intentionally NOT here — they come from the ESO-synced
+  # secret (secretRefs below). k8s gives inline `env` precedence over `envFrom`, so listing
+  # them here would mask the secret; omitting them proves the secret is actually consumed.
+  CH_URL: http://clickhouse:8123
+  KAFKA_BROKERS: redpanda:9092
+  KEYCLOAK_ISSUER: http://keycloak:8080/realms/brain
+  KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/brain/protocol/openid-connect/certs
+  VAULT_PATH: /tmp/brain-dev-vault.json
+  # --- OAuth / connector NON-secret config (provider secrets live in the brain-provider-secrets K8s
+  # secret, created out-of-band, NOT in git). Redirect URIs stay :3000 (the URIs registered in each
+  # provider console); the web pod is port-forwarded to :3000 for the callback hop. WEB_BASE is the
+  # single origin the user is returned to after consent. ---
+  WEB_BASE: http://localhost:8081
+  SHOPIFY_APP_URL: https://brain.pipadacapital.com
+  SHOPIFY_SCOPES: read_orders,read_products
+  SHOPIFY_REDIRECT_URI: http://localhost:3000/api/integrations/shopify/callback
+  GOOGLE_ADS_REDIRECT_URI: http://localhost:3000/api/integrations/google/callback
+  GOOGLE_ADS_API_VERSION: v23
+  GOOGLE_ADS_LOGIN_CUSTOMER_ID: "5407102791"
+  GOOGLE_ADS_SCOPES: https://www.googleapis.com/auth/adwords
+  META_REDIRECT_URI: http://localhost:3000/api/integrations/meta/callback
+  META_API_VERSION: v21.0
+  META_SCOPES: ads_read,ads_management
+  # Polling-lane scheduler cadence. Ad platforms have no push API, so "real-time" = poll on this interval
+  # (the BFF SyncSchedulerService auto-runs every connected Google/Meta pull). 30s locally for snappy
+  # feedback; prod uses a larger value (and leader election across replicas).
+  SYNC_INTERVAL_SECONDS: "30"
+# readOnlyRootFilesystem off locally (the image may write tmp); on in prod values.
+securityContext:
+  runAsNonRoot: false
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities: { drop: ["ALL"] }
+serviceAccount:
+  create: true
+# Prod pattern: ESO syncs AWS Secrets Manager (brain/staging/app) → K8s Secret brain-app-secrets;
+# the pod loads it via envFrom. PG_URL/VAULT_KEY here OVERRIDE the inline env above (envFrom wins).
+secretRefs:
+  - name: brain-app-secrets
+  # Real provider OAuth credentials (Shopify/Google/Meta client id+secret, Google dev token). Created
+  # out-of-band via `kubectl create secret generic brain-provider-secrets --from-env-file=...` so the
+  # values never enter git. Prod sources these from AWS Secrets Manager via ESO (same envFrom shape).
+  - name: brain-provider-secrets

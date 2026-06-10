@@ -1,0 +1,16 @@
+# Service manifest — machine-readable ownership / SLO / contract registry.
+name: audience
+owner_pod: growth
+phase: P3
+language: nestjs-ts
+summary: >-
+  Reusable audiences (build-once); membership materialization; activation contracts.
+slos:
+  availability: "99.9%"
+  latency_p99_ms: 250
+contracts:
+  consumes: []          # e.g. [proto/commerce/metric.proto, events/avro/order.normalized.avsc]
+  produces: []
+data_owned: []          # tables/topics this service owns (no shared tables — Blueprint §2.14)
+on_call: growth
+path: customer-intelligence/audience

@@ -1,0 +1,15 @@
+# M5 — Loki (logs) + Promtail (shipper) for the kind parity cluster. Small single-binary footprint.
+# Promtail tails every pod's stdout; the BFF's structured JSON logs (traceId/brand_id) become queryable
+# in Grafana via LogQL. Tempo (traces) is deferred until the BFF exports OTLP spans.
+loki:
+  isDefault: false
+  persistence:
+    enabled: false
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 512Mi }
+promtail:
+  enabled: true
+  resources:
+    requests: { cpu: 20m, memory: 64Mi }
+    limits: { memory: 192Mi }

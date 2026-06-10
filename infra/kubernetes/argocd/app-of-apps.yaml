@@ -1,0 +1,21 @@
+# ArgoCD "app of apps" root — points at infra/kubernetes/platform/, which holds one Application per service
+# (each rendering infra/kubernetes/charts/brain-service with that service's values). GitOps: merge to main →
+# ArgoCD syncs. This is the declarative deploy seam; it needs a running EKS cluster + ArgoCD installed.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: brain-root
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Rishabhporwal/Brain-v3.git
+    # Tracks the trunk: feature branches merge to `master` → ArgoCD syncs. Same source local + EKS.
+    targetRevision: master
+    path: infra/kubernetes/platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true]

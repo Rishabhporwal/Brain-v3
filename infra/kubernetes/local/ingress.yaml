@@ -1,0 +1,59 @@
+# M7 — single-origin ingress (mirrors the legacy Caddyfile). One host serves the whole stack:
+#   /         -> web-founder-console:3000   (Next.js)
+#   /bff/*    -> api-gateway-bff:4000        (prefix stripped)
+#   /idp/*    -> keycloak:8080               (prefix stripped)
+# ingress-nginx binds node :80/:443, mapped to host :8081/:8444 by kind-cluster.yaml. On EKS the same
+# topology is an ALB Ingress; only the class/annotations change.
+---
+# Web at the root. No rewrite — Next owns its own paths.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: brain-origin-web
+  namespace: brain
+  annotations:
+    # Auth.js session cookies are large and chunked (authjs.session-token.0/.1), so the Set-Cookie
+    # response headers overflow nginx's default 4k/8k proxy buffer → 502 on the credentials callback.
+    # Bump the buffer so the login redirect's headers fit.
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "32k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-founder-console
+                port: { number: 3000 }
+---
+# /bff and /idp proxied with the prefix stripped (Caddy `handle_path` equivalent via rewrite-target).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: brain-origin-proxy
+  namespace: brain
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: localhost
+      http:
+        paths:
+          - path: /bff(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: api-gateway-bff
+                port: { number: 4000 }
+          - path: /idp(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: keycloak
+                port: { number: 8080 }

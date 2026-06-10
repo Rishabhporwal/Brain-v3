@@ -1,6 +1,6 @@
 import { PageHeader } from '@/components/layout/page-header'
 import { Card, CardContent } from '@/components/ui/card'
-import { MembersTable } from '@/components/data-table/admin-tables'
+import { TeamMembers } from '@/components/team/team-members'
 
 export function Team() {
   return (
@@ -8,7 +8,7 @@ export function Team() {
       <PageHeader title="Team" description="Members, roles and invitations for this workspace." />
       <Card>
         <CardContent className="p-4">
-          <MembersTable />
+          <TeamMembers />
         </CardContent>
       </Card>
     </div>

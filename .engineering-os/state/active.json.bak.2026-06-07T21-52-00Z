@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-06-07T21:36:09Z",
+  "updated_by": "rishabhporwal",
+  "active_requirements": [
+    {
+      "req_id": "spike-production-readiness-audit",
+      "title": "Comprehensive Engineering OS Audit & Production Readiness Review",
+      "status": "cto-review",
+      "stage": 1,
+      "current_owner": "cto-advisor",
+      "lane": "high_stakes",
+      "run_dir": ".engineering-os/runs/2026-06-07T21-36-09Z__c7d5e6__spike-production-readiness-audit__rishabhporwal",
+      "submitted_by": "rishabhporwal",
+      "submitted_at": "2026-06-07T21:36:09Z"
+    }
+  ]
+}

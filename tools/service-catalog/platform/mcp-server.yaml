@@ -1,0 +1,22 @@
+# Service manifest — machine-readable ownership / SLO / contract registry.
+# NOTE: NOT a separate deployable. The MCP server is hosted INSIDE platform/api-gateway-bff
+# (the single sync edge), sharing its Keycloak JWT → scope → brand-tenant → tool-gate →
+# audit-on-write chain. Registered here so the BRD §8.10/§10.10 surface appears in the catalog.
+name: mcp-server
+owner_pod: platform-core
+phase: P1
+language: nestjs-ts
+summary: >-
+  Customer-facing MCP server (BRD §8.10/§10.10, Phase-1 exit criterion): programmatic access
+  to a brand's own warehouse (ClickHouse/Iceberg via the read-model/metric-engine seam — never
+  direct store reads), under the same RBAC/tenancy/consent rules as the console. Read tools at
+  P1; any write tool requires @brain/security co-sign.
+slos:
+  availability: "99.9%"
+  latency_p99_ms: 250
+contracts:
+  consumes: [proto/commerce/metric.proto, openapi/bff/read-model.yaml]
+  produces: [events/avro/mcp.access.logged.avsc]
+data_owned: []          # stateless edge surface; owns no store
+on_call: platform-core
+path: platform/api-gateway-bff

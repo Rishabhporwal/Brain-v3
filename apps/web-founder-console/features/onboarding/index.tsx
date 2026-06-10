@@ -86,6 +86,7 @@ export function Onboarding({ defaultFullName, email, isNewWorkspace = false }: O
   const [brandName, setBrandName] = useState('')
   const [slug, setSlug] = useState('')
   const [slugTouched, setSlugTouched] = useState(false)
+  const [region, setRegion] = useState('IN')
   const [industry, setIndustry] = useState('')
   const [monthlyRevenue, setMonthlyRevenue] = useState('')
 
@@ -130,6 +131,7 @@ export function Onboarding({ defaultFullName, email, isNewWorkspace = false }: O
             role,
             brandName: brandName.trim(),
             slug: effectiveSlug.trim().toLowerCase(),
+            region,
             industry,
             monthlyRevenue,
             platform: platform || 'shopify',
@@ -280,6 +282,29 @@ export function Onboarding({ defaultFullName, email, isNewWorkspace = false }: O
                   />
                 </div>
                 <p className="text-muted-foreground text-xs">Lowercase letters, numbers, and hyphens only.</p>
+              </div>
+              <div className="grid gap-2">
+                <Label>Region</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { code: 'IN', label: 'India', sub: 'INR' },
+                    { code: 'AE', label: 'UAE', sub: 'AED' },
+                    { code: 'SA', label: 'Saudi Arabia', sub: 'SAR' },
+                  ].map((r) => (
+                    <button
+                      key={r.code}
+                      type="button"
+                      onClick={() => setRegion(r.code)}
+                      className={cn(
+                        'hover:bg-accent rounded-lg border px-3 py-2 text-left transition-colors',
+                        region === r.code ? 'border-primary bg-primary/5 ring-primary ring-1' : 'border-border',
+                      )}
+                    >
+                      <div className="text-sm font-medium">{r.label}</div>
+                      <div className="text-muted-foreground text-xs">{r.sub}</div>
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="grid gap-2">
                 <Label>Industry</Label>

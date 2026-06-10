@@ -7,7 +7,7 @@ on:
   pull_request:
     paths:
       - 'apps/web-founder-console/**'
-      - 'platform-foundation/api-gateway-bff/**'
+      - 'platform/api-gateway-bff/**'
       - 'data-platform/**'
       - 'deploy/local/**'
       - '.github/workflows/e2e-onboarding.yml'
@@ -78,7 +78,7 @@ jobs:
 
       - name: Start BFF
         run: |
-          nohup node platform-foundation/api-gateway-bff/dist/main.js > /tmp/bff.log 2>&1 &
+          nohup node platform/api-gateway-bff/dist/main.js > /tmp/bff.log 2>&1 &
           until curl -fsS http://localhost:4000/health >/dev/null 2>&1; do echo "waiting for bff…"; sleep 2; done
           echo "bff up"
 

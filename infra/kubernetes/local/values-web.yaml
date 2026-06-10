@@ -1,0 +1,43 @@
+# Local (kind) values for the Founder Console (Next.js) via the brain-service base chart.
+# Mirrors the BFF values shape; only the image, port, probe path, and env differ. autoscaling off locally.
+name: web-founder-console
+image:
+  repository: brain-web
+  tag: local
+  pullPolicy: IfNotPresent
+replicaCount: 1
+port: 3000
+autoscaling:
+  enabled: false
+# Next.js has no /health; the landing route answers (2xx/3xx both count as probe success).
+probes:
+  liveness:  { path: /, initialDelaySeconds: 10, periodSeconds: 10 }
+  readiness: { path: /, initialDelaySeconds: 5,  periodSeconds: 10 }
+env:
+  NODE_ENV: production
+  PORT: "3000"
+  HOSTNAME: 0.0.0.0
+  # SSR/server components reach the BFF over in-cluster DNS; the browser reaches it via the ingress
+  # single-origin /bff prefix (baked into NEXT_PUBLIC_API_BASE_URL at image build time).
+  API_BASE_URL: http://api-gateway-bff:4000
+  # Auth.js (NextAuth) seam. Browser-facing issuer goes through the ingress /idp prefix; server-side
+  # discovery uses the in-cluster Keycloak DNS. Full browser OAuth needs Keycloak hostname config
+  # (deferred) — these let the app boot and the routing topology be verified.
+  # Must match apps/web-founder-console/.env.local so sessions are interchangeable between local `npm dev`
+  # (:3000) and the kind stack (:8081) — cookies are per-host (localhost), so a mismatch makes the other
+  # instance's session cookie undecryptable ("no matching decryption secret"). Local dev throwaway value.
+  AUTH_SECRET: brain-local-dev-auth-secret-please-change-32
+  AUTH_URL: http://localhost:8081
+  AUTH_TRUST_HOST: "true"
+  KEYCLOAK_ISSUER: http://localhost:8081/idp/realms/brain
+  KEYCLOAK_INTERNAL_ISSUER: http://keycloak:8080/realms/brain
+  KEYCLOAK_CLIENT_ID: brain-web
+  KEYCLOAK_CLIENT_SECRET: brain-web-secret
+# Next standalone writes a cache dir; keep the root FS writable locally.
+securityContext:
+  runAsNonRoot: false
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities: { drop: ["ALL"] }
+serviceAccount:
+  create: true

@@ -1,0 +1,149 @@
+# Brain local infra — databases (Phase 1). Schema is auto-applied from the canonical SQL in
+# data-platform/ (single source of truth; not copied). Relative paths resolve from deploy/local.
+name: brain-local
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: brain-local-postgres
+    environment:
+      POSTGRES_DB: brain
+      POSTGRES_USER: brain
+      POSTGRES_PASSWORD: brain
+    ports:
+      - "5440:5432"
+    volumes:
+      - brain_local_pgdata:/var/lib/postgresql/data
+      # canonical schema + seed (read-only) + the init runner
+      - ../../data/stores/postgres/schema:/brain/schema:ro
+      - ../../data/stores/postgres/seed:/brain/seed:ro
+      - ./postgres/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U brain -d brain"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24-alpine
+    container_name: brain-local-clickhouse
+    ports:
+      - "8125:8123"
+      - "9002:9000"
+    ulimits:
+      nofile: { soft: 262144, hard: 262144 }
+    volumes:
+      - brain_local_chdata:/var/lib/clickhouse
+      - ./clickhouse/config.d:/etc/clickhouse-server/config.d:ro
+      - ./clickhouse/users.d:/etc/clickhouse-server/users.d:ro
+      # canonical analytical schema, auto-applied on first boot
+      - ../../data/warehouse/clickhouse/models/phase1.sql:/docker-entrypoint-initdb.d/phase1.sql:ro
+      # order facts via Kafka-Engine + MV → MergeTree (runs after phase1; consumes brain.integration.webhooks)
+      - ../../data/warehouse/clickhouse/models/phase1_orders.sql:/docker-entrypoint-initdb.d/phase1_orders.sql:ro
+      # ad-spend facts via Kafka-Engine + MV → MergeTree (consumes brain.integration.pull)
+      - ../../data/warehouse/clickhouse/models/phase1_ad_spend.sql:/docker-entrypoint-initdb.d/phase1_ad_spend.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -nv -t1 -qO- http://127.0.0.1:8123/ping || exit 1"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  # Tabix — lightweight browser-only ClickHouse UI (browser → ClickHouse HTTP at localhost:8125).
+  clickhouse-ui:
+    image: spoonest/clickhouse-tabix-web-client:stable
+    container_name: brain-local-clickhouse-ui
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    ports:
+      - "5521:80"
+    environment:
+      CH_NAME: "Brain Local"
+      CH_HOST: "http://localhost:8125"   # browser-side URL (the host port)
+      CH_LOGIN: "default"
+      CH_PASSWORD: ""
+
+  # pgAdmin — web UI for Postgres, with the Brain server pre-registered. Desktop mode (no login wall).
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: brain-local-pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@brain.dev"
+      PGADMIN_DEFAULT_PASSWORD: "brain"
+      PGADMIN_CONFIG_SERVER_MODE: "False"                 # desktop mode: no login screen
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    volumes:
+      - brain_local_pgadmin:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro  # pre-register the Brain Postgres server
+
+  # Keycloak — OIDC identity provider. Imports the `brain` realm + `brain-web` client + a test user.
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: brain-local-keycloak
+    command: ['start-dev', '--import-realm']
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      # Google identity-provider brokering creds — resolved by Keycloak's ${ENV} substitution in
+      # keycloak/import/brain-realm.json. Values come from deployment/local/.env (gitignored).
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      # Realm SMTP (verification, password-reset, magic emails) — same ${ENV} substitution. From .env.
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./keycloak/import:/opt/keycloak/data/import:ro
+
+  # Redpanda — Kafka-compatible event backbone (M4). The BFF emits onboarding domain events here in
+  # addition to audit_logs. external listener = localhost:19092 (host-run BFF); internal = redpanda:9092.
+  redpanda:
+    image: redpandadata/redpanda:v24.2.7
+    container_name: brain-local-redpanda
+    command:
+      - redpanda
+      - start
+      - --mode=dev-container
+      - --smp=1
+      - --default-log-level=warn
+      - --kafka-addr=internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr=internal://redpanda:9092,external://localhost:19092
+      - --schema-registry-addr=internal://0.0.0.0:8081,external://0.0.0.0:18081
+      - --rpc-addr=redpanda:33145
+      - --advertise-rpc-addr=redpanda:33145
+    ports:
+      - '19092:19092'   # Kafka (external)
+      - '18081:18081'   # Schema Registry (external)
+    volumes:
+      - brain_local_rpdata:/var/lib/redpanda/data
+    healthcheck:
+      test: ['CMD-SHELL', "rpk cluster health -X brokers=localhost:9092 | grep -q 'Healthy:.*true'"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # Redpanda Console — browse topics/messages at http://localhost:8090.
+  redpanda-console:
+    image: redpandadata/console:v2.7.2
+    container_name: brain-local-redpanda-console
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    ports:
+      - '8090:8080'
+    environment:
+      KAFKA_BROKERS: redpanda:9092
+
+volumes:
+  brain_local_pgdata:
+  brain_local_chdata:
+  brain_local_pgadmin:
+  brain_local_rpdata:

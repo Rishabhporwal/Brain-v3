@@ -1,0 +1,16 @@
+# Service manifest — machine-readable ownership / SLO / contract registry.
+name: onboarding
+owner_pod: platform-core
+phase: P1
+language: nestjs-ts
+summary: >-
+  7-step onboarding orchestration (org→brand→cost→tracking→integration→validate→activate).
+slos:
+  availability: "99.9%"
+  latency_p99_ms: 250
+contracts:
+  consumes: []          # e.g. [proto/commerce/metric.proto, events/avro/order.normalized.avsc]
+  produces: []
+data_owned: []          # tables/topics this service owns (no shared tables — Blueprint §2.14)
+on_call: platform-core
+path: platform/onboarding

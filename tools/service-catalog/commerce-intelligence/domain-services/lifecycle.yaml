@@ -1,0 +1,20 @@
+# Service manifest — machine-readable ownership / SLO / contract registry.
+name: lifecycle
+owner_pod: growth
+phase: P1
+language: nestjs-ts
+summary: >-
+  Margin-gated lifecycle campaigns + WhatsApp journeys; offer-ladder governance (no send
+  where expected CM2 < 0 after message/offer/RTO cost) — Solution Architecture §4.2
+  Domain Services (Phase 1), BRD §15. Consumes audiences/segments from customer-intelligence
+  and margin from metric-engine; routes via audience-activation + whatsapp connector;
+  every send checked against consent and logged to decision-log.
+slos:
+  availability: "99.9%"
+  latency_p99_ms: 250
+contracts:
+  consumes: [proto/commerce/metric.proto, proto/cdp/audience.proto, events/avro/segment.materialized.avsc]
+  produces: [events/avro/lifecycle.campaign.launched.avsc, events/avro/lifecycle.journey.sent.avsc]
+data_owned: [lifecycle.campaign, lifecycle.journey, lifecycle.offer_policy, lifecycle.send_log]
+on_call: growth
+path: commerce-intelligence/domain-services/lifecycle

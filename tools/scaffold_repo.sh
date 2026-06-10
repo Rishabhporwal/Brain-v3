@@ -47,17 +47,20 @@ ts_service() { # platform service pod phase summary  [context]
   local p="$platform/$service"
   svc_manifest "$p" "$service" "$pod" "$phase" "nestjs-ts" "$summary"
   case "$phase" in
-    P1|P2) # full DDD / hexagonal skeleton
-      note "$p/Dockerfile" "# multi-stage NestJS build — see tools/generators/service-templates/nestjs"
-      gk "$p/chart"; gk "$p/migrations"
-      for d in api/http api/grpc api/consumers \
+    P1|P2) # full DDD / Hexagonal / Clean / CQRS skeleton — canonical 8-folder src.
+           # See docs/nestjs-service-template.md + tools/templates/nestjs-service.
+      note "$p/Dockerfile" "# multi-stage NestJS build — see tools/templates/nestjs-service/Dockerfile"
+      gk "$p/chart"
+      for d in api/http api/consumers api/guards \
                application/commands application/queries application/ports application/dto \
                domain/model domain/events domain/services domain/errors \
-               infrastructure/persistence infrastructure/messaging infrastructure/clients infrastructure/config \
-               ; do gk "$p/src/$ctx/$d"; done
-      gk "$p/src/shared"
+               infrastructure/messaging infrastructure/clients infrastructure/secrets \
+               persistence/repositories persistence/entities persistence/migrations \
+               contracts/generated \
+               config \
+               ; do gk "$p/src/$d"; done
       for d in unit contract integration isolation e2e; do gk "$p/test/$d"; done
-      note "$p/src/main.ts" "// bootstrap: OTel, config validation, health probes, graceful shutdown"
+      note "$p/src/main.ts" "// composition root — bootstrap: OTel, config validation, health probes, graceful shutdown"
       ;;
     *) # reserved: dir + manifest + phase marker only
       gk "$p/src"
@@ -104,17 +107,17 @@ for pkg in design-system charts ui-web ui-mobile formatters bff-client feature-f
 done
 
 echo "▸ ② Platform Foundation"
-ts_service platform-foundation api-gateway-bff   platform-core P1 "Edge: authn/z, routing, rate-limit, workspace resolution, read aggregation."
-ts_service platform-foundation auth              platform-core P1 "Register/login/verify/reset; JWT+refresh; sessions; MFA-ready (Keycloak-backed)."
-ts_service platform-foundation organization      platform-core P1 "Org lifecycle, settings, billing basis, cross-brand grants."
-ts_service platform-foundation brand             platform-core P1 "Brand (=workspace) lifecycle; workspace-key minting; brand settings."
-ts_service platform-foundation membership        platform-core P1 "User↔org↔brand mappings, invitations, activation, teams."
-ts_service platform-foundation rbac              platform-core P1 "Brand/feature/API permissions; approval-matrix model (scaffold for P5)."
-ts_service platform-foundation onboarding        platform-core P1 "7-step onboarding orchestration (org→brand→cost→tracking→integration→validate→activate)."
-ts_service platform-foundation governance        platform-core P1 "IAM, role/approval enforcement, audit log."
-ts_service platform-foundation audit             security      P1 "Immutable append-only audit trail (WORM/hash-chain)."
-ts_service platform-foundation notification      platform-core P1 "Severity-routed alerts (in-product/mobile/email), quiet-hours."
-ts_service platform-foundation configuration     platform-core P1 "Config service: DB/Kafka/Redis/Storage/OAuth/Integrations/Security/Flags."
+ts_service platform api-gateway-bff   platform-core P1 "Edge: authn/z, routing, rate-limit, workspace resolution, read aggregation."
+ts_service platform auth              platform-core P1 "Register/login/verify/reset; JWT+refresh; sessions; MFA-ready (Keycloak-backed)."
+ts_service platform organization      platform-core P1 "Org lifecycle, settings, billing basis, cross-brand grants."
+ts_service platform brand             platform-core P1 "Brand (=workspace) lifecycle; workspace-key minting; brand settings."
+ts_service platform membership        platform-core P1 "User↔org↔brand mappings, invitations, activation, teams."
+ts_service platform rbac              platform-core P1 "Brand/feature/API permissions; approval-matrix model (scaffold for P5)."
+ts_service platform onboarding        platform-core P1 "7-step onboarding orchestration (org→brand→cost→tracking→integration→validate→activate)."
+ts_service platform governance        platform-core P1 "IAM, role/approval enforcement, audit log."
+ts_service platform audit             security      P1 "Immutable append-only audit trail (WORM/hash-chain)."
+ts_service platform notification      platform-core P1 "Severity-routed alerts (in-product/mobile/email), quiet-hours."
+ts_service platform configuration     platform-core P1 "Config service: DB/Kafka/Redis/Storage/OAuth/Integrations/Security/Flags."
 gk platform-foundation/_shared
 note platform-foundation/README.md "# Platform Foundation — tenancy, identity, governance (Platform-Core). Phase 1."
 note platform-foundation/PHASE.md "All services Phase 1."
