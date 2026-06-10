@@ -92,6 +92,38 @@ describe('event envelope ↔ contracts/events schema parity', () => {
     )
   })
 
+  it('webhook envelope with canonical ShipmentRecord matches integration.webhook.v1', () => {
+    assertValid(
+      'brain://events/integration.webhook.v1',
+      buildWebhookEnvelope(
+        {
+          provider: 'shiprocket',
+          topic: 'shipment.status',
+          stream: 'shipments',
+          brandId: BRAND,
+          payload: {
+            shipment_id: '401298765',
+            awb: '141123456789',
+            order_ref: '#1001',
+            status: 'out_for_delivery',
+            courier: 'Delhivery',
+            updated_at: '2026-06-11T09:30:00.000Z',
+          },
+        },
+        NOW,
+      ),
+    )
+  })
+
+  it('rejects a shipments webhook with a non-canonical (display-cased) status', () => {
+    const validate = ajv.getSchema('brain://events/integration.webhook.v1')!
+    const bad = buildWebhookEnvelope(
+      { provider: 'shiprocket', topic: 'shipment.status', stream: 'shipments', brandId: BRAND, payload: { shipment_id: '1', status: 'Out For Delivery' } },
+      NOW,
+    )
+    expect(validate(bad)).toBe(false)
+  })
+
   it('rejects an orders webhook whose payload misses the MV-required keys', () => {
     const validate = ajv.getSchema('brain://events/integration.webhook.v1')!
     const bad = buildWebhookEnvelope(

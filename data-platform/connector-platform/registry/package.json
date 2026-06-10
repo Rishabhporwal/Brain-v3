@@ -2,18 +2,30 @@
   "name": "@brain/connector-registry",
   "version": "0.0.0",
   "private": true,
-  "description": "Connector catalog — the list of known connector manifests (auth kind, ingest lanes, streams). Drives the connect UI and the schedulers. (Per-brand connection state lives in integration.* Postgres tables.)",
+  "description": "Connector catalog \u2014 the list of known connector manifests (auth kind, ingest lanes, streams). Drives the connect UI and the schedulers. (Per-brand connection state lives in integration.* Postgres tables.)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
-  "scripts": { "build": "tsc -p tsconfig.json" },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
   "dependencies": {
     "@brain/connector-kit": "workspace:*",
     "@brain/connector-shopify": "workspace:*",
     "@brain/connector-google-ads": "workspace:*",
     "@brain/connector-meta-ads": "workspace:*",
     "@brain/connector-woocommerce": "workspace:*",
-    "@brain/connector-razorpay": "workspace:*"
+    "@brain/connector-razorpay": "workspace:*",
+    "@brain/connector-stripe": "workspace:*",
+    "@brain/connector-shiprocket": "workspace:*"
   },
-  "devDependencies": { "@types/node": "^22.10.2", "typescript": "^5.7.2" }
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
 }

@@ -56,6 +56,16 @@ export interface PaymentRecord {
   created_at: string // ISO8601
 }
 
+/** Canonical shipment shape — every logistics connector normalizes to this for brain.shipments. */
+export interface ShipmentRecord {
+  shipment_id: string // provider shipment id (or AWB when that is the only id)
+  awb: string // air waybill / tracking number
+  order_ref: string
+  status: string // canonical lowercase: pickup_scheduled | in_transit | delivered | rto | …
+  courier: string
+  updated_at: string // ISO8601
+}
+
 /** Canonical ad-spend shape — every ads connector normalizes cost to integer minor units (brain.ad_spend). */
 export interface AdSpendRecord {
   date: string // YYYY-MM-DD
