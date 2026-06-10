@@ -383,6 +383,12 @@ importers:
       '@types/pg':
         specifier: ^8.11.10
         version: 8.20.0
+      ajv:
+        specifier: ^8.20.0
+        version: 8.20.0
+      ajv-formats:
+        specifier: ^3.0.1
+        version: 3.0.1(ajv@8.20.0)
       typescript:
         specifier: ^5.7.2
         version: 5.9.3

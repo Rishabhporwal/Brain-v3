@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "brain://events/integration.pull.v1",
+  "title": "brain.integration.pull envelope (v1)",
+  "description": "Pull data-plane envelope: one polled record (PullService scheduler). Kafka key = brand_id. One Kafka message per record (the BFF fans a PullBatch out).",
+  "type": "object",
+  "required": ["schema_version", "pulled_at", "provider", "brand_id", "stream", "payload"],
+  "properties": {
+    "schema_version": { "const": "1" },
+    "pulled_at": { "type": "string", "format": "date-time" },
+    "provider": { "type": "string", "minLength": 1 },
+    "brand_id": { "type": "string", "format": "uuid" },
+    "stream": { "type": "string", "description": "canonical stream: ad_spend | ..." },
+    "primary_key": { "type": ["string", "null"], "description": "connector-supplied dedup key, e.g. campaignId:date" },
+    "payload": {}
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "stream": { "const": "ad_spend" } } },
+      "then": { "properties": { "payload": { "$ref": "brain://events/ad-spend.record.v1" } } }
+    }
+  ],
+  "additionalProperties": false
+}

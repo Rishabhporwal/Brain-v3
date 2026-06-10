@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "brain://events/ad-spend.record.v1",
+  "title": "Ad-spend record (v1) — provider-variant cost field",
+  "description": "Daily campaign stats from the pull lane. The cost field is provider-variant TODAY (google: cost_micros, meta: spend) and is normalized to minor units by ClickHouse mv_ad_spend; a fully canonical AdSpendRecord (spend_minor) is the v2 upgrade. mv keys on (brand_id, provider, campaign_id, date).",
+  "type": "object",
+  "required": ["campaign_id", "date", "currency"],
+  "properties": {
+    "campaign_id": { "type": ["string", "number"] },
+    "campaign_name": { "type": "string" },
+    "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
+    "cost_micros": { "type": ["string", "number"], "description": "google only — micros of the account currency" },
+    "spend": { "type": ["string", "number"], "description": "meta only — major units, decimal string" },
+    "impressions": { "type": ["string", "number"] },
+    "clicks": { "type": ["string", "number"] },
+    "conversions": { "type": ["string", "number"] }
+  },
+  "anyOf": [{ "required": ["cost_micros"] }, { "required": ["spend"] }],
+  "additionalProperties": true
+}

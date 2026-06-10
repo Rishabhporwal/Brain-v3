@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "brain://events/integration.webhook.v1",
+  "title": "brain.integration.webhooks envelope (v1)",
+  "description": "Push data-plane envelope: one normalized record from a provider webhook. Kafka key = brand_id. ClickHouse mv_orders/mv_payments key on brand_id + payload primary keys — those fields are contractually required.",
+  "type": "object",
+  "required": ["schema_version", "received_at", "provider", "topic", "stream", "brand_id", "payload"],
+  "properties": {
+    "schema_version": { "const": "1" },
+    "received_at": { "type": "string", "format": "date-time" },
+    "provider": { "type": "string", "minLength": 1 },
+    "topic": { "type": "string", "description": "provider-native topic, e.g. orders/create" },
+    "stream": { "type": "string", "description": "canonical stream: orders | payments | ..." },
+    "brand_id": { "type": "string", "format": "uuid" },
+    "shop": { "type": ["string", "null"] },
+    "payload": {}
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "stream": { "const": "orders" } } },
+      "then": { "properties": { "payload": { "$ref": "brain://events/order.record.v1" } } }
+    },
+    {
+      "if": { "properties": { "stream": { "const": "payments" } } },
+      "then": { "properties": { "payload": { "$ref": "brain://events/payment.record.v1" } } }
+    }
+  ],
+  "additionalProperties": false
+}
