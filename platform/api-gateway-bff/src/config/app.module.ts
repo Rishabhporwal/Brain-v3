@@ -23,6 +23,8 @@ import { PgSeenStore } from '../persistence/seen-store'
 import { PullService } from '../application/pull.service'
 import { SyncSchedulerService } from '../application/sync-scheduler.service'
 import { WebhookService } from '../application/webhook.service'
+import { FreshnessService } from '../application/freshness.service'
+import { RecommendationGateService } from '../application/recommendation-gate.service'
 import { MailService } from '../application/mail.service'
 import { InviteService } from '../application/invite.service'
 import { InviteController } from '../api/http/invite.controller'
@@ -56,6 +58,8 @@ import { InviteController } from '../api/http/invite.controller'
     PullService,
     SyncSchedulerService,
     WebhookService,
+    FreshnessService,
+    RecommendationGateService,
   ],
 })
 export class AppModule {}

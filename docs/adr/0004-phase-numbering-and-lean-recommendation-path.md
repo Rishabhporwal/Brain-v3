@@ -24,6 +24,10 @@ cataloged P3 vs needed in BRD Phase 1; agent services Solution-Arch Phase 0 vs c
    then a lean gate (staleness check from data-quality signals, confidence floor, approval-level
    tag, decision-log write) lives in the BFF/read-model path. Recorded as a Part-24 interim
    exception in the architecture doc.
+   **Implemented (2026-06-11):** `api-gateway-bff/src/domain/recommendation-gate.ts` (pure,
+   tested) + `application/{freshness,recommendation-gate}.service.ts` (ClickHouse per-stream lag,
+   audit-log decision writes: recommendation.surfaced/withheld) + the integration-freshness
+   endpoint. Kill switch: `RECOMMENDATIONS_KILL_SWITCH` env (per-brand config when governance lands).
 
 3. When a manifest's phase conflicts with the Solution Architecture, the conflict is resolved
    here (or in a successor ADR), never silently in the manifest.
