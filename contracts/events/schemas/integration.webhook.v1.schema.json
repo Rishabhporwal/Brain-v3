@@ -23,6 +23,10 @@
     {
       "if": { "properties": { "stream": { "const": "payments" } } },
       "then": { "properties": { "payload": { "$ref": "brain://events/payment.record.v1" } } }
+    },
+    {
+      "if": { "properties": { "stream": { "const": "shipments" } } },
+      "then": { "properties": { "payload": { "$ref": "brain://events/shipment.record.v1" } } }
     }
   ],
   "additionalProperties": false

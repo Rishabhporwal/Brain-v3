@@ -1,10 +1,10 @@
 # Service manifest — machine-readable ownership / SLO / contract registry.
-name: stripe
+name: shiprocket
 owner_pod: integration
 phase: P1
 language: nestjs-ts
 summary: >-
-  Connector for stripe: fetch, normalize, idempotent write-back.
+  Connector for shiprocket: fetch, normalize, idempotent write-back.
 slos:
   availability: "99.9%"
   latency_p99_ms: 250
@@ -13,4 +13,3 @@ contracts:
   produces: []
 data_owned: []          # tables/topics this service owns (no shared tables — Blueprint §2.14)
 on_call: integration
-path: data-platform/connector-platform/connectors/stripe

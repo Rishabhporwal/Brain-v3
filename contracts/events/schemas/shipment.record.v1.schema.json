@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "brain://events/shipment.record.v1",
+  "title": "Canonical ShipmentRecord (v1)",
+  "description": "Vendor-agnostic shipment shape every logistics connector normalizes to (kit contract.ts ShipmentRecord). brain.shipments keys on (brand_id, provider, shipment_id).",
+  "type": "object",
+  "required": ["shipment_id", "status"],
+  "properties": {
+    "shipment_id": { "type": "string", "minLength": 1 },
+    "awb": { "type": "string" },
+    "order_ref": { "type": "string" },
+    "status": { "type": "string", "pattern": "^[a-z0-9_]+$", "description": "canonical lowercase: pickup_scheduled | in_transit | delivered | rto | ..." },
+    "courier": { "type": "string" },
+    "updated_at": { "type": "string", "description": "ISO8601; may be empty when the provider omits a timestamp" }
+  },
+  "additionalProperties": true
+}

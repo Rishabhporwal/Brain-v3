@@ -4,13 +4,15 @@ import type { ConnectorHooks, WebhookContext } from '@brain/connector-kit'
 import { shopify } from '@brain/connector-shopify'
 import { woocommerce } from '@brain/connector-woocommerce'
 import { razorpay } from '@brain/connector-razorpay'
+import { stripe } from '@brain/connector-stripe'
+import { shiprocket } from '@brain/connector-shiprocket'
 import { PG_POOL } from '../persistence/db.providers'
 import { EVENT_BUS, type EventBus } from '../infrastructure/messaging/events'
 import { PgSeenStore } from '../persistence/seen-store'
 import { signingSecret } from '../config/secrets'
 
 /** Push connectors, keyed by provider. Adding a webhook provider = drop its hooks object in here. */
-const PUSH_CONNECTORS: Record<string, ConnectorHooks> = { shopify, woocommerce, razorpay }
+const PUSH_CONNECTORS: Record<string, ConnectorHooks> = { shopify, woocommerce, razorpay, stripe, shiprocket }
 
 /**
  * Generic inbound-webhook receiver (P4). Drives ANY push connector through the contract hooks:
@@ -68,6 +70,14 @@ export class WebhookService {
     }
     if (provider === 'razorpay') {
       return { brandId: brandIdPath ?? null, secret: signingSecret(process.env.RAZORPAY_WEBHOOK_SECRET, 'RAZORPAY_WEBHOOK_SECRET') }
+    }
+    if (provider === 'stripe') {
+      // Account-level (brand from path); secret = the endpoint signing secret (whsec_…).
+      return { brandId: brandIdPath ?? null, secret: signingSecret(process.env.STRIPE_WEBHOOK_SECRET, 'STRIPE_WEBHOOK_SECRET') }
+    }
+    if (provider === 'shiprocket') {
+      // Panel-configured static token (x-api-key); brand from path.
+      return { brandId: brandIdPath ?? null, secret: signingSecret(process.env.SHIPROCKET_WEBHOOK_TOKEN, 'SHIPROCKET_WEBHOOK_TOKEN') }
     }
     // Unreachable today (handle() 404s unknown providers), but defense-in-depth: never hand back a known
     // key. signingSecret(undefined, …) throws in prod and is an unguessable ephemeral in dev.

@@ -23,9 +23,10 @@ topics:
     payload_schemas:
       orders: schemas/order.record.v1.schema.json        # canonical OrderRecord (kit contract)
       payments: schemas/payment.record.v1.schema.json    # canonical PaymentRecord
+      shipments: schemas/shipment.record.v1.schema.json  # canonical ShipmentRecord
     producers: [platform/api-gateway-bff (WebhookService → any push connector)]
     consumers:
-      - clickhouse brain.kafka_integration_webhooks → mv_orders / mv_payments (JSONAsString)
+      - clickhouse brain.kafka_integration_webhooks → mv_orders / mv_payments / mv_shipments (JSONAsString)
 
   - name: brain.integration.pull
     lane: data/pull
