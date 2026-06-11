@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, NotImplementedException, Inject, Injectable, Logger } from '@nestjs/common'
 import { Pool } from 'pg'
 import { PG_POOL } from '../persistence/db.providers'
 import { VAULT, type Vault } from '../infrastructure/secrets/vault'
@@ -26,7 +26,7 @@ interface ProviderCfg {
  * Generic OAuth2 authorization-code flow for standard providers (Google Ads, Meta Ads). Mirrors the
  * Shopify service's contract — connect → signed-state consent URL; callback → verify state, exchange
  * code, vault the token (DB keeps only `secret_ref`), mark connected + emit `integration.connected`.
- * Falls back to the dev-stub when a provider's credentials are unset.
+ * A provider without credentials FAILS LOUDLY (501) — connections are never stubbed.
  */
 @Injectable()
 export class OAuthService {
@@ -75,17 +75,19 @@ export class OAuthService {
     return Boolean(c.clientId && c.clientSecret)
   }
 
-  /** Build the consent URL, or dev-stub the connection when the provider is unconfigured. */
+  /** Build the consent URL. An unconfigured provider throws — a connection is real or it doesn't exist. */
   async connect(
     user: AuthUser,
     slug: string,
     provider: string,
     returnTo?: string,
-  ): Promise<{ mode: 'oauth'; url: string } | { mode: 'stub'; connected: true }> {
+  ): Promise<{ mode: 'oauth'; url: string }> {
     const brand = await this.brand(slug)
     if (!this.isConfigured(provider)) {
-      await this.markConnected(provider, brand.id, user, { stub: true })
-      return { mode: 'stub', connected: true }
+      throw new NotImplementedException(
+        `${provider} OAuth is not configured on this server — set the provider's client credentials ` +
+          `(see deployment/local/.env / brain-provider-secrets). Connections are never stubbed.`,
+      )
     }
     const state = signOAuthState(this.stateSecret(), {
       provider,
@@ -149,9 +151,7 @@ export class OAuthService {
   }
 
   /** List a brand's integrations with account detail + sync/health (Settings → Integrations). */
-  async listForBrand(
-    slug: string,
-  ): Promise<
+  async listForBrand(slug: string): Promise<
     Array<{
       provider: string
       status: string

@@ -9,6 +9,9 @@ services:
     depends_on: [keycloak]
     ports:
       - '8088:8088'
+      # second host origin for OAuth callbacks — the URIs registered in the provider consoles
+      # are http://localhost:3000/...; same Caddy listener, so the callback routes just work.
+      - '3000:8088'
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
 
@@ -36,7 +39,25 @@ services:
       # Shopify OAuth: unset creds → dev-stub connect. For the real flow set SHOPIFY_CLIENT_ID/SECRET and
       # add SHOPIFY_REDIRECT_URI to the app's allowed redirects. See api-gateway-bff/.env.example.
       WEB_BASE: http://localhost:8088
-      SHOPIFY_REDIRECT_URI: http://localhost:8088/api/integrations/shopify/callback
+      # Provider OAuth credentials — unset -> dev-stub connect; set in deployment/local/.env
+      # (gitignored; mirrored from the kind brain-provider-secrets) -> REAL consent flows.
+      SHOPIFY_CLIENT_ID: ${SHOPIFY_CLIENT_ID:-}
+      SHOPIFY_CLIENT_SECRET: ${SHOPIFY_CLIENT_SECRET:-}
+      SHOPIFY_REDIRECT_URI: ${SHOPIFY_REDIRECT_URI:-http://localhost:3000/api/integrations/shopify/callback}
+      GOOGLE_ADS_CLIENT_ID: ${GOOGLE_ADS_CLIENT_ID:-}
+      GOOGLE_ADS_CLIENT_SECRET: ${GOOGLE_ADS_CLIENT_SECRET:-}
+      GOOGLE_ADS_DEVELOPER_TOKEN: ${GOOGLE_ADS_DEVELOPER_TOKEN:-}
+      GOOGLE_ADS_LOGIN_CUSTOMER_ID: ${GOOGLE_ADS_LOGIN_CUSTOMER_ID:-5407102791}
+      GOOGLE_ADS_REDIRECT_URI: ${GOOGLE_ADS_REDIRECT_URI:-http://localhost:3000/api/integrations/google/callback}
+      GOOGLE_ADS_API_VERSION: v23
+      META_APP_ID: ${META_APP_ID:-}
+      META_APP_SECRET: ${META_APP_SECRET:-}
+      META_REDIRECT_URI: ${META_REDIRECT_URI:-http://localhost:3000/api/integrations/meta/callback}
+      # Webhook signing secrets (push lane) — set per provider to verify real deliveries.
+      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:-}
+      WOOCOMMERCE_WEBHOOK_SECRET: ${WOOCOMMERCE_WEBHOOK_SECRET:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      SHIPROCKET_WEBHOOK_TOKEN: ${SHIPROCKET_WEBHOOK_TOKEN:-}
       # Integration data backbone: integration.connected + (future) webhook ingest events → Redpanda.
       # Onboarding lifecycle does NOT go here. Remove to no-op.
       KAFKA_BROKERS: redpanda:9092

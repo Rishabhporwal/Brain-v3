@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common'
+import { NotImplementedException, BadRequestException, Inject, Injectable, Logger } from '@nestjs/common'
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 import { Pool } from 'pg'
 import { PG_POOL } from '../persistence/db.providers'
@@ -11,11 +11,11 @@ import type { AuthUser } from './bff.service'
 
 /**
  * M3 — real Shopify OAuth (authorization-code) flow.
- *  connect:  GET …/integrations/shopify/connect?shop=… → signed-state authorize URL (or dev-stub if unconfigured)
+ *  connect:  GET …/integrations/shopify/connect?shop=… → signed-state authorize URL (501 if unconfigured)
  *  callback: GET /api/integrations/shopify/callback    → verify HMAC + state → exchange code → vault → connected
  *
  * Secret material (the access token) goes to the Vault; the DB keeps only a `secret_ref`. When the app
- * credentials are unset we fall back to the dev-stub so the wizard still builds/runs end-to-end.
+ * credentials are unset connect FAILS LOUDLY (501) — a connection is real or it doesn't exist.
  */
 @Injectable()
 export class ShopifyService {
@@ -106,17 +106,19 @@ export class ShopifyService {
 
   // ---- flow ------------------------------------------------------------------------------------
 
-  /** Build the consent URL for a shop, or fall back to the dev-stub connect when unconfigured. */
+  /** Build the consent URL for a shop. Unconfigured Shopify creds throw — never a fake connection. */
   async connect(
     user: AuthUser,
     slug: string,
     shop?: string,
     returnTo?: string,
-  ): Promise<{ mode: 'oauth'; url: string } | { mode: 'stub'; connected: true }> {
+  ): Promise<{ mode: 'oauth'; url: string }> {
     const brand = await this.brand(slug)
     if (!this.isConfigured()) {
-      await this.markConnected(brand.id, user, { stub: true })
-      return { mode: 'stub', connected: true }
+      throw new NotImplementedException(
+        'Shopify OAuth is not configured on this server — set SHOPIFY_CLIENT_ID/SHOPIFY_CLIENT_SECRET. ' +
+          'Connections are never stubbed.',
+      )
     }
     if (!shop || !ShopifyService.SHOP_RE.test(shop)) {
       throw new BadRequestException('a valid <store>.myshopify.com domain is required')

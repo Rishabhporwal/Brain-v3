@@ -11,7 +11,7 @@ export const CONNECTORS = [
 ] as const
 
 export type Connector = (typeof CONNECTORS)[number]
-export type ConnectResult = { mode: 'oauth'; url: string } | { mode: 'stub'; connected: true }
+export type ConnectResult = { mode: 'oauth'; url: string }
 export type IntegrationRow = {
   provider: string
   status: string
@@ -22,8 +22,8 @@ export type IntegrationRow = {
 }
 
 /**
- * Ask the BFF to start a connection. Configured OAuth providers return a consent URL (the caller navigates
- * the browser to it); unconfigured ones dev-stub. `returnTo` is where the OAuth callback brings the browser
+ * Ask the BFF to start a connection. Providers return a consent URL (the caller navigates the browser
+ * to it); an unconfigured provider is a server error (501) — never a stub. `returnTo` is where the OAuth callback brings the browser
  * back (defaults server-side to /onboarding) — pass the current path from Settings.
  */
 export function startConnect(

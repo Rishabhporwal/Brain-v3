@@ -141,10 +141,10 @@ export class OnboardingService {
     }
 
     // Shopify: hand back the consent URL (the wizard navigates the browser to it); the callback returns
-    // to the dashboard. If Shopify creds are unset the connect dev-stubs and we just launch.
+    // to the dashboard. Unconfigured creds throw (501) — onboarding never fakes a connection.
     if (wantsShopify && shopDomain) {
       const r = await this.shopify.connect(user, slug, shopDomain, `/w/${slug}/dashboard`)
-      if (r.mode === 'oauth') return { shopifyAuthUrl: r.url }
+      return { shopifyAuthUrl: r.url }
     }
     return { redirectTo: `/w/${slug}/dashboard` }
   }
