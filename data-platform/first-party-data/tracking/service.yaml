@@ -13,4 +13,3 @@ contracts:
   produces: []
 data_owned: [] # tables/topics this service owns (no shared tables — Blueprint §2.14)
 on_call: tracking
-path: data-platform/first-party-data/tracking

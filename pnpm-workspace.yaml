@@ -8,12 +8,14 @@ packages:
   - 'data-platform/connector-platform/registry'
   - 'data-platform/connector-platform/_kit/*'
   - 'data-platform/connector-platform/connectors/*'
+  - 'data-platform/first-party-data/tracking'
   - 'data-platform/raw-archiver'
   # ④ Intelligence & agent platforms — live services only.
   #    Planned services live in tools/service-catalog/; when one is scaffolded, add it here
   #    (customer-intelligence/*, agent-platform/*, data-platform/first-party-data/*, apps/mobile, sdk/*).
   - 'commerce-intelligence/metric-engine'
   - 'commerce-intelligence/realized-revenue-ledger'
+  - 'customer-intelligence/consent'
   # ⑤ Shared TS libraries + contracts
   - 'shared/ts/*'
   - 'contracts'

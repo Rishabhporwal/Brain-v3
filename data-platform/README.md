@@ -4,13 +4,15 @@
 
 - `connector-platform/` — the connector kit (`_kit/core`), the connector `registry`, and one
   deployable per live provider (`connectors/{shopify,meta-ads,google-ads,razorpay,woocommerce,stripe,shiprocket}`).
+- `first-party-data/tracking/` — `@brain/track-browser`: write-key auth, consent-stamped at
+  capture, rolling sessions, batched delivery to the BFF `/track` lane (BRD §10.2/§10.3).
 - `raw-archiver/` — raw-as-received archive of every integration topic to S3/MinIO
   (BRD §10.4: the warehouse keeps raw data exactly as received; Hive-partitioned
   `topic/brand_id/dt`, at-least-once, offsets committed only after the object is durable).
 
 **Planned** (manifests in [`tools/service-catalog/data-platform/`](../tools/service-catalog/data-platform/)):
 
-- `first-party-data/*` — tracking SDK lane, event ingestion/validation/processing/replay,
+- `first-party-data/*` (rest) — event ingestion/validation/processing/replay,
   identity-resolution, reconciliation, schema-registry-svc, data-quality
 - `aggregation-zone` — governed cross-region rollups (P6)
 - skeleton connectors — tiktok-ads, whatsapp, crm-\*, marketplaces, gcc

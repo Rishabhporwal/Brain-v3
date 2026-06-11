@@ -1,0 +1,29 @@
+# Local (kind) values for the consent floor via the brain-service base chart.
+# Build the image from the repo root: docker build -f platform/consent/Dockerfile -t brain-consent:local .
+name: consent
+image:
+  repository: brain-consent
+  tag: local
+  pullPolicy: IfNotPresent
+replicaCount: 1
+port: 7083
+autoscaling:
+  enabled: false
+env:
+  NODE_ENV: production
+  CONSENT_PORT: '7083'
+  CONSENT_TOKEN: local-internal-token
+probes:
+  liveness: { path: /healthz, initialDelaySeconds: 10, periodSeconds: 10 }
+  readiness: { path: /readyz, initialDelaySeconds: 5, periodSeconds: 10 }
+securityContext:
+  runAsNonRoot: false
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities: { drop: ['ALL'] }
+serviceAccount:
+  create: true
+# PG_URL arrives from the same ESO-synced app secret the BFF uses (consent reads platform.brands +
+# consent.brand_tier; no separate database).
+secretRefs:
+  - name: brain-app-secrets
