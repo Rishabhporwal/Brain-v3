@@ -6,11 +6,11 @@ language: nestjs-ts
 summary: >-
   Orchestrates Flink normalize→enrich→route pipeline.
 slos:
-  availability: "99.9%"
+  availability: '99.9%'
   latency_p99_ms: 250
 contracts:
-  consumes: []          # e.g. [proto/commerce/metric.proto, events/avro/order.normalized.avsc]
+  consumes: [] # e.g. [proto/commerce/metric.proto, events/avro/order.normalized.avsc]
   produces: []
-data_owned: []          # tables/topics this service owns (no shared tables — Blueprint §2.14)
+data_owned: [] # tables/topics this service owns (no shared tables — Blueprint §2.14)
 on_call: data-platform
 path: data-platform/first-party-data/event-processing

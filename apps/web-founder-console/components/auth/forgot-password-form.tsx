@@ -53,7 +53,14 @@ export function ForgotPasswordForm() {
           <div className="flex flex-col gap-6">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Sending…' : 'Send reset email'}

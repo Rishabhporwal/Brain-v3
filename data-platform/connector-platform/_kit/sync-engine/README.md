@@ -1,1 +1,1 @@
-# connector _kit: sync-engine
+# connector \_kit: sync-engine

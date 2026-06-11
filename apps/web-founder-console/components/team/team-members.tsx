@@ -117,7 +117,11 @@ export function TeamMembers() {
               <TableCell>{m.displayName ?? '—'}</TableCell>
               <TableCell>
                 {m.role}
-                {m.isAgency && <Badge variant="outline" className="ml-2">Agency</Badge>}
+                {m.isAgency && (
+                  <Badge variant="outline" className="ml-2">
+                    Agency
+                  </Badge>
+                )}
               </TableCell>
               <TableCell>
                 <Badge variant={m.state === 'active' ? 'outline' : 'secondary'}>
@@ -128,12 +132,22 @@ export function TeamMembers() {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     {m.state === 'pending' && (
-                      <Button variant="ghost" size="sm" disabled={busyId === m.membershipId} onClick={() => onResend(m)}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={busyId === m.membershipId}
+                        onClick={() => onResend(m)}
+                      >
                         Resend
                       </Button>
                     )}
                     {m.role !== 'Owner' && (
-                      <Button variant="ghost" size="sm" disabled={busyId === m.membershipId} onClick={() => onRevoke(m)}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={busyId === m.membershipId}
+                        onClick={() => onRevoke(m)}
+                      >
                         Remove
                       </Button>
                     )}
@@ -186,7 +200,13 @@ function InviteDialog({ slug, onInvited }: { slug: string; onInvited: () => Prom
         <div className="flex flex-col gap-4 py-2">
           <div className="grid gap-2">
             <Label htmlFor="invite-email">Email</Label>
-            <Input id="invite-email" type="email" placeholder="teammate@company.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input
+              id="invite-email"
+              type="email"
+              placeholder="teammate@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="invite-role">Role</Label>

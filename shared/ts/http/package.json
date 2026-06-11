@@ -1,1 +1,5 @@
-{ "name": "@brain/http", "version": "0.0.0", "private": true }
+{
+  "name": "@brain/http",
+  "version": "0.0.0",
+  "private": true
+}

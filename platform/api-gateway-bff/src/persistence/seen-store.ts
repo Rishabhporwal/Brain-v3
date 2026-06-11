@@ -13,7 +13,9 @@ export class PgSeenStore implements SeenStore {
   constructor(@Inject(PG_POOL) private readonly pg: Pool) {}
 
   async seen(key: string, brandId?: string | null): Promise<boolean> {
-    const [provider, webhookId] = key.includes(':') ? [key.slice(0, key.indexOf(':')), key.slice(key.indexOf(':') + 1)] : ['unknown', key]
+    const [provider, webhookId] = key.includes(':')
+      ? [key.slice(0, key.indexOf(':')), key.slice(key.indexOf(':') + 1)]
+      : ['unknown', key]
     const { rowCount } = await this.pg.query(
       `INSERT INTO integration.webhook_receipts(provider, webhook_id, brand_id)
        VALUES ($1,$2,$3) ON CONFLICT (provider, webhook_id) DO NOTHING`,

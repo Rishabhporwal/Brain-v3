@@ -14,8 +14,12 @@ const log = createLogger('api-gateway-bff')
 export class LoggingInterceptor implements NestInterceptor {
   intercept(ctx: ExecutionContext, next: CallHandler): Observable<unknown> {
     const req = ctx.switchToHttp().getRequest<{
-      method: string; url: string; headers: Record<string, string | undefined>
-      user?: { sub?: string }; brandContext?: { brandId?: string }; traceId?: string
+      method: string
+      url: string
+      headers: Record<string, string | undefined>
+      user?: { sub?: string }
+      brandContext?: { brandId?: string }
+      traceId?: string
     }>()
     const res = ctx.switchToHttp().getResponse<{ statusCode: number; setHeader?: (k: string, v: string) => void }>()
     const traceId = req.headers['x-request-id'] || newTraceId()

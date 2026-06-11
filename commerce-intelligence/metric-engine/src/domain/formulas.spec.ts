@@ -65,7 +65,10 @@ describe('formulas', () => {
   })
 
   it('spend falls back to fact_spend without estimation (both are normalized facts)', () => {
-    expect(FORMULAS.spend.compute(raw({ adSpendMinor: 0, factSpendMinor: 250_000 }))).toEqual({ value: 250_000, estimated: false })
+    expect(FORMULAS.spend.compute(raw({ adSpendMinor: 0, factSpendMinor: 250_000 }))).toEqual({
+      value: 250_000,
+      estimated: false,
+    })
   })
 
   it('conversion_rate (1dp) and rto_rate (1dp)', () => {

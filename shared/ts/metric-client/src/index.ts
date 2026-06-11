@@ -30,7 +30,11 @@ export class MetricClient {
   constructor(private readonly opts: MetricClientOptions) {}
 
   /** Fetch metric values; ids omitted = every registered metric. Null on transport failure. */
-  async getMetrics(brandId: string, ids?: string[], period?: { from?: string; to?: string }): Promise<MetricsResponse | null> {
+  async getMetrics(
+    brandId: string,
+    ids?: string[],
+    period?: { from?: string; to?: string },
+  ): Promise<MetricsResponse | null> {
     const params = new URLSearchParams({ brand_id: brandId })
     if (ids?.length) params.set('ids', ids.join(','))
     if (period?.from) params.set('from', period.from)

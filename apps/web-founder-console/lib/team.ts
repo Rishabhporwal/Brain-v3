@@ -50,10 +50,9 @@ export function resendInvite(slug: string, membershipId: string) {
 }
 
 export function revokeMember(slug: string, membershipId: string) {
-  return apiJson<{ membershipId: string; state: 'revoked' }>(
-    `/api/workspaces/${slug}/invites/${membershipId}/revoke`,
-    { method: 'POST' },
-  )
+  return apiJson<{ membershipId: string; state: 'revoked' }>(`/api/workspaces/${slug}/invites/${membershipId}/revoke`, {
+    method: 'POST',
+  })
 }
 
 /** Accept an invitation the signed-in user received (BFF POST /api/invites/accept). */

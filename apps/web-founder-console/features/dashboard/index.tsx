@@ -11,16 +11,7 @@ import { TimeSeriesChart } from '@/components/charts/time-series-chart'
 import { sampleTimeSeries } from '@/lib/charts/sample-data'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-const KPI_ORDER: MetricId[] = [
-  'realized_revenue',
-  'cm2',
-  'cm2_margin',
-  'orders',
-  'aov',
-  'mer',
-  'rto_rate',
-  'cod_share',
-]
+const KPI_ORDER: MetricId[] = ['realized_revenue', 'cm2', 'cm2_margin', 'orders', 'aov', 'mer', 'rto_rate', 'cod_share']
 
 export function Dashboard() {
   const { current } = useWorkspace()

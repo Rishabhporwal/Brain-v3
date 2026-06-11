@@ -32,7 +32,9 @@ export class MetricsService {
       const def = this.registry.get(id)
       if (!def) throw new Error(`metric-engine: '${id}' implemented but not in contracts/metrics/registry.yaml`)
       if (def.formula_version !== formula.formula_version)
-        throw new Error(`metric-engine: '${id}' formula_version drift (code ${formula.formula_version} ≠ registry ${def.formula_version})`)
+        throw new Error(
+          `metric-engine: '${id}' formula_version drift (code ${formula.formula_version} ≠ registry ${def.formula_version})`,
+        )
     }
   }
 
@@ -45,7 +47,13 @@ export class MetricsService {
       const computed = FORMULAS[id].compute(raw)
       if (computed === null) continue // not computable from current data — omit, never fabricate
       const def = this.registry.get(id)!
-      metrics.push({ id, value: computed.value, unit: def.unit, formula_version: def.formula_version, estimated: computed.estimated })
+      metrics.push({
+        id,
+        value: computed.value,
+        unit: def.unit,
+        formula_version: def.formula_version,
+        estimated: computed.estimated,
+      })
     }
     return { brand_id: brandId, period, computed_at: new Date().toISOString(), metrics }
   }

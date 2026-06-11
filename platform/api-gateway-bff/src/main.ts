@@ -12,7 +12,10 @@ import { assertProductionSecrets, isProduction } from './config/secrets'
  * — never reflect arbitrary origins with credentials (audit finding). "Production" = BRAIN_ENV (not NODE_ENV).
  */
 function corsOrigin(): true | string[] {
-  const list = (process.env.CORS_ALLOWED_ORIGINS ?? '').split(',').map((s) => s.trim()).filter(Boolean)
+  const list = (process.env.CORS_ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
   if (list.length) return list
   return isProduction() ? [] : true
 }

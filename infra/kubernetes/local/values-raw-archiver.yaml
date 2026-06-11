@@ -11,7 +11,7 @@ autoscaling:
   enabled: false # consumer-group scaling is a deliberate choice, not CPU-driven
 env:
   NODE_ENV: production
-  RAW_ARCHIVER_PORT: "8080"
+  RAW_ARCHIVER_PORT: '8080'
   KAFKA_BROKERS: redpanda:9092
   RAW_BUCKET: brain-raw
   # LocalStack provides the S3 parity surface in the kind stack (infra/kubernetes/local/aws).
@@ -25,6 +25,6 @@ securityContext:
   runAsNonRoot: false
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: false
-  capabilities: { drop: ["ALL"] }
+  capabilities: { drop: ['ALL'] }
 serviceAccount:
   create: true

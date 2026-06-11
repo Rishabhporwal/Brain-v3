@@ -32,7 +32,10 @@ export function signingSecret(value: string | undefined, name: string): string {
  */
 export function assertProductionSecrets(): void {
   if (!isProd) return
-  const required = (process.env.REQUIRED_PROD_SECRETS ?? '').split(',').map((s) => s.trim()).filter(Boolean)
+  const required = (process.env.REQUIRED_PROD_SECRETS ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
   const missing = required.filter((k) => !process.env[k])
   if (missing.length) throw new Error(`Missing required production secrets: ${missing.join(', ')}`)
 }

@@ -20,7 +20,10 @@ export function Heatmap({
   const cell = (v: number) => {
     if (!v) return { background: 'var(--muted)', color: 'var(--muted-foreground)' }
     const alpha = 0.12 + (v / 100) * 0.78
-    return { background: `color-mix(in oklab, var(--chart-1) ${Math.round(alpha * 100)}%, transparent)`, color: v > 55 ? 'white' : 'var(--foreground)' }
+    return {
+      background: `color-mix(in oklab, var(--chart-1) ${Math.round(alpha * 100)}%, transparent)`,
+      color: v > 55 ? 'white' : 'var(--foreground)',
+    }
   }
   return (
     <div className="overflow-x-auto">

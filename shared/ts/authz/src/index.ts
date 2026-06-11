@@ -12,15 +12,7 @@ export {
   type PermissionLevel,
   type PermissionDef,
 } from './permissions'
-export {
-  ROLES,
-  ORG_ROLES,
-  BRAND_ROLES,
-  ROLE_PERMISSIONS,
-  OWNER_ROLE,
-  isOrgRole,
-  type RoleName,
-} from './roles'
+export { ROLES, ORG_ROLES, BRAND_ROLES, ROLE_PERMISSIONS, OWNER_ROLE, isOrgRole, type RoleName } from './roles'
 export { permissionsForRole, roleHasPermission, buildMePermissions, type MePermissions } from './resolve'
 export { RequirePermission, PermissionGuard, PERMISSION_METADATA_KEY } from './guard'
 export { assertNotLastOwner, LastOwnerError } from './last-owner'

@@ -70,7 +70,16 @@ describe('stripe mapWebhook', () => {
   it('maps charge.refunded with the refunded amount and status', () => {
     const event = {
       type: 'charge.refunded',
-      data: { object: { id: 'ch_9', amount: 149900, amount_refunded: 50000, currency: 'inr', status: 'succeeded', created: 1_750_000_100 } },
+      data: {
+        object: {
+          id: 'ch_9',
+          amount: 149900,
+          amount_refunded: 50000,
+          currency: 'inr',
+          status: 'succeeded',
+          created: 1_750_000_100,
+        },
+      },
     }
     const mapped = mapStripeWebhook({ rawBody: Buffer.from(JSON.stringify(event)), headers: {} })
     const rec = mapped.records[0]?.data as { amount_minor: string; status: string }
@@ -79,7 +88,12 @@ describe('stripe mapWebhook', () => {
   })
 
   it('emits no records for non-payment events and survives bad JSON', () => {
-    expect(mapStripeWebhook({ rawBody: Buffer.from(JSON.stringify({ type: 'customer.created', data: { object: { id: 'cus_1' } } })), headers: {} }).records).toEqual([])
+    expect(
+      mapStripeWebhook({
+        rawBody: Buffer.from(JSON.stringify({ type: 'customer.created', data: { object: { id: 'cus_1' } } })),
+        headers: {},
+      }).records,
+    ).toEqual([])
     expect(mapStripeWebhook({ rawBody: Buffer.from('{not json'), headers: {} }).records).toEqual([])
   })
 })

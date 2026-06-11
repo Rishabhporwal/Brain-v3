@@ -5,19 +5,21 @@ get sign-off **before** spending on AWS. The **same Helm charts + ArgoCD manifes
 moving to AWS is a config change, not a rewrite.
 
 ## AWS → local mapping
-| AWS (prod) | Local (this stack) |
-|---|---|
-| EKS | kind (1 control-plane + 2 workers) |
-| ALB / CloudFront | ingress-nginx (host :8081 / :8444) |
-| ArgoCD (GitOps) | ArgoCD in-cluster (same app-of-apps + chart) |
-| Aurora PostgreSQL | PostgreSQL (in-cluster — milestone 3) |
-| MSK (Kafka) | Redpanda (in-cluster — milestone 3) |
-| ElastiCache | Redis (in-cluster — milestone 3) |
-| ClickHouse | ClickHouse (in-cluster — milestone 3) |
-| S3 / Secrets Manager / KMS / SES | LocalStack (milestone 4) |
+
+| AWS (prod)                                 | Local (this stack)                                           |
+| ------------------------------------------ | ------------------------------------------------------------ |
+| EKS                                        | kind (1 control-plane + 2 workers)                           |
+| ALB / CloudFront                           | ingress-nginx (host :8081 / :8444)                           |
+| ArgoCD (GitOps)                            | ArgoCD in-cluster (same app-of-apps + chart)                 |
+| Aurora PostgreSQL                          | PostgreSQL (in-cluster — milestone 3)                        |
+| MSK (Kafka)                                | Redpanda (in-cluster — milestone 3)                          |
+| ElastiCache                                | Redis (in-cluster — milestone 3)                             |
+| ClickHouse                                 | ClickHouse (in-cluster — milestone 3)                        |
+| S3 / Secrets Manager / KMS / SES           | LocalStack (milestone 4)                                     |
 | CloudWatch / Prom / Grafana / Loki / Tempo | Prometheus + Grafana + Loki + Tempo in-cluster (milestone 5) |
 
 ## Status
+
 - ✅ **M1 cluster**: 3-node kind cluster (`kind-cluster.yaml`), ingress-nginx + ArgoCD installed & running.
 - ✅ **M2 app deploy proven**: BFF deployed via the base Helm chart (`charts/brain-service` + `values-bff.yaml`);
   `/health` 200 + `/metrics` served in-cluster. The image → Helm → k8s path works.
@@ -67,6 +69,7 @@ moving to AWS is a config change, not a rewrite.
   config + two-issuer wiring) is deferred — out of scope for the routing-topology milestone.
 
 ## Run it
+
 ```bash
 # create / delete the cluster
 kind create cluster --config infra/kubernetes/local/kind-cluster.yaml
@@ -125,7 +128,9 @@ curl -so /dev/null -w '%{http_code}\n' -H 'Host: localhost' localhost:8081/   # 
 ```
 
 ## Resume after a laptop reboot
+
 The kind cluster's containers stop when Docker stops. After restarting:
+
 ```bash
 # 1) Is the cluster still there? (kind containers usually auto-restart with Docker)
 kind get clusters                       # expect: brain-local
@@ -149,6 +154,7 @@ kubectl -n argocd port-forward svc/argocd-server 8090:443   # https://localhost:
 ```
 
 ## Cost
+
 **$0** — everything runs in Docker on your machine. Nothing is provisioned in AWS. When you're ready for
 real AWS, the apply-ready Terraform lives in `infra/terraform/stacks/regions/ap-south-1/staging/` and the
 same charts deploy to EKS (see `infra/DEPLOYMENT.md`).

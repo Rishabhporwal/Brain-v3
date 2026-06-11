@@ -14,7 +14,14 @@ import { SHIPROCKET_MANIFEST } from '@brain/connector-shiprocket'
  */
 type CatalogEntry =
   | { status: 'live'; manifest: ConnectorManifest }
-  | { status: 'planned'; provider: string; category: string; auth: ConnectorManifest['auth']; ingest: ConnectorManifest['ingest']; tier: 1 | 2 | 3 }
+  | {
+      status: 'planned'
+      provider: string
+      category: string
+      auth: ConnectorManifest['auth']
+      ingest: ConnectorManifest['ingest']
+      tier: 1 | 2 | 3
+    }
 
 export const CONNECTOR_CATALOG: CatalogEntry[] = [
   { status: 'live', manifest: SHOPIFY_MANIFEST },
@@ -28,7 +35,9 @@ export const CONNECTOR_CATALOG: CatalogEntry[] = [
 ]
 
 export const liveConnectors = (): ConnectorManifest[] =>
-  CONNECTOR_CATALOG.filter((e): e is Extract<CatalogEntry, { status: 'live' }> => e.status === 'live').map((e) => e.manifest)
+  CONNECTOR_CATALOG.filter((e): e is Extract<CatalogEntry, { status: 'live' }> => e.status === 'live').map(
+    (e) => e.manifest,
+  )
 
 export const connectorProviders = (): string[] =>
   CONNECTOR_CATALOG.map((e) => (e.status === 'live' ? e.manifest.provider : e.provider))

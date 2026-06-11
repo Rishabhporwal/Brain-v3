@@ -5,7 +5,19 @@
   "description": "Typed client for the Tier-0 metric engine — the only sanctioned way to read a business figure.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
-  "scripts": { "build": "tsc -p tsconfig.json", "test": "vitest run --passWithNoTests" },
-  "devDependencies": { "@types/node": "^22.10.2", "typescript": "^5.7.2", "vitest": "^4.1.8" }
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.8"
+  }
 }

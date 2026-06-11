@@ -43,13 +43,13 @@ src/
 
 ## Why each boundary exists (so you don't collapse them)
 
-| Boundary | Protects against |
-|---|---|
-| `domain/` has no framework imports | business rules surviving a framework/ORM/transport swap; trivially testable |
-| `application/ports/` (interfaces) | the DB/kafka being a *detail* — swap Postgres or the broker without touching use-cases |
-| `persistence/` split from `infrastructure/` | the DB (most-churned adapter) isolated; SQL lives in exactly one place |
-| `contracts/generated/` is codegen-only | drift between services — the schema in `/contracts` is the single source of truth |
-| `config/` owns composition | wiring in one place; the rest of the code never constructs a client |
+| Boundary                                    | Protects against                                                                       |
+| ------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `domain/` has no framework imports          | business rules surviving a framework/ORM/transport swap; trivially testable            |
+| `application/ports/` (interfaces)           | the DB/kafka being a _detail_ — swap Postgres or the broker without touching use-cases |
+| `persistence/` split from `infrastructure/` | the DB (most-churned adapter) isolated; SQL lives in exactly one place                 |
+| `contracts/generated/` is codegen-only      | drift between services — the schema in `/contracts` is the single source of truth      |
+| `config/` owns composition                  | wiring in one place; the rest of the code never constructs a client                    |
 
 ## The example flow (read it once)
 

@@ -8,7 +8,7 @@ export function StoreAnalytics() {
       surface="analytics"
       title="Store Analytics"
       description="Traffic, sessions and conversion from first-party tracking."
-      metrics={['sessions','conversion_rate','orders','aov']}
+      metrics={['sessions', 'conversion_rate', 'orders', 'aov']}
       detailTitle="Traffic and conversion"
       detailDescription="Sessions to orders over the period."
     />

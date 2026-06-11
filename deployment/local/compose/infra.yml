@@ -2,7 +2,6 @@
 # data-platform/ (single source of truth; not copied). Relative paths resolve from deploy/local.
 name: brain-local
 services:
-
   postgres:
     image: postgres:16-alpine
     container_name: brain-local-postgres
@@ -11,7 +10,7 @@ services:
       POSTGRES_USER: brain
       POSTGRES_PASSWORD: brain
     ports:
-      - "5440:5432"
+      - '5440:5432'
     volumes:
       - brain_local_pgdata:/var/lib/postgresql/data
       # canonical schema + seed (read-only) + the init runner
@@ -19,7 +18,7 @@ services:
       - ../../data/stores/postgres/seed:/brain/seed:ro
       - ./postgres/initdb:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U brain -d brain"]
+      test: ['CMD-SHELL', 'pg_isready -U brain -d brain']
       interval: 3s
       timeout: 3s
       retries: 30
@@ -28,8 +27,8 @@ services:
     image: clickhouse/clickhouse-server:24-alpine
     container_name: brain-local-clickhouse
     ports:
-      - "8125:8123"
-      - "9002:9000"
+      - '8125:8123'
+      - '9002:9000'
     ulimits:
       nofile: { soft: 262144, hard: 262144 }
     volumes:
@@ -43,7 +42,7 @@ services:
       # ad-spend facts via Kafka-Engine + MV → MergeTree (consumes brain.integration.pull)
       - ../../data/warehouse/clickhouse/models/phase1_ad_spend.sql:/docker-entrypoint-initdb.d/phase1_ad_spend.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "wget -nv -t1 -qO- http://127.0.0.1:8123/ping || exit 1"]
+      test: ['CMD-SHELL', 'wget -nv -t1 -qO- http://127.0.0.1:8123/ping || exit 1']
       interval: 3s
       timeout: 3s
       retries: 30
@@ -56,12 +55,12 @@ services:
       clickhouse:
         condition: service_healthy
     ports:
-      - "5521:80"
+      - '5521:80'
     environment:
-      CH_NAME: "Brain Local"
-      CH_HOST: "http://localhost:8125"   # browser-side URL (the host port)
-      CH_LOGIN: "default"
-      CH_PASSWORD: ""
+      CH_NAME: 'Brain Local'
+      CH_HOST: 'http://localhost:8125' # browser-side URL (the host port)
+      CH_LOGIN: 'default'
+      CH_PASSWORD: ''
 
   # pgAdmin — web UI for Postgres, with the Brain server pre-registered. Desktop mode (no login wall).
   pgadmin:
@@ -71,15 +70,15 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "5050:80"
+      - '5050:80'
     environment:
-      PGADMIN_DEFAULT_EMAIL: "admin@brain.dev"
-      PGADMIN_DEFAULT_PASSWORD: "brain"
-      PGADMIN_CONFIG_SERVER_MODE: "False"                 # desktop mode: no login screen
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+      PGADMIN_DEFAULT_EMAIL: 'admin@brain.dev'
+      PGADMIN_DEFAULT_PASSWORD: 'brain'
+      PGADMIN_CONFIG_SERVER_MODE: 'False' # desktop mode: no login screen
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
     volumes:
       - brain_local_pgadmin:/var/lib/pgadmin
-      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro  # pre-register the Brain Postgres server
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro # pre-register the Brain Postgres server
 
   # Keycloak — OIDC identity provider. Imports the `brain` realm + `brain-web` client + a test user.
   keycloak:
@@ -120,8 +119,8 @@ services:
       - --rpc-addr=redpanda:33145
       - --advertise-rpc-addr=redpanda:33145
     ports:
-      - '19092:19092'   # Kafka (external)
-      - '18081:18081'   # Schema Registry (external)
+      - '19092:19092' # Kafka (external)
+      - '18081:18081' # Schema Registry (external)
     volumes:
       - brain_local_rpdata:/var/lib/redpanda/data
     healthcheck:
@@ -152,8 +151,8 @@ services:
       MINIO_ROOT_USER: brainadmin
       MINIO_ROOT_PASSWORD: brainadmin
     ports:
-      - '9000:9000'   # S3 API
-      - '9001:9001'   # console
+      - '9000:9000' # S3 API
+      - '9001:9001' # console
     volumes:
       - brain_local_minio:/data
     healthcheck:

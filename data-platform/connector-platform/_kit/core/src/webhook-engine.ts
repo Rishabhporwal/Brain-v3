@@ -3,7 +3,12 @@ import { createHmac, timingSafeEqual } from 'node:crypto'
 export type HmacEncoding = 'base64' | 'hex'
 
 /** Verify a provider webhook HMAC over the RAW body, constant-time. Encoding differs by provider. */
-export function verifyHmac(rawBody: Buffer, header: string | undefined, secret: string, encoding: HmacEncoding): boolean {
+export function verifyHmac(
+  rawBody: Buffer,
+  header: string | undefined,
+  secret: string,
+  encoding: HmacEncoding,
+): boolean {
   if (!header) return false
   const digest = createHmac('sha256', secret).update(rawBody).digest(encoding)
   const a = Buffer.from(digest)

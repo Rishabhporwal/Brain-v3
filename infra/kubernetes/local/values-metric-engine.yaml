@@ -11,7 +11,7 @@ autoscaling:
   enabled: false
 env:
   NODE_ENV: production
-  METRIC_ENGINE_PORT: "7080"
+  METRIC_ENGINE_PORT: '7080'
   CH_URL: http://clickhouse:8123
   # Local-only shared token (NON-secret here by design); prod sources it from ESO/Secrets Manager
   # via secretRefs, same as the BFF's PG_URL. The guard fails closed without it (NODE_ENV=production).
@@ -23,6 +23,6 @@ securityContext:
   runAsNonRoot: false
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: false
-  capabilities: { drop: ["ALL"] }
+  capabilities: { drop: ['ALL'] }
 serviceAccount:
   create: true

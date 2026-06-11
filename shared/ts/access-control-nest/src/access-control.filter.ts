@@ -1,5 +1,10 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common'
-import { CrossTenantViolationError, LastOwnerError, NoBrandAccessError, PermissionDeniedError } from '@brain/access-control'
+import {
+  CrossTenantViolationError,
+  LastOwnerError,
+  NoBrandAccessError,
+  PermissionDeniedError,
+} from '@brain/access-control'
 
 /**
  * Maps @brain/access-control errors to HTTP status codes — fail closed, and never leak why:
@@ -33,7 +38,11 @@ export class AccessControlExceptionFilter implements ExceptionFilter {
     this.send(res, HttpStatus.INTERNAL_SERVER_ERROR, 'Internal Server Error')
   }
 
-  private send(res: { status: (n: number) => { json: (b: unknown) => void } }, statusCode: number, message: string): void {
+  private send(
+    res: { status: (n: number) => { json: (b: unknown) => void } },
+    statusCode: number,
+    message: string,
+  ): void {
     res.status(statusCode).json({ statusCode, message })
   }
 }

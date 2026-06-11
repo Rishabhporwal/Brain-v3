@@ -68,7 +68,8 @@ export class OnboardingService {
         'URL must start and end with a letter or number, and can only contain lowercase letters, numbers, and hyphens.',
       )
     }
-    if (await this.slugTaken(slug)) throw new ConflictException('This workspace URL is already taken. Please choose another.')
+    if (await this.slugTaken(slug))
+      throw new ConflictException('This workspace URL is already taken. Please choose another.')
 
     const region = b.region && OnboardingService.REGIONS[b.region] ? b.region : 'IN'
     const { currency, tz } = OnboardingService.REGIONS[region]
@@ -94,10 +95,23 @@ export class OnboardingService {
         `INSERT INTO platform.brands
            (organization_id,name,slug,region,currency,timezone,industry,monthly_revenue,platform,store_url,status,activated_at)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'active',now()) RETURNING id`,
-        [orgId, brandName, slug, region, currency, tz, b.industry || null, b.monthlyRevenue || null, platform, shopDomain],
+        [
+          orgId,
+          brandName,
+          slug,
+          region,
+          currency,
+          tz,
+          b.industry || null,
+          b.monthlyRevenue || null,
+          platform,
+          shopDomain,
+        ],
       )
       brandId = brand.rows[0].id
-      const role = await client.query<{ id: string }>(`SELECT id FROM platform.roles WHERE scope='org' AND name='Owner' LIMIT 1`)
+      const role = await client.query<{ id: string }>(
+        `SELECT id FROM platform.roles WHERE scope='org' AND name='Owner' LIMIT 1`,
+      )
       // Owner is an ORG-LEVEL membership (brand_id NULL): one row grants the registrant Owner access to
       // EVERY brand in the org (resolveBrandContext reaches brands via org-level memberships). New brands
       // in the same org need no extra Owner row.
@@ -117,7 +131,13 @@ export class OnboardingService {
     await this.audit(brandId, user, 'brand.created', { slug, status: 'active' })
 
     if (wantsWoo) {
-      await this.connectWoocommerce(brandId, user, b.wcStoreUrl!.trim(), b.wcConsumerKey!.trim(), b.wcConsumerSecret!.trim())
+      await this.connectWoocommerce(
+        brandId,
+        user,
+        b.wcStoreUrl!.trim(),
+        b.wcConsumerKey!.trim(),
+        b.wcConsumerSecret!.trim(),
+      )
     }
 
     // Shopify: hand back the consent URL (the wizard navigates the browser to it); the callback returns
@@ -161,7 +181,11 @@ export class OnboardingService {
   }
 
   // Validate WooCommerce REST creds against the live store (HTTP Basic over the v3 API root).
-  private async testWoocommerce(storeUrl: string, key: string, secret: string): Promise<{ ok: boolean; error?: string }> {
+  private async testWoocommerce(
+    storeUrl: string,
+    key: string,
+    secret: string,
+  ): Promise<{ ok: boolean; error?: string }> {
     let base = storeUrl.trim().replace(/\/+$/, '')
     if (!/^https?:\/\//i.test(base)) base = `https://${base}`
     try {
@@ -184,14 +208,22 @@ export class OnboardingService {
     // Pin the store URL on the brand so inbound WooCommerce webhooks resolve store → brand.
     await this.pg.query(`UPDATE platform.brands SET store_url=$1 WHERE id=$2`, [storeUrl.replace(/\/+$/, ''), brandId])
     const secretRef = `woocommerce:${brandId}`
-    await this.vault.put(secretRef, JSON.stringify({ storeUrl: storeUrl.replace(/\/+$/, ''), consumerKey: key, consumerSecret: secret }))
+    await this.vault.put(
+      secretRef,
+      JSON.stringify({ storeUrl: storeUrl.replace(/\/+$/, ''), consumerKey: key, consumerSecret: secret }),
+    )
     await this.pg.query(
       `INSERT INTO integration.oauth_tokens(brand_id,integration_id,secret_ref) VALUES ($1,$2,$3)
        ON CONFLICT (secret_ref) DO UPDATE SET updated_at=now()`,
       [brandId, rows[0].id, secretRef],
     )
     await this.audit(brandId, user, 'integration.connected', { provider: 'woocommerce' })
-    this.bus.emit({ type: 'integration.connected', brandId, actor: user.email ?? user.sub, payload: { provider: 'woocommerce' } })
+    this.bus.emit({
+      type: 'integration.connected',
+      brandId,
+      actor: user.email ?? user.sub,
+      payload: { provider: 'woocommerce' },
+    })
   }
 
   private async userId(sub: string, email?: string, fullName?: string, role?: string): Promise<string> {
@@ -256,7 +288,9 @@ export class OnboardingService {
   }
 
   /** Read the brand's current cost configuration (for the Settings → Costs surface). */
-  async getCosts(slug: string): Promise<{ cogsPct: number; shippingMinor: number; codFeeMinor: number; gatewayPct: number }> {
+  async getCosts(
+    slug: string,
+  ): Promise<{ cogsPct: number; shippingMinor: number; codFeeMinor: number; gatewayPct: number }> {
     const br = await this.brand(slug)
     const { rows } = await this.pg.query<{ key: string; value_minor: number | null; rate_bps: number | null }>(
       `SELECT DISTINCT ON (key) key, value_minor, rate_bps FROM commerce.cost_config
@@ -281,7 +315,10 @@ export class OnboardingService {
     )
     const writeKey = existing.rows[0]?.write_key ?? `brn_${randomBytes(16).toString('hex')}`
     if (!existing.rows[0]) {
-      await this.pg.query(`INSERT INTO tracking.tracking_keys(brand_id,write_key,status) VALUES ($1,$2,'active')`, [br.id, writeKey])
+      await this.pg.query(`INSERT INTO tracking.tracking_keys(brand_id,write_key,status) VALUES ($1,$2,'active')`, [
+        br.id,
+        writeKey,
+      ])
       await this.audit(br.id, user, 'tracking.installed', { writeKey })
     }
     return { writeKey, snippet: this.snippet(writeKey) }

@@ -11,11 +11,11 @@ autoscaling:
   enabled: false
 # Next.js has no /health; the landing route answers (2xx/3xx both count as probe success).
 probes:
-  liveness:  { path: /, initialDelaySeconds: 10, periodSeconds: 10 }
-  readiness: { path: /, initialDelaySeconds: 5,  periodSeconds: 10 }
+  liveness: { path: /, initialDelaySeconds: 10, periodSeconds: 10 }
+  readiness: { path: /, initialDelaySeconds: 5, periodSeconds: 10 }
 env:
   NODE_ENV: production
-  PORT: "3000"
+  PORT: '3000'
   HOSTNAME: 0.0.0.0
   # SSR/server components reach the BFF over in-cluster DNS; the browser reaches it via the ingress
   # single-origin /bff prefix (baked into NEXT_PUBLIC_API_BASE_URL at image build time).
@@ -28,7 +28,7 @@ env:
   # instance's session cookie undecryptable ("no matching decryption secret"). Local dev throwaway value.
   AUTH_SECRET: brain-local-dev-auth-secret-please-change-32
   AUTH_URL: http://localhost:8081
-  AUTH_TRUST_HOST: "true"
+  AUTH_TRUST_HOST: 'true'
   KEYCLOAK_ISSUER: http://localhost:8081/idp/realms/brain
   KEYCLOAK_INTERNAL_ISSUER: http://keycloak:8080/realms/brain
   KEYCLOAK_CLIENT_ID: brain-web
@@ -38,6 +38,6 @@ securityContext:
   runAsNonRoot: false
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: false
-  capabilities: { drop: ["ALL"] }
+  capabilities: { drop: ['ALL'] }
 serviceAccount:
   create: true

@@ -54,17 +54,21 @@ export class ShopifyService {
 
   /** Sign `{brandId, shop, nonce, exp}` into an opaque, tamper-evident state string (CSRF defence). */
   signState(payload: { brandId: string; shop: string; exp: number; returnTo?: string }): string {
-    const body = Buffer.from(
-      JSON.stringify({ ...payload, nonce: randomBytes(8).toString('hex') }),
-    ).toString('base64url')
-    const sig = createHmac('sha256', signingSecret(this.clientSecret, 'SHOPIFY_CLIENT_SECRET')).update(body).digest('base64url')
+    const body = Buffer.from(JSON.stringify({ ...payload, nonce: randomBytes(8).toString('hex') })).toString(
+      'base64url',
+    )
+    const sig = createHmac('sha256', signingSecret(this.clientSecret, 'SHOPIFY_CLIENT_SECRET'))
+      .update(body)
+      .digest('base64url')
     return `${body}.${sig}`
   }
 
   verifyState(state: string): { brandId: string; shop: string; exp: number } {
     const [body, sig] = state.split('.')
     if (!body || !sig) throw new BadRequestException('malformed state')
-    const expected = createHmac('sha256', signingSecret(this.clientSecret, 'SHOPIFY_CLIENT_SECRET')).update(body).digest('base64url')
+    const expected = createHmac('sha256', signingSecret(this.clientSecret, 'SHOPIFY_CLIENT_SECRET'))
+      .update(body)
+      .digest('base64url')
     if (!this.safeEqual(sig, expected)) throw new BadRequestException('bad state signature')
     const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8')) as {
       brandId: string
@@ -84,7 +88,9 @@ export class ShopifyService {
       .sort()
       .map((k) => `${k}=${rest[k]}`)
       .join('&')
-    const digest = createHmac('sha256', signingSecret(this.clientSecret, 'SHOPIFY_CLIENT_SECRET')).update(message).digest('hex')
+    const digest = createHmac('sha256', signingSecret(this.clientSecret, 'SHOPIFY_CLIENT_SECRET'))
+      .update(message)
+      .digest('hex')
     return this.safeEqual(digest, hmac)
   }
 
@@ -101,7 +107,12 @@ export class ShopifyService {
   // ---- flow ------------------------------------------------------------------------------------
 
   /** Build the consent URL for a shop, or fall back to the dev-stub connect when unconfigured. */
-  async connect(user: AuthUser, slug: string, shop?: string, returnTo?: string): Promise<{ mode: 'oauth'; url: string } | { mode: 'stub'; connected: true }> {
+  async connect(
+    user: AuthUser,
+    slug: string,
+    shop?: string,
+    returnTo?: string,
+  ): Promise<{ mode: 'oauth'; url: string } | { mode: 'stub'; connected: true }> {
     const brand = await this.brand(slug)
     if (!this.isConfigured()) {
       await this.markConnected(brand.id, user, { stub: true })
@@ -110,7 +121,12 @@ export class ShopifyService {
     if (!shop || !ShopifyService.SHOP_RE.test(shop)) {
       throw new BadRequestException('a valid <store>.myshopify.com domain is required')
     }
-    const state = this.signState({ brandId: brand.id, shop, exp: this.nowSeconds() + 600, returnTo: safeReturnTo(returnTo) })
+    const state = this.signState({
+      brandId: brand.id,
+      shop,
+      exp: this.nowSeconds() + 600,
+      returnTo: safeReturnTo(returnTo),
+    })
     const url =
       `https://${shop}/admin/oauth/authorize?client_id=${encodeURIComponent(this.clientId!)}` +
       `&scope=${encodeURIComponent(this.scopes)}` +
@@ -222,7 +238,8 @@ export class ShopifyService {
           headers: { 'X-Shopify-Access-Token': accessToken, 'Content-Type': 'application/json' },
           body: JSON.stringify({ webhook: { topic, address, format: 'json' } }),
         })
-        if (res.ok || res.status === 422) registered++ // 422 = subscription already exists
+        if (res.ok || res.status === 422)
+          registered++ // 422 = subscription already exists
         else errors.push(`${topic}: HTTP ${res.status}`)
       } catch (e) {
         errors.push(`${topic}: ${(e as Error).message}`)

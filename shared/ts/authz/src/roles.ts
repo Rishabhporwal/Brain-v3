@@ -55,9 +55,12 @@ export const ROLE_PERMISSIONS: Record<RoleName, PermissionKey[]> = {
   // ── Brand scope ────────────────────────────────────────────────────────────
   [ROLES.BRAND_ADMIN]: [
     ...READS_BASE,
-    P.ADS_READ, P.ADS_WRITE,
-    P.COSTS_READ, P.COSTS_WRITE,
-    P.INTEGRATIONS_READ, P.INTEGRATIONS_WRITE,
+    P.ADS_READ,
+    P.ADS_WRITE,
+    P.COSTS_READ,
+    P.COSTS_WRITE,
+    P.INTEGRATIONS_READ,
+    P.INTEGRATIONS_WRITE,
     P.USERS_MANAGE,
     P.AUTOEXECUTE_MANAGE,
     P.REFUND_EXECUTE,

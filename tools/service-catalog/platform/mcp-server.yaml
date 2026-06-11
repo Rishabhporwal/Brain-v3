@@ -12,11 +12,11 @@ summary: >-
   direct store reads), under the same RBAC/tenancy/consent rules as the console. Read tools at
   P1; any write tool requires @brain/security co-sign.
 slos:
-  availability: "99.9%"
+  availability: '99.9%'
   latency_p99_ms: 250
 contracts:
   consumes: [proto/commerce/metric.proto, openapi/bff/read-model.yaml]
   produces: [events/avro/mcp.access.logged.avsc]
-data_owned: []          # stateless edge surface; owns no store
+data_owned: [] # stateless edge surface; owns no store
 on_call: platform-core
 path: platform/api-gateway-bff

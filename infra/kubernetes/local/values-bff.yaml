@@ -11,8 +11,8 @@ autoscaling:
   enabled: false
 env:
   NODE_ENV: production
-  BRAIN_ENV: staging        # not 'production' → boot secret-guard + prod CORS-deny stay lenient locally
-  PORT: "4000"
+  BRAIN_ENV: staging # not 'production' → boot secret-guard + prod CORS-deny stay lenient locally
+  PORT: '4000'
   # --- in-cluster data layer (M3a/M3b) — service DNS within the `brain` namespace ---
   # NOTE: PG_URL + VAULT_KEY are intentionally NOT here — they come from the ESO-synced
   # secret (secretRefs below). k8s gives inline `env` precedence over `envFrom`, so listing
@@ -36,7 +36,7 @@ env:
   SHOPIFY_REDIRECT_URI: http://localhost:3000/api/integrations/shopify/callback
   GOOGLE_ADS_REDIRECT_URI: http://localhost:3000/api/integrations/google/callback
   GOOGLE_ADS_API_VERSION: v23
-  GOOGLE_ADS_LOGIN_CUSTOMER_ID: "5407102791"
+  GOOGLE_ADS_LOGIN_CUSTOMER_ID: '5407102791'
   GOOGLE_ADS_SCOPES: https://www.googleapis.com/auth/adwords
   META_REDIRECT_URI: http://localhost:3000/api/integrations/meta/callback
   META_API_VERSION: v21.0
@@ -44,13 +44,13 @@ env:
   # Polling-lane scheduler cadence. Ad platforms have no push API, so "real-time" = poll on this interval
   # (the BFF SyncSchedulerService auto-runs every connected Google/Meta pull). 30s locally for snappy
   # feedback; prod uses a larger value (and leader election across replicas).
-  SYNC_INTERVAL_SECONDS: "30"
+  SYNC_INTERVAL_SECONDS: '30'
 # readOnlyRootFilesystem off locally (the image may write tmp); on in prod values.
 securityContext:
   runAsNonRoot: false
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: false
-  capabilities: { drop: ["ALL"] }
+  capabilities: { drop: ['ALL'] }
 serviceAccount:
   create: true
 # Prod pattern: ESO syncs AWS Secrets Manager (brain/staging/app) → K8s Secret brain-app-secrets;

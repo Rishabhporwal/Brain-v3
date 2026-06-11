@@ -25,13 +25,7 @@ type WorkspaceContextValue = {
 
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null)
 
-export function WorkspaceProvider({
-  children,
-  value,
-}: {
-  children: React.ReactNode
-  value: WorkspaceContextValue
-}) {
+export function WorkspaceProvider({ children, value }: { children: React.ReactNode; value: WorkspaceContextValue }) {
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>
 }
 

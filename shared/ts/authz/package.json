@@ -5,15 +5,35 @@
   "description": "Fixed-role RBAC — the versioned permission registry, the code-canonical role→permission map (13 roles), permission resolution, the @RequirePermission NestJS guard, the /me/permissions builder, and last-owner protection.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
-  "scripts": { "build": "tsc -p tsconfig.json", "test": "vitest run" },
-  "peerDependencies": { "@nestjs/common": "^10.0.0", "@nestjs/core": "^10.0.0", "reflect-metadata": "^0.2.0" },
-  "peerDependenciesMeta": {
-    "@nestjs/common": { "optional": true },
-    "@nestjs/core": { "optional": true },
-    "reflect-metadata": { "optional": true }
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
-  "dependencies": { "pg": "^8.13.1" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "reflect-metadata": "^0.2.0"
+  },
+  "peerDependenciesMeta": {
+    "@nestjs/common": {
+      "optional": true
+    },
+    "@nestjs/core": {
+      "optional": true
+    },
+    "reflect-metadata": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  },
   "devDependencies": {
     "@nestjs/common": "^10.4.15",
     "@nestjs/core": "^10.4.15",

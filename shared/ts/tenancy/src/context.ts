@@ -20,11 +20,7 @@ interface ContextRow {
  * A brand-specific membership is preferred when both exist. Returns null when the user has no active
  * membership reaching the brand (caller renders 404 — never disclose the brand).
  */
-export async function resolveBrandContext(
-  pool: Pool,
-  userId: string,
-  brandSlug: string,
-): Promise<BrandContext | null> {
+export async function resolveBrandContext(pool: Pool, userId: string, brandSlug: string): Promise<BrandContext | null> {
   return withControlPlane(pool, async (client) => {
     const { rows } = await client.query<ContextRow>(
       `SELECT b.organization_id, b.id AS brand_id, b.slug AS brand_slug,

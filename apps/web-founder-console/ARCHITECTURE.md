@@ -60,17 +60,17 @@ same public API, so extraction is a move, not a rewrite.
 
 ## Legacy → target mapping
 
-| Legacy | Target | Change applied |
-|---|---|---|
-| `app/(protected)/w/[slug]/<x>/page.tsx` (logic inline) | `app/(protected)/(workspace)/w/[slug]/<x>/page.tsx` → `features/<x>` | thin page; logic moves to a feature slice |
-| `components/{analytics,dashboard,goals,timings}/*` | `features/<surface>/components/*` | co-located with their surface |
-| `components/ui/*` (shadcn) | `components/ui/*` | kept (standard primitives), lint-checked |
-| `components/{app-sidebar,nav-*,site-header,workspace-switcher}` | `components/layout/*` | grouped as the app shell |
-| `lib/api/*`, ad-hoc `fetch` | `lib/api/*` typed clients + `features/*/api.ts` | one typed client; bearer/session centralised |
-| inline number/₹ formatting | `lib/format` | Indian numbering + currency adapter |
-| `lib/metrics/*`, `constants/*` | `lib/metrics` registry | KPI defs centralised |
-| `hooks/*`, `stores/*` | `features/*/hooks` + `lib/query` + slice stores | scoped per surface |
-| `lib/{client,server,middleware}.ts` (supabase) | `lib/auth/*` | isolated behind an auth seam (Keycloak-swap-ready) |
+| Legacy                                                          | Target                                                               | Change applied                                     |
+| --------------------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------- |
+| `app/(protected)/w/[slug]/<x>/page.tsx` (logic inline)          | `app/(protected)/(workspace)/w/[slug]/<x>/page.tsx` → `features/<x>` | thin page; logic moves to a feature slice          |
+| `components/{analytics,dashboard,goals,timings}/*`              | `features/<surface>/components/*`                                    | co-located with their surface                      |
+| `components/ui/*` (shadcn)                                      | `components/ui/*`                                                    | kept (standard primitives), lint-checked           |
+| `components/{app-sidebar,nav-*,site-header,workspace-switcher}` | `components/layout/*`                                                | grouped as the app shell                           |
+| `lib/api/*`, ad-hoc `fetch`                                     | `lib/api/*` typed clients + `features/*/api.ts`                      | one typed client; bearer/session centralised       |
+| inline number/₹ formatting                                      | `lib/format`                                                         | Indian numbering + currency adapter                |
+| `lib/metrics/*`, `constants/*`                                  | `lib/metrics` registry                                               | KPI defs centralised                               |
+| `hooks/*`, `stores/*`                                           | `features/*/hooks` + `lib/query` + slice stores                      | scoped per surface                                 |
+| `lib/{client,server,middleware}.ts` (supabase)                  | `lib/auth/*`                                                         | isolated behind an auth seam (Keycloak-swap-ready) |
 
 ## Surfaces to port (≈ the legacy feature set)
 

@@ -8,7 +8,7 @@ export function Calendar() {
       surface="calendar"
       title="Calendar"
       description="Festival and sale calendar with expected lift."
-      metrics={['realized_revenue','orders','mer','cm2']}
+      metrics={['realized_revenue', 'orders', 'mer', 'cm2']}
       detailTitle="Calendar"
       detailDescription="Festivals and campaigns with expected lift."
     />

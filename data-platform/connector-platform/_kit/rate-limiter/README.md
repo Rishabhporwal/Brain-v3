@@ -1,1 +1,1 @@
-# connector _kit: rate-limiter
+# connector \_kit: rate-limiter

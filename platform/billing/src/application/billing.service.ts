@@ -49,7 +49,14 @@ export class BillingService {
       periodEnd: new Date(to),
     })
 
-    return { brand_id: brandId, tier: tierName, period: { from, to }, realized_gmv_minor: gmv, gmv_source: gmvSource, ...breakdown }
+    return {
+      brand_id: brandId,
+      tier: tierName,
+      period: { from, to },
+      realized_gmv_minor: gmv,
+      gmv_source: gmvSource,
+      ...breakdown,
+    }
   }
 
   private async brand(brandId: string): Promise<{ tier: TierName | null; activationEndsAt: Date }> {

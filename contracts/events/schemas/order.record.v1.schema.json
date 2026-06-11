@@ -8,7 +8,11 @@
   "properties": {
     "order_id": { "type": "string", "minLength": 1 },
     "order_name": { "type": "string" },
-    "total_price": { "type": "string", "pattern": "^-?[0-9]+(\\.[0-9]+)?$", "description": "decimal string in the order currency" },
+    "total_price": {
+      "type": "string",
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "description": "decimal string in the order currency"
+    },
     "currency": { "type": "string", "minLength": 3, "maxLength": 3 },
     "financial_status": { "type": "string", "description": "paid | pending | refunded | ..." },
     "fulfillment_status": { "type": "string" },

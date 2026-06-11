@@ -70,7 +70,8 @@ export class IntegrationsController {
     @Query('returnTo') returnTo?: string,
   ) {
     if (provider === 'shopify') return this.shopify.connect(req.user, slug, shop, returnTo)
-    if (OAuthService.PROVIDERS.includes(provider as never)) return this.oauth.connect(req.user, slug, provider, returnTo)
+    if (OAuthService.PROVIDERS.includes(provider as never))
+      return this.oauth.connect(req.user, slug, provider, returnTo)
     throw new BadRequestException(`unsupported provider: ${provider}`)
   }
 

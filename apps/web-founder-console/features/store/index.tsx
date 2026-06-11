@@ -8,7 +8,7 @@ export function Store() {
       surface="store"
       title="Store"
       description="Unified store facts synced from your storefront."
-      metrics={['realized_revenue','orders','aov','prepaid_share']}
+      metrics={['realized_revenue', 'orders', 'aov', 'prepaid_share']}
       detailTitle="Recent orders"
       detailDescription="Latest orders synced from your store."
     />

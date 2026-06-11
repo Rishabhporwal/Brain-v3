@@ -86,7 +86,10 @@ function normalizeOrder(o: ShopifyOrder): OrderRecord {
 /** Map a verified webhook to normalized records (or a control signal). */
 export function mapShopifyWebhook(ctx: WebhookContext): WebhookMapped {
   const topic = ctx.headers['x-shopify-topic'] ?? ''
-  const shop = (ctx.headers['x-shopify-shop-domain'] ?? '').toLowerCase().replace(/^https?:\/\//, '').split('/')[0]
+  const shop = (ctx.headers['x-shopify-shop-domain'] ?? '')
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .split('/')[0]
   if (topic === 'app/uninstalled') return { topic, shop, records: [], control: 'uninstall' }
   if (topic === 'shop/redact' || topic === 'customers/redact' || topic === 'customers/data_request') {
     return { topic, shop, records: [], control: 'gdpr' }

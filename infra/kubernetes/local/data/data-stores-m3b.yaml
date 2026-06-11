@@ -142,6 +142,6 @@ spec:
           ports:
             - { containerPort: 6379 }
           readinessProbe:
-            exec: { command: ["redis-cli", "ping"] }
+            exec: { command: ['redis-cli', 'ping'] }
             initialDelaySeconds: 3
             periodSeconds: 5

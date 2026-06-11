@@ -1,4 +1,10 @@
-import { type ConnectorHooks, type ConnectorManifest, type IngestRecord, type PullResult, sleep } from '@brain/connector-kit'
+import {
+  type ConnectorHooks,
+  type ConnectorManifest,
+  type IngestRecord,
+  type PullResult,
+  sleep,
+} from '@brain/connector-kit'
 
 /**
  * Meta Ads connector (PULL lane). Performance data isn't pushed — we poll the Insights API via **async
@@ -15,7 +21,8 @@ export const META_ADS_MANIFEST: ConnectorManifest = {
   backfill: 'paginated',
 }
 
-const graphBase = () => process.env.META_GRAPH_URL ?? `https://graph.facebook.com/${process.env.META_API_VERSION ?? 'v21.0'}`
+const graphBase = () =>
+  process.env.META_GRAPH_URL ?? `https://graph.facebook.com/${process.env.META_API_VERSION ?? 'v21.0'}`
 const adAccountId = () => process.env.META_AD_ACCOUNT_ID ?? '' // act_<id>
 const isoDate = (d: Date) => d.toISOString().slice(0, 10)
 const daysAgo = (n: number) => isoDate(new Date(Date.now() - n * 86_400_000))
@@ -54,10 +61,13 @@ export const metaAds: ConnectorHooks = {
 
     // 2) Poll async_status until complete (bounded)
     for (let i = 0; i < 20; i++) {
-      const statusRes = await fetch(`${graphBase()}/${runId}?fields=async_status,async_percent_completion&access_token=${encodeURIComponent(accessToken)}`)
+      const statusRes = await fetch(
+        `${graphBase()}/${runId}?fields=async_status,async_percent_completion&access_token=${encodeURIComponent(accessToken)}`,
+      )
       const s = (await statusRes.json()) as { async_status?: string; async_percent_completion?: number }
       if (s.async_status === 'Job Completed' && (s.async_percent_completion ?? 0) >= 100) break
-      if (s.async_status === 'Job Failed' || s.async_status === 'Job Skipped') throw new Error(`meta insights job ${s.async_status}`)
+      if (s.async_status === 'Job Failed' || s.async_status === 'Job Skipped')
+        throw new Error(`meta insights job ${s.async_status}`)
       await sleep(1000)
     }
 

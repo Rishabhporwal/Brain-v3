@@ -1,1 +1,5 @@
-{ "name": "@brain/feature-flags", "version": "0.0.0", "private": true }
+{
+  "name": "@brain/feature-flags",
+  "version": "0.0.0",
+  "private": true
+}

@@ -8,7 +8,7 @@ export function MetaAds() {
       surface="meta-ads"
       title="Meta Ads"
       description="Meta spend, efficiency and creative performance."
-      metrics={['spend','roas','mer','cac']}
+      metrics={['spend', 'roas', 'mer', 'cac']}
       detailTitle="Campaigns"
       detailDescription="Meta campaigns and creatives."
     />

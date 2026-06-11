@@ -41,7 +41,12 @@ export function FestivalsSettings() {
                   <div>
                     <div className="text-sm font-medium">{f.name}</div>
                     <div className="text-muted-foreground text-xs">
-                      {new Date(f.date).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+                      {new Date(f.date).toLocaleDateString(undefined, {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })}
                     </div>
                   </div>
                   <Badge variant="outline">{Number(f.multiplier).toFixed(1)}× lift</Badge>

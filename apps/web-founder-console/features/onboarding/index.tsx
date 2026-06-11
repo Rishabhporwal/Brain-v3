@@ -157,9 +157,7 @@ export function Onboarding({ defaultFullName, email, isNewWorkspace = false }: O
       }
     } catch (e) {
       const msg =
-        e instanceof ApiError
-          ? ((e.body as { message?: string })?.message ?? 'Onboarding failed')
-          : 'Onboarding failed'
+        e instanceof ApiError ? ((e.body as { message?: string })?.message ?? 'Onboarding failed') : 'Onboarding failed'
       setError(msg)
       if (/URL|handle|taken/i.test(msg)) setStep(isNewWorkspace ? 0 : 1)
     } finally {
@@ -190,7 +188,9 @@ export function Onboarding({ defaultFullName, email, isNewWorkspace = false }: O
             const isCompleted = i < step
             return (
               <div key={s.id} className="flex items-center gap-2">
-                {i > 0 && <div className={cn('h-px w-8 transition-colors', isCompleted ? 'bg-primary' : 'bg-border')} />}
+                {i > 0 && (
+                  <div className={cn('h-px w-8 transition-colors', isCompleted ? 'bg-primary' : 'bg-border')} />
+                )}
                 <button
                   type="button"
                   onClick={() => i < step && setStep(i)}
@@ -221,7 +221,13 @@ export function Onboarding({ defaultFullName, email, isNewWorkspace = false }: O
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="fullName">Full name</Label>
-                <Input id="fullName" placeholder="Priya Sharma" value={fullName} onChange={(e) => setFullName(e.target.value)} autoFocus />
+                <Input
+                  id="fullName"
+                  placeholder="Priya Sharma"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  autoFocus
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
@@ -254,13 +260,21 @@ export function Onboarding({ defaultFullName, email, isNewWorkspace = false }: O
             <div className="space-y-6">
               <div>
                 <h2 className="text-lg font-semibold">Set up your brand</h2>
-                <p className="text-muted-foreground text-sm">We&apos;ll create a workspace for your brand&apos;s analytics.</p>
+                <p className="text-muted-foreground text-sm">
+                  We&apos;ll create a workspace for your brand&apos;s analytics.
+                </p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="brandName">
                   Brand name <span className="text-destructive">*</span>
                 </Label>
-                <Input id="brandName" placeholder="Acme Skincare" value={brandName} onChange={(e) => setBrandName(e.target.value)} autoFocus />
+                <Input
+                  id="brandName"
+                  placeholder="Acme Skincare"
+                  value={brandName}
+                  onChange={(e) => setBrandName(e.target.value)}
+                  autoFocus
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="slug">
@@ -316,7 +330,9 @@ export function Onboarding({ defaultFullName, email, isNewWorkspace = false }: O
                       onClick={() => setIndustry(industry === ind ? '' : ind)}
                       className={cn(
                         'hover:bg-accent rounded-full border px-3 py-1 text-xs font-medium transition-colors',
-                        industry === ind ? 'border-primary bg-primary/5 text-primary ring-primary ring-1' : 'border-border text-muted-foreground',
+                        industry === ind
+                          ? 'border-primary bg-primary/5 text-primary ring-primary ring-1'
+                          : 'border-border text-muted-foreground',
                       )}
                     >
                       {ind}
@@ -334,7 +350,9 @@ export function Onboarding({ defaultFullName, email, isNewWorkspace = false }: O
                       onClick={() => setMonthlyRevenue(monthlyRevenue === r.value ? '' : r.value)}
                       className={cn(
                         'hover:bg-accent rounded-lg border px-3 py-2 text-xs font-medium transition-colors',
-                        monthlyRevenue === r.value ? 'border-primary bg-primary/5 text-primary ring-primary ring-1' : 'border-border text-muted-foreground',
+                        monthlyRevenue === r.value
+                          ? 'border-primary bg-primary/5 text-primary ring-primary ring-1'
+                          : 'border-border text-muted-foreground',
                       )}
                     >
                       {r.label}
@@ -426,19 +444,37 @@ export function Onboarding({ defaultFullName, email, isNewWorkspace = false }: O
               <div className="space-y-4">
                 <div className="grid gap-2">
                   <Label htmlFor="wc-store-url">Store URL</Label>
-                  <Input id="wc-store-url" placeholder="https://mybrand.com" value={wcStoreUrl} onChange={(e) => setWcStoreUrl(e.target.value)} autoFocus />
+                  <Input
+                    id="wc-store-url"
+                    placeholder="https://mybrand.com"
+                    value={wcStoreUrl}
+                    onChange={(e) => setWcStoreUrl(e.target.value)}
+                    autoFocus
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="wc-consumer-key">Consumer Key</Label>
-                  <Input id="wc-consumer-key" placeholder="ck_xxxxxxxxxxxx" value={wcConsumerKey} onChange={(e) => setWcConsumerKey(e.target.value)} />
+                  <Input
+                    id="wc-consumer-key"
+                    placeholder="ck_xxxxxxxxxxxx"
+                    value={wcConsumerKey}
+                    onChange={(e) => setWcConsumerKey(e.target.value)}
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="wc-consumer-secret">Consumer Secret</Label>
-                  <Input id="wc-consumer-secret" type="password" placeholder="cs_xxxxxxxxxxxx" value={wcConsumerSecret} onChange={(e) => setWcConsumerSecret(e.target.value)} />
+                  <Input
+                    id="wc-consumer-secret"
+                    type="password"
+                    placeholder="cs_xxxxxxxxxxxx"
+                    value={wcConsumerSecret}
+                    onChange={(e) => setWcConsumerSecret(e.target.value)}
+                  />
                 </div>
               </div>
               <p className="bg-muted text-muted-foreground rounded-lg px-4 py-3 text-xs">
-                Generate API keys in WordPress under <strong>WooCommerce → Settings → Advanced → REST API</strong>. Set permissions to <strong>Read</strong>.
+                Generate API keys in WordPress under <strong>WooCommerce → Settings → Advanced → REST API</strong>. Set
+                permissions to <strong>Read</strong>.
               </p>
             </div>
           )}

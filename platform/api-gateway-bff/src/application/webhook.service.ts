@@ -45,7 +45,10 @@ export class WebhookService {
     const mapped = connector.mapWebhook(ctx)
     if (mapped.control === 'uninstall') {
       if (resolved.brandId) {
-        await this.pg.query(`UPDATE integration.integrations SET status='disconnected' WHERE brand_id=$1 AND provider=$2`, [resolved.brandId, provider])
+        await this.pg.query(
+          `UPDATE integration.integrations SET status='disconnected' WHERE brand_id=$1 AND provider=$2`,
+          [resolved.brandId, provider],
+        )
       }
       return { status: 200 }
     }
@@ -53,31 +56,60 @@ export class WebhookService {
 
     if (!resolved.brandId) return { status: 202 } // accepted, no brand mapped yet
     for (const rec of mapped.records) {
-      this.bus.emitWebhook({ provider, topic: mapped.topic, stream: rec.stream, brandId: resolved.brandId, shop: mapped.shop, payload: rec.data })
+      this.bus.emitWebhook({
+        provider,
+        topic: mapped.topic,
+        stream: rec.stream,
+        brandId: resolved.brandId,
+        shop: mapped.shop,
+        payload: rec.data,
+      })
     }
     return { status: 200 }
   }
 
   // Provider-specific brand resolution + signing secret. Shopify/Woo resolve by store; Razorpay/Stripe by path.
-  private async resolve(provider: string, ctx: WebhookContext, brandIdPath?: string): Promise<{ brandId: string | null; secret: string }> {
+  private async resolve(
+    provider: string,
+    ctx: WebhookContext,
+    brandIdPath?: string,
+  ): Promise<{ brandId: string | null; secret: string }> {
     if (provider === 'shopify') {
-      const shop = (ctx.headers['x-shopify-shop-domain'] ?? '').toLowerCase().replace(/^https?:\/\//, '').split('/')[0]
-      return { brandId: await this.brandByStore(shop), secret: signingSecret(process.env.SHOPIFY_CLIENT_SECRET, 'SHOPIFY_CLIENT_SECRET') }
+      const shop = (ctx.headers['x-shopify-shop-domain'] ?? '')
+        .toLowerCase()
+        .replace(/^https?:\/\//, '')
+        .split('/')[0]
+      return {
+        brandId: await this.brandByStore(shop),
+        secret: signingSecret(process.env.SHOPIFY_CLIENT_SECRET, 'SHOPIFY_CLIENT_SECRET'),
+      }
     }
     if (provider === 'woocommerce') {
       const source = (ctx.headers['x-wc-webhook-source'] ?? '').replace(/\/+$/, '')
-      return { brandId: await this.brandByStore(source), secret: signingSecret(process.env.WOOCOMMERCE_WEBHOOK_SECRET, 'WOOCOMMERCE_WEBHOOK_SECRET') }
+      return {
+        brandId: await this.brandByStore(source),
+        secret: signingSecret(process.env.WOOCOMMERCE_WEBHOOK_SECRET, 'WOOCOMMERCE_WEBHOOK_SECRET'),
+      }
     }
     if (provider === 'razorpay') {
-      return { brandId: brandIdPath ?? null, secret: signingSecret(process.env.RAZORPAY_WEBHOOK_SECRET, 'RAZORPAY_WEBHOOK_SECRET') }
+      return {
+        brandId: brandIdPath ?? null,
+        secret: signingSecret(process.env.RAZORPAY_WEBHOOK_SECRET, 'RAZORPAY_WEBHOOK_SECRET'),
+      }
     }
     if (provider === 'stripe') {
       // Account-level (brand from path); secret = the endpoint signing secret (whsec_…).
-      return { brandId: brandIdPath ?? null, secret: signingSecret(process.env.STRIPE_WEBHOOK_SECRET, 'STRIPE_WEBHOOK_SECRET') }
+      return {
+        brandId: brandIdPath ?? null,
+        secret: signingSecret(process.env.STRIPE_WEBHOOK_SECRET, 'STRIPE_WEBHOOK_SECRET'),
+      }
     }
     if (provider === 'shiprocket') {
       // Panel-configured static token (x-api-key); brand from path.
-      return { brandId: brandIdPath ?? null, secret: signingSecret(process.env.SHIPROCKET_WEBHOOK_TOKEN, 'SHIPROCKET_WEBHOOK_TOKEN') }
+      return {
+        brandId: brandIdPath ?? null,
+        secret: signingSecret(process.env.SHIPROCKET_WEBHOOK_TOKEN, 'SHIPROCKET_WEBHOOK_TOKEN'),
+      }
     }
     // Unreachable today (handle() 404s unknown providers), but defense-in-depth: never hand back a known
     // key. signingSecret(undefined, …) throws in prod and is an unguessable ephemeral in dev.

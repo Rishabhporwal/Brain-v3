@@ -17,9 +17,12 @@
     "local:up": "make -C deployment/local up",
     "scaffold": "bash tools/scaffold_repo.sh",
     "schemas:check": "node tools/scripts/schema-registry.mjs check",
-    "schemas:publish": "node tools/scripts/schema-registry.mjs publish"
+    "schemas:publish": "node tools/scripts/schema-registry.mjs publish",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
+    "prettier": "^3.8.4",
     "turbo": "^2.1.0",
     "typescript": "^5.6.0"
   }

@@ -1,1 +1,5 @@
-{ "name": "@brain/temporal", "version": "0.0.0", "private": true }
+{
+  "name": "@brain/temporal",
+  "version": "0.0.0",
+  "private": true
+}
