@@ -104,6 +104,7 @@ export class ClickhouseReader {
       const res = await this.ch.query({
         query,
         query_params: { b: brandId, from: period.from ?? '', to: period.to ?? '' },
+        clickhouse_settings: { brain_current_brand: brandId }, // tenant row policy (§1.5)
         format: 'JSONEachRow',
       })
       const rows = (await res.json()) as T[]
