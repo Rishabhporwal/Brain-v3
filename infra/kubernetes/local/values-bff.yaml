@@ -19,6 +19,10 @@ env:
   # them here would mask the secret; omitting them proves the secret is actually consumed.
   CH_URL: http://clickhouse:8123
   KAFKA_BROKERS: redpanda:9092
+  # Invariant 1 slot-in: the read-model quotes the metric engine; the BFF's inline computation
+  # is only the no-engine fallback. Token is local-only here (prod: ESO secret).
+  METRIC_ENGINE_URL: http://metric-engine:7080
+  METRIC_ENGINE_TOKEN: local-internal-token
   KEYCLOAK_ISSUER: http://keycloak:8080/realms/brain
   KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/brain/protocol/openid-connect/certs
   VAULT_PATH: /tmp/brain-dev-vault.json

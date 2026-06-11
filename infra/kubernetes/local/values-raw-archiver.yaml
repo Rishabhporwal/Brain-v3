@@ -1,0 +1,30 @@
+# Local (kind) values for the raw archiver via the brain-service base chart.
+# Build the image from the repo root: docker build -f data-platform/raw-archiver/Dockerfile -t brain-raw-archiver:local .
+name: raw-archiver
+image:
+  repository: brain-raw-archiver
+  tag: local
+  pullPolicy: IfNotPresent
+replicaCount: 1
+port: 8080 # health server only — the workload is a Kafka consumer
+autoscaling:
+  enabled: false # consumer-group scaling is a deliberate choice, not CPU-driven
+env:
+  NODE_ENV: production
+  RAW_ARCHIVER_PORT: "8080"
+  KAFKA_BROKERS: redpanda:9092
+  RAW_BUCKET: brain-raw
+  # LocalStack provides the S3 parity surface in the kind stack (infra/kubernetes/local/aws).
+  S3_ENDPOINT: http://localstack:4566
+  S3_ACCESS_KEY: test
+  S3_SECRET_KEY: test
+probes:
+  liveness: { path: /healthz, initialDelaySeconds: 10, periodSeconds: 10 }
+  readiness: { path: /healthz, initialDelaySeconds: 5, periodSeconds: 10 }
+securityContext:
+  runAsNonRoot: false
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities: { drop: ["ALL"] }
+serviceAccount:
+  create: true

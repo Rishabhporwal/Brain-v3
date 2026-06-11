@@ -1,0 +1,28 @@
+# Local (kind) values for the Tier-0 metric engine via the brain-service base chart.
+# Build the image from the repo root: docker build -f commerce-intelligence/metric-engine/Dockerfile -t brain-metric-engine:local .
+name: metric-engine
+image:
+  repository: brain-metric-engine
+  tag: local
+  pullPolicy: IfNotPresent
+replicaCount: 1
+port: 7080
+autoscaling:
+  enabled: false
+env:
+  NODE_ENV: production
+  METRIC_ENGINE_PORT: "7080"
+  CH_URL: http://clickhouse:8123
+  # Local-only shared token (NON-secret here by design); prod sources it from ESO/Secrets Manager
+  # via secretRefs, same as the BFF's PG_URL. The guard fails closed without it (NODE_ENV=production).
+  METRIC_ENGINE_TOKEN: local-internal-token
+probes:
+  liveness: { path: /healthz, initialDelaySeconds: 10, periodSeconds: 10 }
+  readiness: { path: /readyz, initialDelaySeconds: 5, periodSeconds: 10 }
+securityContext:
+  runAsNonRoot: false
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities: { drop: ["ALL"] }
+serviceAccount:
+  create: true
