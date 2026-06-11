@@ -1,0 +1,23 @@
+{
+  "name": "@brain/track-browser",
+  "version": "0.1.0",
+  "private": true,
+  "description": "First-party browser tracking SDK — write-key auth, consent-aware at capture, rolling sessions, batched delivery to the BFF /track lane (BRD §10.2/§10.3).",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.8"
+  }
+}
