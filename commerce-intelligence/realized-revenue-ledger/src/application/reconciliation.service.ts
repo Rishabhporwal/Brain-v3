@@ -83,6 +83,7 @@ export class ReconciliationService {
         WHERE o.brand_id = {b:UUID}
           AND o.ordered_at > now() - INTERVAL ${ReconciliationService.WINDOW_DAYS} DAY`,
       query_params: { b: brandId },
+      clickhouse_settings: { brain_current_brand: brandId }, // tenant row policy (§1.5)
       format: 'JSONEachRow',
     })
     const rows = (await res.json()) as JoinedOrderRow[]
@@ -112,7 +113,12 @@ export class ReconciliationService {
       }
     })
 
-    await this.ch.insert({ table: 'brain.revenue_ledger', values: ledgerRows, format: 'JSONEachRow' })
+    await this.ch.insert({
+      table: 'brain.revenue_ledger',
+      values: ledgerRows,
+      format: 'JSONEachRow',
+      clickhouse_settings: { brain_current_brand: brandId }, // tenant row policy (§1.5)
+    })
     const realized = ledgerRows.filter((r) => r.realized === 1).length
     this.log.log(`reconciled brand=${brandId}: ${ledgerRows.length} orders, ${realized} realized`)
     return { orders: ledgerRows.length, realized }
@@ -126,6 +132,7 @@ export class ReconciliationService {
       query: `SELECT state, count() AS orders, sum(realized_revenue_minor) AS realized
                 FROM brain.revenue_ledger FINAL WHERE brand_id = {b:UUID} GROUP BY state`,
       query_params: { b: brandId },
+      clickhouse_settings: { brain_current_brand: brandId }, // tenant row policy (§1.5)
       format: 'JSONEachRow',
     })
     const rows = (await res.json()) as Array<{ state: string; orders: string; realized: string }>

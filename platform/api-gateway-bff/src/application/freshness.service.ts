@@ -29,6 +29,7 @@ export class FreshnessService {
         UNION ALL
         SELECT 'ad_spend'  AS stream, toString(max(pulled_at))   AS latest FROM brain.ad_spend  WHERE brand_id = {brand:UUID}`,
       query_params: { brand: brandId },
+      clickhouse_settings: { brain_current_brand: brandId }, // tenant row policy (§1.5)
       format: 'JSONEachRow',
     })
     const rows = (await result.json()) as Array<{ stream: string; latest: string }>

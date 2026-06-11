@@ -47,7 +47,7 @@ export class RecommendationGateService {
     for (const { candidate, verdict } of results) {
       await this.pg.query(
         `INSERT INTO platform.audit_logs(brand_id, actor_type, actor_id, action, after)
-         VALUES ($1,'system','recommendation-gate',$2,$3)`,
+         VALUES ($1,'system_guardrail','recommendation-gate',$2,$3)`,
         [
           brandId,
           verdict.allowed ? 'recommendation.surfaced' : 'recommendation.withheld',

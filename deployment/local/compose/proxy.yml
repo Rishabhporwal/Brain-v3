@@ -40,6 +40,10 @@ services:
       # Integration data backbone: integration.connected + (future) webhook ingest events → Redpanda.
       # Onboarding lifecycle does NOT go here. Remove to no-op.
       KAFKA_BROKERS: redpanda:9092
+      # Tier-0 metric engine (invariant 1): unset -> the BFF's inline fallback. Local default points
+      # at a host-run engine (pnpm -C commerce-intelligence/metric-engine start).
+      METRIC_ENGINE_URL: ${METRIC_ENGINE_URL:-http://host.docker.internal:7080}
+      METRIC_ENGINE_TOKEN: ${METRIC_ENGINE_TOKEN:-}
       # Transactional email for invitations (from deployment/local/.env; unset → MailService logs instead).
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
