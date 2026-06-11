@@ -28,6 +28,14 @@ const s3 = new S3Client({
 })
 
 async function main(): Promise<void> {
+  // Minimal health server (K8s probes; operational-readiness baseline) — the archiver is otherwise headless.
+  const { createServer } = await import('node:http')
+  createServer((req, res) => {
+    if (req.url === '/health' || req.url === '/healthz' || req.url === '/') {
+      res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ service: 'raw-archiver', ok: true }))
+    } else res.writeHead(404).end()
+  }).listen(Number(process.env.RAW_ARCHIVER_PORT ?? 8080))
+
   await s3.send(new CreateBucketCommand({ Bucket: BUCKET })).catch(() => undefined) // idempotent local bootstrap
 
   const kafka = new Kafka({

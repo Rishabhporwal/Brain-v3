@@ -1,0 +1,32 @@
+# Local (kind) values for the billing floor via the brain-service base chart.
+# Build the image from the repo root: docker build -f platform/billing/Dockerfile -t brain-billing:local .
+name: billing
+image:
+  repository: brain-billing
+  tag: local
+  pullPolicy: IfNotPresent
+replicaCount: 1
+port: 7081
+autoscaling:
+  enabled: false
+env:
+  NODE_ENV: production
+  BILLING_PORT: "7081"
+  # Billing consumes realized GMV ONLY from the metric engine (invariant 1).
+  METRIC_ENGINE_URL: http://metric-engine:7080
+  METRIC_ENGINE_TOKEN: local-internal-token
+  BILLING_TOKEN: local-internal-token
+probes:
+  liveness: { path: /healthz, initialDelaySeconds: 10, periodSeconds: 10 }
+  readiness: { path: /readyz, initialDelaySeconds: 5, periodSeconds: 10 }
+securityContext:
+  runAsNonRoot: false
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities: { drop: ["ALL"] }
+serviceAccount:
+  create: true
+# PG_URL arrives from the same ESO-synced app secret the BFF uses (billing reads platform.brands +
+# billing.brand_tier; no separate database).
+secretRefs:
+  - name: brain-app-secrets
