@@ -53,6 +53,7 @@ import { InviteController } from '../api/http/invite.controller'
     WebhooksController,
     InviteController,
     McpController,
+    TopActionsController,
     MetricsController,
   ],
   providers: [
