@@ -26,6 +26,8 @@ import { WebhookService } from '../application/webhook.service'
 import { FreshnessService } from '../application/freshness.service'
 import { RecommendationGateService } from '../application/recommendation-gate.service'
 import { McpService } from '../application/mcp.service'
+import { TopActionsService } from '../application/top-actions.service'
+import { TopActionsController } from '../api/http/top-actions.controller'
 import { McpController } from '../api/http/mcp.controller'
 import { MailService } from '../application/mail.service'
 import { InviteService } from '../application/invite.service'
@@ -73,6 +75,7 @@ import { InviteController } from '../api/http/invite.controller'
     FreshnessService,
     RecommendationGateService,
     McpService,
+    TopActionsService,
   ],
 })
 export class AppModule {}
