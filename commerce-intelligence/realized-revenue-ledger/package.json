@@ -1,0 +1,28 @@
+{
+  "name": "@brain/realized-revenue-ledger",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The financial golden record (Solution Architecture §6.2): realization state machine + slow-tail reconciliation over the ~45-day window; corrections are new versions, never mutations.",
+  "scripts": {
+    "build": "nest build",
+    "start": "node dist/main.js",
+    "dev": "nest start --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@clickhouse/client": "^1.7.0",
+    "@nestjs/common": "^10.4.15",
+    "@nestjs/core": "^10.4.15",
+    "@nestjs/platform-express": "^10.4.15",
+    "@nestjs/schedule": "^4.1.2",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.4.9",
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.8"
+  }
+}
