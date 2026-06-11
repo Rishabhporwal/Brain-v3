@@ -8,7 +8,7 @@ export function GoogleAds() {
       surface="google-ads"
       title="Google Ads"
       description="Google spend, efficiency and campaign performance."
-      metrics={['spend','roas','mer','cac']}
+      metrics={['spend', 'roas', 'mer', 'cac']}
       detailTitle="Campaigns"
       detailDescription="Google campaigns."
     />

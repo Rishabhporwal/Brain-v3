@@ -10,7 +10,7 @@ summary: >-
   and margin from metric-engine; routes via audience-activation + whatsapp connector;
   every send checked against consent and logged to decision-log.
 slos:
-  availability: "99.9%"
+  availability: '99.9%'
   latency_p99_ms: 250
 contracts:
   consumes: [proto/commerce/metric.proto, proto/cdp/audience.proto, events/avro/segment.materialized.avsc]

@@ -6,7 +6,7 @@ metadata:
   name: api-gateway-bff
   namespace: brain
   labels:
-    release: kube-prom        # match the operator's default release selector
+    release: kube-prom # match the operator's default release selector
 spec:
   selector:
     matchLabels:

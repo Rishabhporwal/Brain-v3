@@ -85,7 +85,9 @@ export class BffService {
     if (!ctx) return { workspace: null, membership: null }
     // Read the brand profile UNDER RLS (Layer 1+2) — proves the active-brand context works end to end.
     const b = await this.ac.runInBrand(ctx, async (c) => {
-      const res = await c.query<BrandRow>(`SELECT id, name, slug, currency FROM platform.brands WHERE id = $1`, [ctx.brandId])
+      const res = await c.query<BrandRow>(`SELECT id, name, slug, currency FROM platform.brands WHERE id = $1`, [
+        ctx.brandId,
+      ])
       return res.rows[0]
     })
     if (!b) return { workspace: null, membership: null }
@@ -109,15 +111,19 @@ export class BffService {
 
   private chQuery<T>(query: string, brandId: string) {
     return this.ch
-      .query({ query, query_params: { b: brandId }, clickhouse_settings: { brain_current_brand: brandId }, format: 'JSONEachRow' })
+      .query({
+        query,
+        query_params: { b: brandId },
+        clickhouse_settings: { brain_current_brand: brandId },
+        format: 'JSONEachRow',
+      })
       .then((r) => r.json() as Promise<T[]>)
   }
 
   // An order counts toward realized revenue unless it's in a non-realized financial state.
   // Provider-agnostic: Shopify uses 'paid'/'voided'/'refunded'; WooCommerce maps completed→'paid';
   // empty status (providers that don't send one) is treated as realized so data still surfaces.
-  private static readonly REALIZED =
-    `financial_status NOT IN ('voided','refunded','pending','cancelled','partially_refunded','declined','expired')`
+  private static readonly REALIZED = `financial_status NOT IN ('voided','refunded','pending','cancelled','partially_refunded','declined','expired')`
 
   async summary(user: AuthUser, slug: string) {
     const ctx = await this.requireContext(user, slug)
@@ -204,7 +210,6 @@ export class BffService {
   async detail(user: AuthUser, slug: string) {
     const ctx = await this.requireContext(user, slug) // enforces membership (404 for non-members)
     const b = { id: ctx.brandId } // ClickHouse reads are brand-scoped via brand_id = ctx.brandId
-
 
     // ── Weekly timeseries from ingested orders (revenue in minor, order count); sessions overlaid from pixel.
     let timeseries = await this.chQuery<{ label: string; realized_revenue: number; orders: number; sessions: number }>(

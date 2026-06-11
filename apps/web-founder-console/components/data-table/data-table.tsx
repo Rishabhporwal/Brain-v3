@@ -1,16 +1,16 @@
 'use client'
 
-import { flexRender, getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef, type SortingState } from '@tanstack/react-table'
+import {
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+  type SortingState,
+} from '@tanstack/react-table'
 import { useState } from 'react'
 import { IconArrowsSort } from '@tabler/icons-react'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 /** Generic sortable table over the shadcn table primitives. Used by products/inventory/campaigns/team/admin. */
 export function DataTable<T>({
@@ -41,10 +41,7 @@ export function DataTable<T>({
               {hg.headers.map((header) => (
                 <TableHead key={header.id}>
                   {header.isPlaceholder ? null : header.column.getCanSort() ? (
-                    <button
-                      className="flex items-center gap-1"
-                      onClick={header.column.getToggleSortingHandler()}
-                    >
+                    <button className="flex items-center gap-1" onClick={header.column.getToggleSortingHandler()}>
                       {flexRender(header.column.columnDef.header, header.getContext())}
                       <IconArrowsSort className="size-3 opacity-50" />
                     </button>

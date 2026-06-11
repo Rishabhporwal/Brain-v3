@@ -67,19 +67,39 @@ export function CostsSettings() {
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="cogs">COGS (% of revenue)</Label>
-              <Input id="cogs" inputMode="decimal" value={form.cogsPct} onChange={(e) => set({ cogsPct: e.target.value })} />
+              <Input
+                id="cogs"
+                inputMode="decimal"
+                value={form.cogsPct}
+                onChange={(e) => set({ cogsPct: e.target.value })}
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="ship">Forward shipping</Label>
-              <Input id="ship" inputMode="decimal" value={form.shipping} onChange={(e) => set({ shipping: e.target.value })} />
+              <Input
+                id="ship"
+                inputMode="decimal"
+                value={form.shipping}
+                onChange={(e) => set({ shipping: e.target.value })}
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="cod">COD fee</Label>
-              <Input id="cod" inputMode="decimal" value={form.codFee} onChange={(e) => set({ codFee: e.target.value })} />
+              <Input
+                id="cod"
+                inputMode="decimal"
+                value={form.codFee}
+                onChange={(e) => set({ codFee: e.target.value })}
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="gw">Gateway fee (%)</Label>
-              <Input id="gw" inputMode="decimal" value={form.gatewayPct} onChange={(e) => set({ gatewayPct: e.target.value })} />
+              <Input
+                id="gw"
+                inputMode="decimal"
+                value={form.gatewayPct}
+                onChange={(e) => set({ gatewayPct: e.target.value })}
+              />
             </div>
           </div>
           <div>

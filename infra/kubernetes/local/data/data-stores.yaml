@@ -42,7 +42,7 @@ spec:
           ports:
             - containerPort: 5432
           readinessProbe:
-            exec: { command: ["sh", "-c", "pg_isready -U brain -d brain"] }
+            exec: { command: ['sh', '-c', 'pg_isready -U brain -d brain'] }
             initialDelaySeconds: 5
             periodSeconds: 5
           volumeMounts:
@@ -81,13 +81,13 @@ spec:
       containers:
         - name: keycloak
           image: quay.io/keycloak/keycloak:26.0
-          args: ["start-dev", "--import-realm"]
+          args: ['start-dev', '--import-realm']
           env:
             - { name: KC_BOOTSTRAP_ADMIN_USERNAME, value: admin }
             - { name: KC_BOOTSTRAP_ADMIN_PASSWORD, value: admin }
-            - { name: KC_HEALTH_ENABLED, value: "true" }
+            - { name: KC_HEALTH_ENABLED, value: 'true' }
             # issuer must match what the BFF validates against (in-cluster service DNS)
-            - { name: KC_HOSTNAME_STRICT, value: "false" }
+            - { name: KC_HOSTNAME_STRICT, value: 'false' }
           ports:
             - containerPort: 8080
           readinessProbe:

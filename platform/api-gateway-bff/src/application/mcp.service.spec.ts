@@ -13,10 +13,29 @@ const ctx = { brandId: '0197604e-32a5-7000-8000-000000000000', brandSlug: 'acme'
 
 function build() {
   const pg = { query: vi.fn().mockResolvedValue({ rows: [] }) }
-  const bff = { summary: vi.fn().mockResolvedValue({ metrics: { realized_revenue: 1_499_000 }, asOf: '2026-06-11', source: 'metric-engine', estimated: [] }) }
+  const bff = {
+    summary: vi
+      .fn()
+      .mockResolvedValue({
+        metrics: { realized_revenue: 1_499_000 },
+        asOf: '2026-06-11',
+        source: 'metric-engine',
+        estimated: [],
+      }),
+  }
   const freshness = { forBrand: vi.fn().mockResolvedValue([{ stream: 'orders', lagMinutes: 5 }]) }
-  const oauth = { listForBrand: vi.fn().mockResolvedValue([{ provider: 'shopify', status: 'connected' }, { provider: 'meta', status: 'disconnected' }]) }
-  const svc = new McpService(pg as unknown as Pool, bff as unknown as BffService, freshness as unknown as FreshnessService, oauth as unknown as OAuthService)
+  const oauth = {
+    listForBrand: vi.fn().mockResolvedValue([
+      { provider: 'shopify', status: 'connected' },
+      { provider: 'meta', status: 'disconnected' },
+    ]),
+  }
+  const svc = new McpService(
+    pg as unknown as Pool,
+    bff as unknown as BffService,
+    freshness as unknown as FreshnessService,
+    oauth as unknown as OAuthService,
+  )
   return { svc, pg, bff, freshness, oauth }
 }
 
@@ -43,7 +62,11 @@ describe('MCP server (BRD §10.10)', () => {
     const payload = JSON.parse((res.content as Array<{ text: string }>)[0].text)
     expect(payload.metrics.realized_revenue).toBe(1_499_000)
     expect(bff.summary).toHaveBeenCalledWith(user, 'acme')
-    expect(pg.query).toHaveBeenCalledWith(expect.stringContaining('mcp.tool_called'), [ctx.brandId, 'op@brand.dev', expect.stringContaining('get_metrics')])
+    expect(pg.query).toHaveBeenCalledWith(expect.stringContaining('mcp.tool_called'), [
+      ctx.brandId,
+      'op@brand.dev',
+      expect.stringContaining('get_metrics'),
+    ])
   })
 
   it('list_integrations filters disconnected when asked', async () => {

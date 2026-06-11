@@ -1,8 +1,8 @@
 # Defaults for the brain-service base chart. Each service supplies a values-<svc>.yaml overriding name/image/env.
 name: api-gateway-bff
 image:
-  repository: ""   # e.g. <acct>.dkr.ecr.<region>.amazonaws.com/brain/api-gateway-bff
-  tag: ""          # set by CI (git sha); never "latest" in prod
+  repository: '' # e.g. <acct>.dkr.ecr.<region>.amazonaws.com/brain/api-gateway-bff
+  tag: '' # set by CI (git sha); never "latest" in prod
   pullPolicy: IfNotPresent
 
 replicaCount: 2
@@ -13,11 +13,11 @@ port: 4000
 env:
   NODE_ENV: production
   BRAIN_ENV: production
-secretRefs: []     # e.g. [{ name: bff-secrets }] → envFrom secretRef
+secretRefs: [] # e.g. [{ name: bff-secrets }] → envFrom secretRef
 
 resources:
   requests: { cpu: 100m, memory: 256Mi }
-  limits:   { cpu: "1",  memory: 512Mi }
+  limits: { cpu: '1', memory: 512Mi }
 
 autoscaling:
   enabled: true
@@ -27,8 +27,8 @@ autoscaling:
 
 # Health probes (every service exposes these per operational-readiness).
 probes:
-  liveness:  { path: /health, initialDelaySeconds: 10, periodSeconds: 10 }
-  readiness: { path: /health, initialDelaySeconds: 5,  periodSeconds: 10 }
+  liveness: { path: /health, initialDelaySeconds: 10, periodSeconds: 10 }
+  readiness: { path: /health, initialDelaySeconds: 5, periodSeconds: 10 }
 
 # Pod hardening (maps to the restricted Pod Security Standard).
 securityContext:
@@ -36,9 +36,9 @@ securityContext:
   runAsUser: 10001
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: true
-  capabilities: { drop: ["ALL"] }
+  capabilities: { drop: ['ALL'] }
 
 serviceAccount:
   create: true
   # IRSA: bind to an AWS IAM role for least-privilege cloud access.
-  annotations: {}   # eks.amazonaws.com/role-arn: arn:aws:iam::<acct>:role/brain-<svc>
+  annotations: {} # eks.amazonaws.com/role-arn: arn:aws:iam::<acct>:role/brain-<svc>

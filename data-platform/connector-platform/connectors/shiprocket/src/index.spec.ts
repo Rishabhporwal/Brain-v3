@@ -35,9 +35,15 @@ describe('shiprocket mapWebhook', () => {
   })
 
   it('maps RTO and unknown statuses to stable lowercase keys', () => {
-    const rto = mapShiprocketWebhook({ rawBody: Buffer.from(JSON.stringify({ awb: '1', current_status: 'RTO Initiated' })), headers: {} })
+    const rto = mapShiprocketWebhook({
+      rawBody: Buffer.from(JSON.stringify({ awb: '1', current_status: 'RTO Initiated' })),
+      headers: {},
+    })
     expect((rto.records[0].data as { status: string }).status).toBe('rto')
-    const unknown = mapShiprocketWebhook({ rawBody: Buffer.from(JSON.stringify({ awb: '1', current_status: 'Some New State' })), headers: {} })
+    const unknown = mapShiprocketWebhook({
+      rawBody: Buffer.from(JSON.stringify({ awb: '1', current_status: 'Some New State' })),
+      headers: {},
+    })
     expect((unknown.records[0].data as { status: string }).status).toBe('some_new_state')
   })
 

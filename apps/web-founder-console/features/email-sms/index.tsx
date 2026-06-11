@@ -8,7 +8,7 @@ export function EmailSms() {
       surface="email-sms"
       title="Email & SMS"
       description="Lifecycle messaging performance and recovered revenue."
-      metrics={['realized_revenue','orders','repeat_rate','conversions']}
+      metrics={['realized_revenue', 'orders', 'repeat_rate', 'conversions']}
       detailTitle="Campaign performance"
       detailDescription="Email and SMS campaigns and outcomes."
     />

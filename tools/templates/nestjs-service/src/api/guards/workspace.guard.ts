@@ -11,4 +11,6 @@ export class WorkspaceGuard implements CanActivate {
     return Boolean(req.brandId)
   }
 }
-export const BrandId = createParamDecorator((_d: unknown, ctx: ExecutionContext) => ctx.switchToHttp().getRequest().brandId)
+export const BrandId = createParamDecorator(
+  (_d: unknown, ctx: ExecutionContext) => ctx.switchToHttp().getRequest().brandId,
+)

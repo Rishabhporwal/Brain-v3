@@ -9,7 +9,11 @@
     "shipment_id": { "type": "string", "minLength": 1 },
     "awb": { "type": "string" },
     "order_ref": { "type": "string" },
-    "status": { "type": "string", "pattern": "^[a-z0-9_]+$", "description": "canonical lowercase: pickup_scheduled | in_transit | delivered | rto | ..." },
+    "status": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$",
+      "description": "canonical lowercase: pickup_scheduled | in_transit | delivered | rto | ..."
+    },
     "courier": { "type": "string" },
     "updated_at": { "type": "string", "description": "ISO8601; may be empty when the provider omits a timestamp" }
   },

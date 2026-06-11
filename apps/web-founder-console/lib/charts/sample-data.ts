@@ -80,7 +80,9 @@ export function sampleHeatmap(
   colLabels: string[],
 ): { rowLabels: string[]; colLabels: string[]; values: number[][] } {
   const values = rowLabels.map((_, r) =>
-    colLabels.map((__, c) => (c > rowLabels.length - r ? 0 : Math.round(100 * Math.max(0, 0.85 - c * 0.12 - rnd(r * 9 + c) * 0.1)))),
+    colLabels.map((__, c) =>
+      c > rowLabels.length - r ? 0 : Math.round(100 * Math.max(0, 0.85 - c * 0.12 - rnd(r * 9 + c) * 0.1)),
+    ),
   )
   return { rowLabels, colLabels, values }
 }
@@ -119,6 +121,9 @@ export function sampleDetail(): {
 }
 
 /** Generic sample rows for a table from a column→generator map. */
-export function sampleRows<T extends Record<string, unknown>>(n: number, gen: (i: number, r: (seed: number) => number) => T): T[] {
+export function sampleRows<T extends Record<string, unknown>>(
+  n: number,
+  gen: (i: number, r: (seed: number) => number) => T,
+): T[] {
   return Array.from({ length: n }, (_, i) => gen(i, (s) => rnd(i * 17 + s)))
 }

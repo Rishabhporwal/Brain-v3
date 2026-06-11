@@ -79,7 +79,9 @@ export function gateRecommendation(
 
   // BRD §21.1: stale evidence WITHHOLDS high-risk recommendations; lower-risk ones surface
   // escalated + labelled. A failed confidence floor withholds at any risk level.
-  const withheld = reasons.some((r) => r.startsWith('confidence_below_floor')) || (candidate.riskLevel === 'high' && staleSources.length > 0)
+  const withheld =
+    reasons.some((r) => r.startsWith('confidence_below_floor')) ||
+    (candidate.riskLevel === 'high' && staleSources.length > 0)
 
   let approvalLevel = baseApprovalLevel(candidate)
   if (!withheld && staleSources.length > 0) approvalLevel = ESCALATION[approvalLevel]

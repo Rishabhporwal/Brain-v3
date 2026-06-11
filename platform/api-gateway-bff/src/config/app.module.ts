@@ -42,7 +42,17 @@ import { InviteController } from '../api/http/invite.controller'
     // Drives the polling-lane scheduler (SyncSchedulerService) — automatic Google/Meta ad-spend sync.
     ScheduleModule.forRoot(),
   ],
-  controllers: [HealthController, BffController, OnboardingController, TrackController, IntegrationsController, WebhooksController, InviteController, McpController, MetricsController],
+  controllers: [
+    HealthController,
+    BffController,
+    OnboardingController,
+    TrackController,
+    IntegrationsController,
+    WebhooksController,
+    InviteController,
+    McpController,
+    MetricsController,
+  ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_INTERCEPTOR, useClass: MetricsInterceptor },

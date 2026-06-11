@@ -10,11 +10,11 @@ services:
       POSTGRES_USER: brain
       POSTGRES_PASSWORD: brain
     ports:
-      - "5433:5432"          # 5433 on host to avoid clashing with a local pg
+      - '5433:5432' # 5433 on host to avoid clashing with a local pg
     volumes:
       - brain_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U brain -d brain"]
+      test: ['CMD-SHELL', 'pg_isready -U brain -d brain']
       interval: 3s
       timeout: 3s
       retries: 20

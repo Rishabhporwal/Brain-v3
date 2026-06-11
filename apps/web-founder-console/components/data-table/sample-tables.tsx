@@ -13,7 +13,9 @@ type ProductRow = { sku: string; title: string; revenue: number; orders: number;
 export function ProductsTable({ currency }: { currency: CurrencyCode }) {
   const data = sampleRows<ProductRow>(8, (i, r) => ({
     sku: `SKU-${1000 + i}`,
-    title: ['Daily Serum', 'Vitamin C', 'Sunscreen SPF50', 'Face Wash', 'Night Cream', 'Toner', 'Lip Balm', 'Hair Oil'][i],
+    title: ['Daily Serum', 'Vitamin C', 'Sunscreen SPF50', 'Face Wash', 'Night Cream', 'Toner', 'Lip Balm', 'Hair Oil'][
+      i
+    ],
     revenue: Math.round(8_000_000 * (0.5 + r(1))),
     orders: Math.round(120 * (0.4 + r(2))),
     cm2: Math.round(2200 + r(3) * 2000) / 100,
@@ -35,7 +37,7 @@ export function CampaignsTable({ currency, provider }: { currency: CurrencyCode;
   const data = sampleRows<CampaignRow>(6, (i, r) => ({
     name: `${provider} — ${['Prospecting', 'Retargeting', 'Brand', 'Lookalike', 'Catalog', 'Pmax'][i]}`,
     spend: Math.round(12_000_000 * (0.4 + r(1))),
-    roas: Math.round((250 + r(2) * 350)) / 100,
+    roas: Math.round(250 + r(2) * 350) / 100,
     cac: Math.round(40_000 + r(3) * 60_000),
     conv: Math.round(120 + r(4) * 400),
   }))
@@ -69,9 +71,7 @@ export function InventoryTable({ currency }: { currency: CurrencyCode }) {
       header: 'Status',
       cell: ({ row }) => {
         const s = row.original.status
-        return (
-          <Badge variant={s === 'Low' ? 'destructive' : s === 'Overstock' ? 'secondary' : 'outline'}>{s}</Badge>
-        )
+        return <Badge variant={s === 'Low' ? 'destructive' : s === 'Overstock' ? 'secondary' : 'outline'}>{s}</Badge>
       },
     },
   ]

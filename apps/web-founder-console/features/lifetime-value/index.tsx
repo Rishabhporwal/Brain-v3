@@ -8,7 +8,7 @@ export function LifetimeValue() {
       surface="lifetime-value"
       title="Lifetime Value"
       description="Predicted LTV and LTV to CAC by segment."
-      metrics={['ltv','cac','ltv_cac','repeat_rate']}
+      metrics={['ltv', 'cac', 'ltv_cac', 'repeat_rate']}
       detailTitle="LTV distribution"
       detailDescription="Lifetime value by segment."
     />

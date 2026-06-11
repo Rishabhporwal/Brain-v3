@@ -121,7 +121,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return token
       }
       // Credentials (direct-grant) sign-in: tokens arrive on `user` from authorize().
-      const u = user as { accessToken?: string; refreshToken?: string; idToken?: string; expiresAt?: number } | undefined
+      const u = user as
+        | { accessToken?: string; refreshToken?: string; idToken?: string; expiresAt?: number }
+        | undefined
       if (u?.accessToken) {
         token.accessToken = u.accessToken
         token.refreshToken = u.refreshToken

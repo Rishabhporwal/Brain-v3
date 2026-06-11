@@ -33,14 +33,8 @@
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": false,
-      "redirectUris": [
-        "http://localhost:3000/*",
-        "http://localhost:8088/*"
-      ],
-      "webOrigins": [
-        "http://localhost:3000",
-        "http://localhost:8088"
-      ],
+      "redirectUris": ["http://localhost:3000/*", "http://localhost:8088/*"],
+      "webOrigins": ["http://localhost:3000", "http://localhost:8088"],
       "attributes": {
         "post.logout.redirect.uris": "http://localhost:3000/*"
       }
@@ -76,9 +70,7 @@
           "temporary": false
         }
       ],
-      "realmRoles": [
-        "default-roles-brain"
-      ]
+      "realmRoles": ["default-roles-brain"]
     }
   ]
 }

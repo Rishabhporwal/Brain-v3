@@ -1,4 +1,10 @@
-import { type ConnectorHooks, type ConnectorManifest, type IngestRecord, type PullResult, type TokenSet } from '@brain/connector-kit'
+import {
+  type ConnectorHooks,
+  type ConnectorManifest,
+  type IngestRecord,
+  type PullResult,
+  type TokenSet,
+} from '@brain/connector-kit'
 
 /**
  * Google Ads connector (PULL lane). Ad platforms don't push metrics — we poll. Spend/clicks/conversions

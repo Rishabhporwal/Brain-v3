@@ -13,8 +13,12 @@ CompressionCodecs[CompressionTypes.Snappy] = SnappyCodec
  * offset coordinates in each line). Local: MinIO (S3-compatible); prod: S3 + Iceberg compaction
  * (data-platform/lakehouse, later).
  */
-const TOPICS = (process.env.RAW_ARCHIVE_TOPICS ?? 'brain.integration.events,brain.integration.webhooks,brain.integration.pull')
-  .split(',').map((t) => t.trim()).filter(Boolean)
+const TOPICS = (
+  process.env.RAW_ARCHIVE_TOPICS ?? 'brain.integration.events,brain.integration.webhooks,brain.integration.pull'
+)
+  .split(',')
+  .map((t) => t.trim())
+  .filter(Boolean)
 const BUCKET = process.env.RAW_BUCKET ?? 'brain-raw'
 
 const s3 = new S3Client({
@@ -32,7 +36,9 @@ async function main(): Promise<void> {
   const { createServer } = await import('node:http')
   createServer((req, res) => {
     if (req.url === '/health' || req.url === '/healthz' || req.url === '/') {
-      res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ service: 'raw-archiver', ok: true }))
+      res
+        .writeHead(200, { 'content-type': 'application/json' })
+        .end(JSON.stringify({ service: 'raw-archiver', ok: true }))
     } else res.writeHead(404).end()
   }).listen(Number(process.env.RAW_ARCHIVER_PORT ?? 8080))
 
@@ -60,7 +66,9 @@ async function main(): Promise<void> {
       }))
       if (messages.length === 0) return
       for (const obj of buildObjects(messages)) {
-        await s3.send(new PutObjectCommand({ Bucket: BUCKET, Key: obj.key, Body: obj.body, ContentType: 'application/x-ndjson' }))
+        await s3.send(
+          new PutObjectCommand({ Bucket: BUCKET, Key: obj.key, Body: obj.body, ContentType: 'application/x-ndjson' }),
+        )
         // eslint-disable-next-line no-console
         console.log(`archived ${obj.count} → s3://${BUCKET}/${obj.key}`)
       }

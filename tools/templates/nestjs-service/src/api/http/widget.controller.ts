@@ -9,7 +9,10 @@ import { WorkspaceGuard, BrandId } from '../guards/workspace.guard'
 @Controller('api/workspaces/:slug/widgets')
 @UseGuards(WorkspaceGuard)
 export class WidgetController {
-  constructor(private readonly create: CreateWidgetCommand, private readonly get: GetWidgetQuery) {}
+  constructor(
+    private readonly create: CreateWidgetCommand,
+    private readonly get: GetWidgetQuery,
+  ) {}
 
   @Post()
   createWidget(@BrandId() brandId: string, @Body() dto: CreateWidgetDto) {

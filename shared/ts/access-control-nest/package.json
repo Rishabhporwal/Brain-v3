@@ -5,8 +5,16 @@
   "description": "NestJS adoption layer for @brain/access-control. AccessControlModule.forRoot() wires the AccessControl seam, operator IdentityService, BrandContextGuard, PermissionGuard, and the fail-closed exception filter — so a service adopts tenant isolation + RBAC with one import.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
-  "scripts": { "build": "tsc -p tsconfig.json", "test": "vitest run" },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
   "dependencies": {
     "@brain/access-control": "workspace:*",
     "pg": "^8.13.1"

@@ -15,7 +15,13 @@ export class CreateWidgetCommand {
   ) {}
 
   async execute(brandId: string, dto: CreateWidgetDto): Promise<{ id: string }> {
-    const widget = Widget.create({ id: randomUUID(), brandId, name: dto.name, priceMinor: dto.priceMinor, now: new Date() })
+    const widget = Widget.create({
+      id: randomUUID(),
+      brandId,
+      name: dto.name,
+      priceMinor: dto.priceMinor,
+      now: new Date(),
+    })
     await this.repo.save(widget)
     await this.events.publish(widget.pullEvents().map((e) => ({ ...e })))
     return { id: widget.id }

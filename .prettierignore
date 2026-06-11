@@ -1,0 +1,27 @@
+# build output + deps
+node_modules/
+dist/
+.next/
+coverage/
+*.tsbuildinfo
+
+# lockfiles + generated
+pnpm-lock.yaml
+package-lock.json
+src/generated/
+
+# frozen / out-of-architecture (deliberate decision — do not touch)
+legacy frontend/
+
+# engineering-os audit trail + agent state
+.engineering-os/
+.claude/
+
+# documents (architecture prose/tables stay hand-formatted; .docx are binary)
+docs/
+
+# helm templates are Go templates, not valid YAML
+infra/kubernetes/charts/*/templates/
+
+# SQL models keep their hand-aligned column comments
+*.sql

@@ -46,7 +46,7 @@ make db.down          # stop + remove
   (`brand_id = current_setting('app.current_brand')`), `FORCE`d, fail-closed. **100% RLS coverage verified.**
 - **Money = integer minor units** + `currency_code`; the exponent comes from `reference.currencies` (never ×100).
   Rates (tax_rate, percent_bps) stay fractional — only rate×money is rounded.
-- **Per-service schemas; logical cross-service FKs.** FKs are enforced *within* a service's schema; cross-service
+- **Per-service schemas; logical cross-service FKs.** FKs are enforced _within_ a service's schema; cross-service
   references (e.g. `brand_id`, `customer_id` outside identity) are by id, validated by events/contracts (§1.4).
   FKs to global `reference.*` tables are enforced (reference data is shared, not service-owned).
 - **Phase leakage guard (§28.2):** `brain_meta.schema_tables` records each table's phase; `migrate.sh` fails

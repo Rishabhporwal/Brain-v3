@@ -1,6 +1,12 @@
 import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common'
 import { Pool } from 'pg'
-import { type ConnectorHooks, type CursorStore, type PullPublisher, type TokenSet, runConnectorSync } from '@brain/connector-kit'
+import {
+  type ConnectorHooks,
+  type CursorStore,
+  type PullPublisher,
+  type TokenSet,
+  runConnectorSync,
+} from '@brain/connector-kit'
 import { googleAds } from '@brain/connector-google-ads'
 import { metaAds } from '@brain/connector-meta-ads'
 import { PG_POOL } from '../persistence/db.providers'
@@ -30,7 +36,10 @@ export class PullService {
   ) {}
 
   /** Run a sync cycle for a connected provider on a workspace. */
-  async runSync(provider: string, slug: string): Promise<{ provider: string; slug: string; results: Array<{ stream: string; count: number }> }> {
+  async runSync(
+    provider: string,
+    slug: string,
+  ): Promise<{ provider: string; slug: string; results: Array<{ stream: string; count: number }> }> {
     const connector = CONNECTORS[provider]
     if (!connector) throw new BadRequestException(`no pull connector for provider: ${provider}`)
     const brand = await this.brand(slug)
@@ -38,7 +47,12 @@ export class PullService {
 
     const publish: PullPublisher = {
       publish: (p, b, s, records) =>
-        this.bus.emitPull({ provider: p, brandId: b, stream: s, records: records as Array<{ primaryKey?: string; data: unknown }> }),
+        this.bus.emitPull({
+          provider: p,
+          brandId: b,
+          stream: s,
+          records: records as Array<{ primaryKey?: string; data: unknown }>,
+        }),
     }
     try {
       const results = await runConnectorSync(connector, brand.id, { cursors: this.cursorStore(), publish, accessToken })
@@ -53,7 +67,11 @@ export class PullService {
 
   // Connector health (integration.connector_health): completeness + whether stale/failed should withhold
   // high-risk recommendations (Brain rule). Updated on every sync.
-  private async recordHealth(provider: string, brandId: string, status: { ok: boolean; error?: string }): Promise<void> {
+  private async recordHealth(
+    provider: string,
+    brandId: string,
+    status: { ok: boolean; error?: string },
+  ): Promise<void> {
     const { rows } = await this.pg.query<{ id: string }>(
       `SELECT id FROM integration.integrations WHERE brand_id=$1 AND provider=$2 LIMIT 1`,
       [brandId, provider],
@@ -84,7 +102,12 @@ export class PullService {
     const raw = await this.vault.get(ref)
     if (!raw) throw new BadRequestException(`${provider} is not connected for this workspace`)
     const t = JSON.parse(raw) as { access_token: string; refresh_token?: string; expires_in?: number; scope?: string }
-    let token: TokenSet = { accessToken: t.access_token, refreshToken: t.refresh_token, expiresIn: t.expires_in, scope: t.scope }
+    let token: TokenSet = {
+      accessToken: t.access_token,
+      refreshToken: t.refresh_token,
+      expiresIn: t.expires_in,
+      scope: t.scope,
+    }
 
     const { rows } = await this.pg.query<{ expires_at: string | null }>(
       `SELECT expires_at FROM integration.oauth_tokens WHERE secret_ref=$1`,
@@ -95,9 +118,20 @@ export class PullService {
     if (connector.refresh && token.refreshToken && expiringSoon) {
       try {
         token = await connector.refresh(token)
-        await this.vault.put(ref, JSON.stringify({ access_token: token.accessToken, refresh_token: token.refreshToken, expires_in: token.expiresIn, scope: token.scope }))
+        await this.vault.put(
+          ref,
+          JSON.stringify({
+            access_token: token.accessToken,
+            refresh_token: token.refreshToken,
+            expires_in: token.expiresIn,
+            scope: token.scope,
+          }),
+        )
         const newExp = token.expiresIn ? new Date(Date.now() + token.expiresIn * 1000).toISOString() : null
-        await this.pg.query(`UPDATE integration.oauth_tokens SET expires_at=$2, updated_at=now() WHERE secret_ref=$1`, [ref, newExp])
+        await this.pg.query(`UPDATE integration.oauth_tokens SET expires_at=$2, updated_at=now() WHERE secret_ref=$1`, [
+          ref,
+          newExp,
+        ])
       } catch (e) {
         await this.pg.query(`UPDATE integration.oauth_tokens SET refresh_failed_at=now() WHERE secret_ref=$1`, [ref])
         this.log.warn(`token refresh failed for ${ref}: ${(e as Error).message}`)

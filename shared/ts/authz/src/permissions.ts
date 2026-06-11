@@ -49,7 +49,11 @@ export const PERMISSION_REGISTRY: readonly PermissionDef[] = [
   { key: PERMISSIONS.USERS_MANAGE, level: 'feature', description: 'Invite/manage members and role assignments.' },
   { key: PERMISSIONS.BILLING_MANAGE, level: 'feature', description: 'Manage organization billing (org-only).' },
   { key: PERMISSIONS.REFUND_EXECUTE, level: 'api', description: 'Execute a refund (money-moving; cap-gated).' },
-  { key: PERMISSIONS.AUTOEXECUTE_MANAGE, level: 'feature', description: 'Configure auto-execute settings (org/owner).' },
+  {
+    key: PERMISSIONS.AUTOEXECUTE_MANAGE,
+    level: 'feature',
+    description: 'Configure auto-execute settings (org/owner).',
+  },
   { key: PERMISSIONS.BRAND_DELETE, level: 'api', description: 'Delete a brand (org-only; irreversible).' },
 ]
 

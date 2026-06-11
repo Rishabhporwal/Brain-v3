@@ -36,7 +36,12 @@ export function loadRegistry(path?: string): Map<string, MetricDefinition> {
       const [, key, raw] = kv
       if (key === 'formula_version') current.formula_version = Number(raw)
       else if (key === 'unit') current.unit = raw.trim() as MetricDefinition['unit']
-      else if (key === 'inputs') current.inputs = raw.replace(/[[\]]/g, '').split(',').map((s) => s.trim()).filter(Boolean)
+      else if (key === 'inputs')
+        current.inputs = raw
+          .replace(/[[\]]/g, '')
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
       else if (key === 'definition') {
         if (raw.trim() === '>-') {
           inDefinition = true

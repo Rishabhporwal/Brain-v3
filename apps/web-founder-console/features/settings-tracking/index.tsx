@@ -24,7 +24,10 @@ export function TrackingSettings() {
   useEffect(() => {
     if (!slug) return
     apiJson<{ writeKey: string; snippet: string }>(`/api/workspaces/${slug}/tracking`, { method: 'POST' })
-      .then((r) => { setWriteKey(r.writeKey); setSnippet(r.snippet) })
+      .then((r) => {
+        setWriteKey(r.writeKey)
+        setSnippet(r.snippet)
+      })
       .catch(() => {})
   }, [slug])
 
@@ -47,9 +50,13 @@ export function TrackingSettings() {
   async function verify() {
     setBusy(true)
     try {
-      const r = await apiJson<{ verified: boolean; events: number }>(`/api/workspaces/${slug}/tracking/verify`, { method: 'POST' })
-      if (r.verified) { setVerified(true); toast.success(`Verified — ${r.events} event${r.events === 1 ? '' : 's'} received`) }
-      else toast.error('No events yet. Install the snippet or send a test event, then verify.')
+      const r = await apiJson<{ verified: boolean; events: number }>(`/api/workspaces/${slug}/tracking/verify`, {
+        method: 'POST',
+      })
+      if (r.verified) {
+        setVerified(true)
+        toast.success(`Verified — ${r.events} event${r.events === 1 ? '' : 's'} received`)
+      } else toast.error('No events yet. Install the snippet or send a test event, then verify.')
     } finally {
       setBusy(false)
     }
@@ -61,20 +68,34 @@ export function TrackingSettings() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Install snippet</CardTitle>
-          <CardDescription>Add this to your store&apos;s {'<head>'} to start collecting first-party events.</CardDescription>
+          <CardDescription>
+            Add this to your store&apos;s {'<head>'} to start collecting first-party events.
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="bg-muted relative rounded-md p-3">
-            <code className="block overflow-x-auto text-xs break-all whitespace-pre-wrap">{snippet ?? 'Issuing your write-key…'}</code>
+            <code className="block overflow-x-auto text-xs break-all whitespace-pre-wrap">
+              {snippet ?? 'Issuing your write-key…'}
+            </code>
             {snippet ? (
-              <Button size="icon" variant="ghost" className="absolute top-1 right-1" onClick={() => { navigator.clipboard.writeText(snippet); toast.success('Copied') }}>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute top-1 right-1"
+                onClick={() => {
+                  navigator.clipboard.writeText(snippet)
+                  toast.success('Copied')
+                }}
+              >
                 <IconCopy className="size-4" />
               </Button>
             ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {verified ? (
-              <Badge variant="outline" className="gap-1"><IconCheck className="size-3.5" /> Verified</Badge>
+              <Badge variant="outline" className="gap-1">
+                <IconCheck className="size-3.5" /> Verified
+              </Badge>
             ) : (
               <>
                 <Button variant="outline" size="sm" onClick={verify} disabled={busy || !writeKey}>
@@ -86,7 +107,9 @@ export function TrackingSettings() {
               </>
             )}
           </div>
-          <p className="text-muted-foreground text-xs">Haven&apos;t added the snippet yet? Send a test event to confirm the pipeline, then verify.</p>
+          <p className="text-muted-foreground text-xs">
+            Haven&apos;t added the snippet yet? Send a test event to confirm the pipeline, then verify.
+          </p>
         </CardContent>
       </Card>
     </div>

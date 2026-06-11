@@ -61,11 +61,16 @@ export class McpService {
       'list_integrations',
       {
         description: 'Connected integrations for this workspace with status (provider, connected state).',
-        inputSchema: { include_disconnected: z.boolean().optional().describe('Include disconnected integrations (default true)') },
+        inputSchema: {
+          include_disconnected: z.boolean().optional().describe('Include disconnected integrations (default true)'),
+        },
       },
       async (args: { include_disconnected?: boolean }) => {
         const all = await this.oauth.listForBrand(slug)
-        const result = args.include_disconnected === false ? (all as Array<{ status?: string }>).filter((i) => i.status !== 'disconnected') : all
+        const result =
+          args.include_disconnected === false
+            ? (all as Array<{ status?: string }>).filter((i) => i.status !== 'disconnected')
+            : all
         await this.audit(ctx, user, 'list_integrations', args)
         return { content: [{ type: 'text', text: JSON.stringify(result) }] }
       },

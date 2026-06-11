@@ -54,7 +54,9 @@ export function computeMonthlyFee(input: FeeInput): FeeBreakdown {
       gmv_component_minor: 0,
       cm2_cap_minor: null,
       min_fee_minor: tier.min_fee_minor,
-      notes: ['activation period (Day 0–14): no GMV-based invoice before cost setup + data quality reach the accuracy bar (BRD §23.1)'],
+      notes: [
+        'activation period (Day 0–14): no GMV-based invoice before cost setup + data quality reach the accuracy bar (BRD §23.1)',
+      ],
     }
   }
 
@@ -87,5 +89,12 @@ export function computeMonthlyFee(input: FeeInput): FeeBreakdown {
     notes.push('cm2 unknown (realized-revenue ledger pending): affordability cap not applied')
   }
 
-  return { fee_minor: fee, basis, gmv_component_minor: gmvComponent, cm2_cap_minor: cm2Cap, min_fee_minor: tier.min_fee_minor, notes }
+  return {
+    fee_minor: fee,
+    basis,
+    gmv_component_minor: gmvComponent,
+    cm2_cap_minor: cm2Cap,
+    min_fee_minor: tier.min_fee_minor,
+    notes,
+  }
 }

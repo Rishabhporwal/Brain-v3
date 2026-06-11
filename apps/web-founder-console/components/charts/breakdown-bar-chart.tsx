@@ -44,7 +44,12 @@ export function BreakdownBarChart({
         />
         <Tooltip
           formatter={(v) => fmt(Number(v), valueFormat, currency)}
-          contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}
+          contentStyle={{
+            background: 'var(--popover)',
+            border: '1px solid var(--border)',
+            borderRadius: 8,
+            fontSize: 12,
+          }}
           cursor={{ fill: 'var(--accent)', opacity: 0.4 }}
         />
         <Bar dataKey="value" radius={[0, 4, 4, 0]}>

@@ -21,11 +21,17 @@ export class WidgetRepository implements WidgetRepositoryPort {
     )
   }
   async findById(brandId: string, id: string): Promise<Widget | null> {
-    const { rows } = await this.pg.query<WidgetRow>(`SELECT * FROM catalog.widgets WHERE brand_id=$1 AND id=$2 LIMIT 1`, [brandId, id])
+    const { rows } = await this.pg.query<WidgetRow>(
+      `SELECT * FROM catalog.widgets WHERE brand_id=$1 AND id=$2 LIMIT 1`,
+      [brandId, id],
+    )
     return rows[0] ? toDomain(rows[0]) : null
   }
   async listByBrand(brandId: string): Promise<Widget[]> {
-    const { rows } = await this.pg.query<WidgetRow>(`SELECT * FROM catalog.widgets WHERE brand_id=$1 ORDER BY created_at`, [brandId])
+    const { rows } = await this.pg.query<WidgetRow>(
+      `SELECT * FROM catalog.widgets WHERE brand_id=$1 ORDER BY created_at`,
+      [brandId],
+    )
     return rows.map(toDomain)
   }
 }

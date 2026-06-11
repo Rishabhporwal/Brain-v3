@@ -5,7 +5,13 @@ import { useParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { IconCheck, IconLoader2 } from '@tabler/icons-react'
 import { ApiError } from '@/lib/api/types'
-import { CONNECTORS, disconnectIntegration, listIntegrations, startConnect, type IntegrationRow } from '@/lib/integrations'
+import {
+  CONNECTORS,
+  disconnectIntegration,
+  listIntegrations,
+  startConnect,
+  type IntegrationRow,
+} from '@/lib/integrations'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -131,7 +137,13 @@ export function IntegrationsGrid() {
                       {row?.completeness != null ? ` · ${Math.round(Number(row.completeness))}% complete` : ''}
                     </div>
                   </div>
-                  <Button size="sm" variant="ghost" className="text-destructive h-7" onClick={() => disconnect(c.id)} disabled={busy !== null}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive h-7"
+                    onClick={() => disconnect(c.id)}
+                    disabled={busy !== null}
+                  >
                     Disconnect
                   </Button>
                 </div>

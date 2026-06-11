@@ -14,22 +14,22 @@ make -C deploy/local reset     # wipe volumes and rebuild schema from scratch
 
 ## What comes up
 
-| Service | Container | Host port | Notes |
-|---|---|---|---|
-| PostgreSQL 16 (Aurora-equiv) | `brain-local-postgres` | `5440` | 53 Phase-1 tables, RLS, seed. Auto-applied via `postgres/initdb/`. |
-| ClickHouse 24 | `brain-local-clickhouse` | `8125` (HTTP), `9002` (native) | 7 Phase-1 analytical tables + row policies. Auto-applied from `phase1.sql`. |
-| Tabix (ClickHouse web UI) | `brain-local-clickhouse-ui` | `5521` | Browse ClickHouse visually at **http://localhost:5521**. |
-| pgAdmin (Postgres web UI) | `brain-local-pgadmin` | `5050` | Browse Postgres visually at **http://localhost:5050**. |
+| Service                      | Container                   | Host port                      | Notes                                                                       |
+| ---------------------------- | --------------------------- | ------------------------------ | --------------------------------------------------------------------------- |
+| PostgreSQL 16 (Aurora-equiv) | `brain-local-postgres`      | `5440`                         | 53 Phase-1 tables, RLS, seed. Auto-applied via `postgres/initdb/`.          |
+| ClickHouse 24                | `brain-local-clickhouse`    | `8125` (HTTP), `9002` (native) | 7 Phase-1 analytical tables + row policies. Auto-applied from `phase1.sql`. |
+| Tabix (ClickHouse web UI)    | `brain-local-clickhouse-ui` | `5521`                         | Browse ClickHouse visually at **http://localhost:5521**.                    |
+| pgAdmin (Postgres web UI)    | `brain-local-pgadmin`       | `5050`                         | Browse Postgres visually at **http://localhost:5050**.                      |
 
 ## Visually browsing Postgres
 
 Open **http://localhost:5050** (pgAdmin). It opens straight in (desktop mode, no login). The **Brain Local (Postgres)**
-server is pre-registered under the *Brain* group — expand it and enter the password **`brain`** once (tick "Save
+server is pre-registered under the _Brain_ group — expand it and enter the password **`brain`** once (tick "Save
 Password"). Browse `Databases → brain → Schemas` to see the 10 schemas and 53 tables.
 
 ## Visually browsing ClickHouse
 
-Open **http://localhost:5521** (Tabix). Connection is prefilled — name *Brain Local*, host `http://localhost:8125`,
+Open **http://localhost:5521** (Tabix). Connection is prefilled — name _Brain Local_, host `http://localhost:8125`,
 user `default`, no password. CORS is enabled on ClickHouse (`clickhouse/users.d/cors.xml`) so the browser can connect.
 
 The `brain.*` tables have brand-isolation **row policies**, so run `SET brain_current_brand = '<brand-uuid>'`

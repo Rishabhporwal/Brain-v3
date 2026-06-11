@@ -8,7 +8,7 @@ export function Inventory() {
       surface="inventory"
       title="Inventory"
       description="Stock cover and stockout risk by SKU."
-      metrics={['inventory_cover','stockouts','orders','realized_revenue']}
+      metrics={['inventory_cover', 'stockouts', 'orders', 'realized_revenue']}
       detailTitle="Inventory by SKU"
       detailDescription="Days of cover and stockout risk."
     />

@@ -1,1 +1,5 @@
-{ "name": "@brain/errors", "version": "0.0.0", "private": true }
+{
+  "name": "@brain/errors",
+  "version": "0.0.0",
+  "private": true
+}

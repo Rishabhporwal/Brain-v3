@@ -118,11 +118,21 @@ class KafkaEventBus implements EventBus {
   }
 
   emit(event: DomainEvent): void {
-    this.send(INTEGRATION_TOPIC, event.brandId ?? 'platform', buildDomainEnvelope(event, new Date().toISOString()), event.type)
+    this.send(
+      INTEGRATION_TOPIC,
+      event.brandId ?? 'platform',
+      buildDomainEnvelope(event, new Date().toISOString()),
+      event.type,
+    )
   }
 
   emitWebhook(event: WebhookEvent): void {
-    this.send(WEBHOOK_TOPIC, event.brandId, buildWebhookEnvelope(event, new Date().toISOString()), `${event.provider}:${event.stream}`)
+    this.send(
+      WEBHOOK_TOPIC,
+      event.brandId,
+      buildWebhookEnvelope(event, new Date().toISOString()),
+      `${event.provider}:${event.stream}`,
+    )
   }
 
   emitPull(batch: PullBatch): void {

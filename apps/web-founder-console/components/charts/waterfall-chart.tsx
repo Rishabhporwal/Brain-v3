@@ -35,16 +35,21 @@ export function WaterfallChart({
   })
 
   const color = (kind: WaterfallStep['kind']) =>
-    kind === 'start' || kind === 'total'
-      ? 'var(--chart-1)'
-      : kind === 'add'
-        ? 'var(--chart-2)'
-        : 'var(--destructive)'
+    kind === 'start' || kind === 'total' ? 'var(--chart-1)' : kind === 'add' ? 'var(--chart-2)' : 'var(--destructive)'
 
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={rows} margin={{ left: 8, right: 8 }}>
-        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} interval={0} angle={-15} textAnchor="end" height={56} />
+        <XAxis
+          dataKey="label"
+          tickLine={false}
+          axisLine={false}
+          tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+          interval={0}
+          angle={-15}
+          textAnchor="end"
+          height={56}
+        />
         <YAxis
           tickLine={false}
           axisLine={false}
@@ -54,7 +59,12 @@ export function WaterfallChart({
         />
         <Tooltip
           formatter={(_v, _n, p) => formatMoney(Number(p?.payload?.value ?? 0), currency)}
-          contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}
+          contentStyle={{
+            background: 'var(--popover)',
+            border: '1px solid var(--border)',
+            borderRadius: 8,
+            fontSize: 12,
+          }}
           cursor={{ fill: 'var(--accent)', opacity: 0.4 }}
         />
         {/* transparent base to lift the visible span */}

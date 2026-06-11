@@ -8,7 +8,7 @@ export function Products() {
       surface="products"
       title="Products"
       description="Per-SKU margin, repeat and RTO performance."
-      metrics={['realized_revenue','orders','aov','rto_rate']}
+      metrics={['realized_revenue', 'orders', 'aov', 'rto_rate']}
       detailTitle="Products"
       detailDescription="Per-SKU performance table."
     />

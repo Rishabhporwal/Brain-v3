@@ -6,7 +6,16 @@ import { Badge } from '@/components/ui/badge'
 import { DataTable } from '@/components/data-table/data-table'
 
 const ROLES = ['Owner', 'Admin', 'Marketing Manager', 'Finance Manager', 'Operations Manager', 'Read Only']
-const NAMES = ['Aarav Shah', 'Diya Mehta', 'Vivaan Rao', 'Ananya Iyer', 'Kabir Nair', 'Isha Reddy', 'Arjun Das', 'Riya Bose']
+const NAMES = [
+  'Aarav Shah',
+  'Diya Mehta',
+  'Vivaan Rao',
+  'Ananya Iyer',
+  'Kabir Nair',
+  'Isha Reddy',
+  'Arjun Das',
+  'Riya Bose',
+]
 
 type Member = { name: string; email: string; role: string; status: string }
 export function MembersTable() {

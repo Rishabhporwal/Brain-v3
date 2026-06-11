@@ -39,11 +39,23 @@ export class McpController {
 
   @Get('api/workspaces/:slug/mcp')
   methodNotAllowedGet(@Res() res: Response): void {
-    res.status(405).json({ jsonrpc: '2.0', error: { code: -32000, message: 'Method not allowed (stateless MCP: POST only)' }, id: null })
+    res
+      .status(405)
+      .json({
+        jsonrpc: '2.0',
+        error: { code: -32000, message: 'Method not allowed (stateless MCP: POST only)' },
+        id: null,
+      })
   }
 
   @Delete('api/workspaces/:slug/mcp')
   methodNotAllowedDelete(@Res() res: Response): void {
-    res.status(405).json({ jsonrpc: '2.0', error: { code: -32000, message: 'Method not allowed (stateless MCP: POST only)' }, id: null })
+    res
+      .status(405)
+      .json({
+        jsonrpc: '2.0',
+        error: { code: -32000, message: 'Method not allowed (stateless MCP: POST only)' },
+        id: null,
+      })
   }
 }

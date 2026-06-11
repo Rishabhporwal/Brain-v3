@@ -14,7 +14,8 @@ export class InternalTokenGuard implements CanActivate {
       if (process.env.NODE_ENV === 'production') throw new UnauthorizedException('METRIC_ENGINE_TOKEN not configured')
       return true // local/dev without a token
     }
-    const got = (ctx.switchToHttp().getRequest<{ headers: Record<string, string | undefined> }>().headers['x-internal-token'] ?? '')
+    const got =
+      ctx.switchToHttp().getRequest<{ headers: Record<string, string | undefined> }>().headers['x-internal-token'] ?? ''
     const a = Buffer.from(got)
     const b = Buffer.from(expected)
     if (a.length !== b.length || !timingSafeEqual(a, b)) throw new UnauthorizedException()

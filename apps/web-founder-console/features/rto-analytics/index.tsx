@@ -8,7 +8,7 @@ export function RtoAnalytics() {
       surface="rto-analytics"
       title="RTO Analytics"
       description="Return-to-origin cost and risk by pincode, courier and channel."
-      metrics={['rto_rate','cod_share','cm2','orders']}
+      metrics={['rto_rate', 'cod_share', 'cm2', 'orders']}
       detailTitle="RTO breakdown"
       detailDescription="RTO by pincode, courier and channel."
     />

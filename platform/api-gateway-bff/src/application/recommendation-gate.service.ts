@@ -33,15 +33,26 @@ export class RecommendationGateService {
     }
   }
 
-  async evaluate(slug: string, brandId: string, candidates: RecommendationCandidate[]): Promise<Array<{ candidate: RecommendationCandidate; verdict: GateVerdict }>> {
+  async evaluate(
+    slug: string,
+    brandId: string,
+    candidates: RecommendationCandidate[],
+  ): Promise<Array<{ candidate: RecommendationCandidate; verdict: GateVerdict }>> {
     const freshness = await this.freshness.forBrand(slug)
     const policy = this.policy()
-    const results = candidates.map((candidate) => ({ candidate, verdict: gateRecommendation(candidate, freshness, policy) }))
+    const results = candidates.map((candidate) => ({
+      candidate,
+      verdict: gateRecommendation(candidate, freshness, policy),
+    }))
     for (const { candidate, verdict } of results) {
       await this.pg.query(
         `INSERT INTO platform.audit_logs(brand_id, actor_type, actor_id, action, after)
          VALUES ($1,'system','recommendation-gate',$2,$3)`,
-        [brandId, verdict.allowed ? 'recommendation.surfaced' : 'recommendation.withheld', JSON.stringify({ candidate, verdict, freshness })],
+        [
+          brandId,
+          verdict.allowed ? 'recommendation.surfaced' : 'recommendation.withheld',
+          JSON.stringify({ candidate, verdict, freshness }),
+        ],
       )
     }
     return results

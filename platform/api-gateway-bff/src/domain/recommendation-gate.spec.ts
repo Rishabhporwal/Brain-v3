@@ -69,7 +69,9 @@ describe('gateRecommendation', () => {
   })
 
   it('medium risk requires admin; high risk requires owner', () => {
-    expect(gateRecommendation(candidate({ riskLevel: 'medium', sources: ['orders'] }), fresh).approvalLevel).toBe('admin')
+    expect(gateRecommendation(candidate({ riskLevel: 'medium', sources: ['orders'] }), fresh).approvalLevel).toBe(
+      'admin',
+    )
     expect(gateRecommendation(candidate({ riskLevel: 'high', sources: ['orders'] }), fresh).approvalLevel).toBe('owner')
   })
 })

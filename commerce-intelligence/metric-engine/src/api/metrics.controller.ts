@@ -22,7 +22,12 @@ export class MetricsController {
     @Query('to') to?: string,
   ) {
     if (!brandId || !UUID_RE.test(brandId)) throw new BadRequestException('brand_id (uuid) required')
-    const requested = ids ? ids.split(',').map((s) => s.trim()).filter(Boolean) : [...this.metrics.registry.keys()]
+    const requested = ids
+      ? ids
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [...this.metrics.registry.keys()]
     return this.metrics.compute(brandId, requested, { from, to })
   }
 

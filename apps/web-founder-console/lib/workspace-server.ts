@@ -39,10 +39,7 @@ type MeResponse = {
 export async function getWorkspaceContext(slug: string): Promise<WorkspaceContext> {
   if (!backendConfigured) return devFallback(slug)
   try {
-    const [contextRes, meRes] = await Promise.all([
-      serverFetch(`/api/workspaces/${slug}/context`),
-      serverFetch('/me'),
-    ])
+    const [contextRes, meRes] = await Promise.all([serverFetch(`/api/workspaces/${slug}/context`), serverFetch('/me')])
     if (!contextRes.ok) return null
     const { workspace, membership } = (await contextRes.json()) as ContextResponse
     if (!workspace || !membership) return null

@@ -33,28 +33,48 @@ describe.skipIf(!RUN)('invite lifecycle', () => {
     ac = new AccessControl(pg)
     svc = new InviteService(pg, ac, identity, new MailService())
 
-    const ownerRole = (await pg.query<{ id: string }>(`SELECT id FROM platform.roles WHERE scope='org' AND name='Owner'`)).rows[0].id
-    orgId = (await pg.query<{ id: string }>(
-      `INSERT INTO platform.organizations(name,region,currency,timezone,billing_basis)
-       VALUES ($1,'IN','INR','Asia/Kolkata','gmv_percent') RETURNING id`, [`Org ${SFX}`])).rows[0].id
-    brandId = (await pg.query<{ id: string }>(
-      `INSERT INTO platform.brands(organization_id,name,slug,region,currency,timezone,status)
-       VALUES ($1,$2,$3,'IN','INR','Asia/Kolkata','active') RETURNING id`, [orgId, `Brand ${SFX}`, slug])).rows[0].id
+    const ownerRole = (
+      await pg.query<{ id: string }>(`SELECT id FROM platform.roles WHERE scope='org' AND name='Owner'`)
+    ).rows[0].id
+    orgId = (
+      await pg.query<{ id: string }>(
+        `INSERT INTO platform.organizations(name,region,currency,timezone,billing_basis)
+       VALUES ($1,'IN','INR','Asia/Kolkata','gmv_percent') RETURNING id`,
+        [`Org ${SFX}`],
+      )
+    ).rows[0].id
+    brandId = (
+      await pg.query<{ id: string }>(
+        `INSERT INTO platform.brands(organization_id,name,slug,region,currency,timezone,status)
+       VALUES ($1,$2,$3,'IN','INR','Asia/Kolkata','active') RETURNING id`,
+        [orgId, `Brand ${SFX}`, slug],
+      )
+    ).rows[0].id
     const ownerUserId = await identity.userIdForEmail(ownerEmail, 'Owner')
-    ownerMembershipId = (await pg.query<{ id: string }>(
-      `INSERT INTO platform.memberships(user_id,organization_id,brand_id,role_id,state)
-       VALUES ($1,$2,$3,$4,'active') RETURNING id`, [ownerUserId, orgId, brandId, ownerRole])).rows[0].id
+    ownerMembershipId = (
+      await pg.query<{ id: string }>(
+        `INSERT INTO platform.memberships(user_id,organization_id,brand_id,role_id,state)
+       VALUES ($1,$2,$3,$4,'active') RETURNING id`,
+        [ownerUserId, orgId, brandId, ownerRole],
+      )
+    ).rows[0].id
     ownerCtx = (await resolveBrandContext(pg, ownerUserId, slug))!
     expect(ownerCtx?.roleName).toBe('Owner')
   })
 
   afterAll(async () => {
-    await pg?.query(`DELETE FROM platform.verification_tokens WHERE user_id IN (SELECT id FROM platform.users WHERE email_hash=ANY($1))`,
-      [[emailHash(ownerEmail), emailHash(inviteeEmail)]]).catch(() => {})
+    await pg
+      ?.query(
+        `DELETE FROM platform.verification_tokens WHERE user_id IN (SELECT id FROM platform.users WHERE email_hash=ANY($1))`,
+        [[emailHash(ownerEmail), emailHash(inviteeEmail)]],
+      )
+      .catch(() => {})
     await pg?.query(`DELETE FROM platform.memberships WHERE brand_id=$1`, [brandId]).catch(() => {})
     await pg?.query(`DELETE FROM platform.brands WHERE id=$1`, [brandId]).catch(() => {})
     await pg?.query(`DELETE FROM platform.organizations WHERE id=$1`, [orgId]).catch(() => {})
-    await pg?.query(`DELETE FROM platform.users WHERE email_hash=ANY($1)`, [[emailHash(ownerEmail), emailHash(inviteeEmail)]]).catch(() => {})
+    await pg
+      ?.query(`DELETE FROM platform.users WHERE email_hash=ANY($1)`, [[emailHash(ownerEmail), emailHash(inviteeEmail)]])
+      .catch(() => {})
     await pg?.end().catch(() => {})
   })
 
@@ -74,7 +94,9 @@ describe.skipIf(!RUN)('invite lifecycle', () => {
 
   it('link-existing-not-duplicate: re-inviting the same email reuses the same user row', async () => {
     await svc.invite(ownerCtx, inviteeEmail, 'Marketing Manager', BASE)
-    const users = await pg.query(`SELECT count(*)::int n FROM platform.users WHERE email_hash=$1`, [emailHash(inviteeEmail)])
+    const users = await pg.query(`SELECT count(*)::int n FROM platform.users WHERE email_hash=$1`, [
+      emailHash(inviteeEmail),
+    ])
     expect(users.rows[0].n).toBe(1)
   })
 
@@ -97,8 +119,11 @@ describe.skipIf(!RUN)('invite lifecycle', () => {
     const wrongEmail = `${SFX}-wrong@test.dev`
     await expect(svc.accept({ sub: 'kc-wrong', email: wrongEmail }, token)).rejects.toThrow(/different email/i)
     await pg.query(`DELETE FROM platform.memberships WHERE id=$1`, [invite.membershipId]).catch(() => {})
-    await pg.query(`DELETE FROM platform.users WHERE email_hash=ANY($1)`,
-      [[emailHash(`${SFX}-other@test.dev`), emailHash(wrongEmail)]]).catch(() => {})
+    await pg
+      .query(`DELETE FROM platform.users WHERE email_hash=ANY($1)`, [
+        [emailHash(`${SFX}-other@test.dev`), emailHash(wrongEmail)],
+      ])
+      .catch(() => {})
   })
 
   it('revoke → membership becomes REVOKED', async () => {

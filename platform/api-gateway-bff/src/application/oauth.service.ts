@@ -139,7 +139,9 @@ export class OAuthService {
   private async kickFirstSync(provider: string, brandId: string): Promise<void> {
     if (!OAuthService.PROVIDERS.includes(provider as never)) return
     try {
-      const { rows } = await this.pg.query<{ slug: string }>(`SELECT slug FROM platform.brands WHERE id=$1 LIMIT 1`, [brandId])
+      const { rows } = await this.pg.query<{ slug: string }>(`SELECT slug FROM platform.brands WHERE id=$1 LIMIT 1`, [
+        brandId,
+      ])
       if (rows[0]) await this.pull.runSync(provider, rows[0].slug)
     } catch (e) {
       this.log.warn(`first sync for ${provider} failed: ${(e as Error).message}`)
@@ -147,8 +149,17 @@ export class OAuthService {
   }
 
   /** List a brand's integrations with account detail + sync/health (Settings → Integrations). */
-  async listForBrand(slug: string): Promise<
-    Array<{ provider: string; status: string; quality_level: string; account: string | null; last_sync_at: string | null; completeness: number | null }>
+  async listForBrand(
+    slug: string,
+  ): Promise<
+    Array<{
+      provider: string
+      status: string
+      quality_level: string
+      account: string | null
+      last_sync_at: string | null
+      completeness: number | null
+    }>
   > {
     const brand = await this.brand(slug)
     const { rows } = await this.pg.query(
@@ -169,7 +180,10 @@ export class OAuthService {
   /** Disconnect an integration: mark disconnected, drop the vaulted token + its ref. */
   async disconnect(slug: string, provider: string): Promise<{ ok: true }> {
     const brand = await this.brand(slug)
-    await this.pg.query(`UPDATE integration.integrations SET status='disconnected' WHERE brand_id=$1 AND provider=$2`, [brand.id, provider])
+    await this.pg.query(`UPDATE integration.integrations SET status='disconnected' WHERE brand_id=$1 AND provider=$2`, [
+      brand.id,
+      provider,
+    ])
     await this.pg.query(`DELETE FROM integration.oauth_tokens WHERE secret_ref=$1`, [`${provider}:${brand.id}`])
     return { ok: true }
   }
@@ -215,7 +229,8 @@ export class OAuthService {
       `${base}?client_id=${encodeURIComponent(c.clientId!)}&client_secret=${encodeURIComponent(c.clientSecret!)}&redirect_uri=${encodeURIComponent(c.redirectUri)}&code=${encodeURIComponent(code)}`,
       { headers: { Accept: 'application/json' } },
     )
-    if (!shortRes.ok) throw new Error(`meta token endpoint ${shortRes.status}: ${await shortRes.text().catch(() => '')}`)
+    if (!shortRes.ok)
+      throw new Error(`meta token endpoint ${shortRes.status}: ${await shortRes.text().catch(() => '')}`)
     const short = (await shortRes.json()) as TokenBundle
     try {
       const longRes = await fetch(

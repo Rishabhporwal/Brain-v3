@@ -33,10 +33,17 @@ describe.skipIf(!RUN)('onboarding provisioning → active (integration)', () => 
   })
 
   afterAll(async () => {
-    const org = await pg?.query<{ organization_id: string }>(`SELECT organization_id FROM platform.brands WHERE slug=$1`, [slug]).catch(() => null)
-    await pg?.query(`DELETE FROM platform.memberships WHERE brand_id IN (SELECT id FROM platform.brands WHERE slug=$1)`, [slug]).catch(() => {})
+    const org = await pg
+      ?.query<{ organization_id: string }>(`SELECT organization_id FROM platform.brands WHERE slug=$1`, [slug])
+      .catch(() => null)
+    await pg
+      ?.query(`DELETE FROM platform.memberships WHERE brand_id IN (SELECT id FROM platform.brands WHERE slug=$1)`, [
+        slug,
+      ])
+      .catch(() => {})
     await pg?.query(`DELETE FROM platform.brands WHERE slug=$1`, [slug]).catch(() => {})
-    if (org?.rows[0]) await pg?.query(`DELETE FROM platform.organizations WHERE id=$1`, [org.rows[0].organization_id]).catch(() => {})
+    if (org?.rows[0])
+      await pg?.query(`DELETE FROM platform.organizations WHERE id=$1`, [org.rows[0].organization_id]).catch(() => {})
     await pg?.end().catch(() => {})
     await ch?.close().catch(() => {})
   })

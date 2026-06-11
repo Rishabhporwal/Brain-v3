@@ -16,7 +16,12 @@ async function adminToken(): Promise<string> {
   const res = await fetch(`${base}/realms/master/protocol/openid-connect/token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ grant_type: 'password', client_id: 'admin-cli', username: ADMIN_USER, password: ADMIN_PASSWORD }),
+    body: new URLSearchParams({
+      grant_type: 'password',
+      client_id: 'admin-cli',
+      username: ADMIN_USER,
+      password: ADMIN_PASSWORD,
+    }),
     cache: 'no-store',
   })
   if (!res.ok) throw new Error('admin auth failed')

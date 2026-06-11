@@ -58,10 +58,7 @@ export const can = {
 }
 
 /** A feature is enabled unless explicitly set to false in the workspace's feature map. */
-export function isFeatureEnabled(
-  features: Record<string, boolean> | null | undefined,
-  key: FeatureKey,
-): boolean {
+export function isFeatureEnabled(features: Record<string, boolean> | null | undefined, key: FeatureKey): boolean {
   if (!features) return true
   return typeof features[key] === 'boolean' ? features[key] : true
 }

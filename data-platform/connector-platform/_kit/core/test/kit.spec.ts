@@ -25,7 +25,9 @@ describe('oauth state', () => {
     const t = signOAuthState(SECRET, { provider: 'p', brandId: 'b', exp: Math.floor(Date.now() / 1000) + 600 })
     expect(() => verifyOAuthState(SECRET, `${t.slice(0, -2)}xx`)).toThrow()
     expect(() => verifyOAuthState('other', t)).toThrow(/signature/)
-    expect(() => verifyOAuthState(SECRET, signOAuthState(SECRET, { provider: 'p', brandId: 'b', exp: 1 }))).toThrow(/expired/)
+    expect(() => verifyOAuthState(SECRET, signOAuthState(SECRET, { provider: 'p', brandId: 'b', exp: 1 }))).toThrow(
+      /expired/,
+    )
     expect(() => verifyOAuthState(SECRET, 'nope')).toThrow()
   })
 })
@@ -85,10 +87,23 @@ describe('withRetry (backoff)', () => {
     expect(n).toBe(3)
   })
   it('throws after exhausting retries; respects retryable=false', async () => {
-    await expect(withRetry(async () => { throw new Error('boom') }, { retries: 2, baseMs: 1 })).rejects.toThrow('boom')
+    await expect(
+      withRetry(
+        async () => {
+          throw new Error('boom')
+        },
+        { retries: 2, baseMs: 1 },
+      ),
+    ).rejects.toThrow('boom')
     let calls = 0
     await expect(
-      withRetry(async () => { calls++; throw new Error('nope') }, { retries: 5, baseMs: 1, retryable: () => false }),
+      withRetry(
+        async () => {
+          calls++
+          throw new Error('nope')
+        },
+        { retries: 5, baseMs: 1, retryable: () => false },
+      ),
     ).rejects.toThrow('nope')
     expect(calls).toBe(1) // non-retryable → tried once
   })
@@ -106,7 +121,14 @@ describe('runStreamSync (sync engine)', () => {
       publish: (provider, brandId, stream, records) => void published.push({ provider, brandId, stream, records }),
     }
     const connector: ConnectorHooks = {
-      manifest: { provider: 'fake', category: 'ads', tier: 1, auth: 'oauth2', ingest: ['pull'], streams: [{ name: 'ad_spend', mode: 'pull' }] },
+      manifest: {
+        provider: 'fake',
+        category: 'ads',
+        tier: 1,
+        auth: 'oauth2',
+        ingest: ['pull'],
+        streams: [{ name: 'ad_spend', mode: 'pull' }],
+      },
       async pull(stream, cursor, _token) {
         expect(stream).toBe('ad_spend')
         expect(cursor).toBeUndefined() // first cycle

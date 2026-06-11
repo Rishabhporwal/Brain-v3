@@ -29,7 +29,9 @@ export class AccessControlModule {
         {
           provide: PG_POOL,
           useFactory: (): Pool =>
-            new Pool({ connectionString: options.pgUrl ?? process.env.PG_URL ?? 'postgres://brain:brain@localhost:5440/brain' }),
+            new Pool({
+              connectionString: options.pgUrl ?? process.env.PG_URL ?? 'postgres://brain:brain@localhost:5440/brain',
+            }),
         },
         { provide: AccessControl, useFactory: (pool: Pool) => new AccessControl(pool), inject: [PG_POOL] },
         IdentityService,

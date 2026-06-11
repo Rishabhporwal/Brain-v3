@@ -84,7 +84,12 @@ export class InviteService {
     const email = await this.emailless(m.user_id) // we only store a hash; the address must be re-supplied
     const { raw, expiresAt } = await this.issueToken(m.user_id)
     const acceptUrl = `${appBaseUrl}/invite/accept?token=${raw}`
-    if (email) await this.mail.send(email, `Your Brain invitation to ${ctx.brandSlug}`, `Accept (expires in 7 days):\n\n${acceptUrl}\n`)
+    if (email)
+      await this.mail.send(
+        email,
+        `Your Brain invitation to ${ctx.brandSlug}`,
+        `Accept (expires in 7 days):\n\n${acceptUrl}\n`,
+      )
     return { membershipId, state: 'pending' as const, expiresAt, acceptUrl }
   }
 
@@ -144,7 +149,12 @@ export class InviteService {
   async listMembers(ctx: BrandContext): Promise<MemberRow[]> {
     return this.ac.runInBrand(ctx, async (c) => {
       const res = await c.query<{
-        id: string; user_id: string; display_name: string | null; role: string; state: MemberRow['state']; is_agency: boolean
+        id: string
+        user_id: string
+        display_name: string | null
+        role: string
+        state: MemberRow['state']
+        is_agency: boolean
       }>(
         `SELECT m.id, m.user_id, u.display_name, r.name AS role, m.state, m.is_agency
            FROM platform.memberships m
@@ -167,10 +177,9 @@ export class InviteService {
   }
 
   private async brandRoleId(roleName: string): Promise<string> {
-    const res = await this.pg.query<{ id: string }>(
-      `SELECT id FROM platform.roles WHERE scope='brand' AND name=$1`,
-      [roleName],
-    )
+    const res = await this.pg.query<{ id: string }>(`SELECT id FROM platform.roles WHERE scope='brand' AND name=$1`, [
+      roleName,
+    ])
     if (!res.rows[0]) throw new BadRequestException(`unknown role: ${roleName}`)
     return res.rows[0].id
   }

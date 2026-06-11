@@ -31,9 +31,9 @@ spec:
         - name: localstack
           image: localstack/localstack:3
           env:
-            - { name: SERVICES, value: "s3,secretsmanager,kms,ses" }
-            - { name: DEFAULT_REGION, value: "ap-south-1" }
-            - { name: DEBUG, value: "0" }
+            - { name: SERVICES, value: 's3,secretsmanager,kms,ses' }
+            - { name: DEFAULT_REGION, value: 'ap-south-1' }
+            - { name: DEBUG, value: '0' }
           ports:
             - { containerPort: 4566 }
           readinessProbe:
@@ -92,11 +92,11 @@ spec:
       containers:
         - name: provision
           image: amazon/aws-cli:2.17.0
-          command: ["/bin/sh", "/init/provision.sh"]
+          command: ['/bin/sh', '/init/provision.sh']
           env:
-            - { name: AWS_ACCESS_KEY_ID, value: "test" }
-            - { name: AWS_SECRET_ACCESS_KEY, value: "test" }
-            - { name: AWS_DEFAULT_REGION, value: "ap-south-1" }
+            - { name: AWS_ACCESS_KEY_ID, value: 'test' }
+            - { name: AWS_SECRET_ACCESS_KEY, value: 'test' }
+            - { name: AWS_DEFAULT_REGION, value: 'ap-south-1' }
           volumeMounts:
             - { name: init, mountPath: /init }
       volumes:

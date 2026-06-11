@@ -7,7 +7,11 @@ export const CH_CLIENT = 'CH_CLIENT'
 export const chProvider: Provider = {
   provide: CH_CLIENT,
   useFactory: (): ClickHouseClient =>
-    createClient({ url: process.env.CH_URL ?? 'http://localhost:8125', username: process.env.CH_USER ?? 'default', password: process.env.CH_PASSWORD ?? '' }),
+    createClient({
+      url: process.env.CH_URL ?? 'http://localhost:8125',
+      username: process.env.CH_USER ?? 'default',
+      password: process.env.CH_PASSWORD ?? '',
+    }),
 }
 
 /** Optional period bounds (ISO dates). Omitted = all-time, matching the console's current behavior. */
@@ -23,8 +27,7 @@ export interface Period {
 @Injectable()
 export class ClickhouseReader {
   // Mirrors registry.yaml realized_revenue: a non-realized financial state excludes the order.
-  private static readonly REALIZED =
-    `financial_status NOT IN ('voided','refunded','pending','cancelled','partially_refunded','declined','expired')`
+  private static readonly REALIZED = `financial_status NOT IN ('voided','refunded','pending','cancelled','partially_refunded','declined','expired')`
 
   constructor(@Inject(CH_CLIENT) private readonly ch: ClickHouseClient) {}
 
@@ -34,40 +37,53 @@ export class ClickhouseReader {
         `SELECT countIf(${ClickhouseReader.REALIZED}) AS orders,
                 toInt64(round(toFloat64(sumIf(total_price, ${ClickhouseReader.REALIZED})) * 100)) AS revenue_minor
            FROM brain.orders FINAL WHERE brand_id = {b:UUID} ${this.bounds('ordered_at', period)}`,
-        brandId, period,
+        brandId,
+        period,
       ),
       this.one<{ orders: string; revenue_minor: string }>(
         `SELECT countIf(event_type='purchase') AS orders,
                 toInt64(round(sumIf(toFloat64OrZero(JSONExtractString(props,'value')), event_type='purchase'))) AS revenue_minor
            FROM brain.customer_events WHERE brand_id = {b:UUID} ${this.bounds('ts', period)}`,
-        brandId, period,
+        brandId,
+        period,
       ),
       this.one<{ sessions: string; conversions: string }>(
         `SELECT uniqExact(session_id) AS sessions, countIf(event_type='checkout_completed') AS conversions
            FROM brain.customer_events WHERE brand_id = {b:UUID} ${this.bounds('ts', period)}`,
-        brandId, period,
+        brandId,
+        period,
       ),
       this.one<{ spend: string }>(
         `SELECT sum(spend_minor) AS spend FROM brain.ad_spend FINAL WHERE brand_id = {b:UUID} ${this.bounds('date', period)}`,
-        brandId, period,
+        brandId,
+        period,
       ),
       this.one<{ spend: string }>(
         `SELECT sum(spend_minor) AS spend FROM brain.fact_spend WHERE brand_id = {b:UUID} ${this.bounds('date', period)}`,
-        brandId, period,
+        brandId,
+        period,
       ),
       this.one<{ captured: string }>(
         `SELECT sum(amount_minor) AS captured FROM brain.payments FINAL WHERE brand_id = {b:UUID} AND status='captured' ${this.bounds('created_at', period)}`,
-        brandId, period,
+        brandId,
+        period,
       ),
       this.one<{ total: string; rto: string }>(
         `SELECT count() AS total, countIf(status IN ('rto','rto_delivered','undelivered')) AS rto
            FROM brain.shipments FINAL WHERE brand_id = {b:UUID} ${this.bounds('updated_at', period)}`,
-        brandId, period,
+        brandId,
+        period,
       ),
     ])
     return {
-      ordersRealized: { orders: Number(ordersRealized?.orders ?? 0), revenueMinor: Number(ordersRealized?.revenue_minor ?? 0) },
-      pixelPurchases: { orders: Number(pixelPurchases?.orders ?? 0), revenueMinor: Number(pixelPurchases?.revenue_minor ?? 0) },
+      ordersRealized: {
+        orders: Number(ordersRealized?.orders ?? 0),
+        revenueMinor: Number(ordersRealized?.revenue_minor ?? 0),
+      },
+      pixelPurchases: {
+        orders: Number(pixelPurchases?.orders ?? 0),
+        revenueMinor: Number(pixelPurchases?.revenue_minor ?? 0),
+      },
       pixel: { sessions: Number(pixel?.sessions ?? 0), conversions: Number(pixel?.conversions ?? 0) },
       adSpendMinor: Number(adSpend?.spend ?? 0),
       factSpendMinor: Number(factSpend?.spend ?? 0),

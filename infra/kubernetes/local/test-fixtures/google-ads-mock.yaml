@@ -48,7 +48,7 @@ spec:
       containers:
         - name: mock
           image: node:22-alpine
-          command: ["node", "/app/server.js"]
+          command: ['node', '/app/server.js']
           ports: [{ containerPort: 8080 }]
           volumeMounts: [{ name: src, mountPath: /app }]
       volumes:

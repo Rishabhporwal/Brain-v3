@@ -11,7 +11,7 @@ summary: >-
   metric-engine/realized-revenue-ledger; never computes its own numbers (invariant 1).
   Money-moving path — requires @brain/security co-sign (CODEOWNERS).
 slos:
-  availability: "99.9%"
+  availability: '99.9%'
   latency_p99_ms: 250
 contracts:
   consumes: [proto/commerce/metric.proto, events/avro/revenue.realized.avsc]

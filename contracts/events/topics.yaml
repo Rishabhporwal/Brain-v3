@@ -22,9 +22,9 @@ topics:
     key: brand_id
     schema: schemas/integration.webhook.v1.schema.json
     payload_schemas:
-      orders: schemas/order.record.v1.schema.json        # canonical OrderRecord (kit contract)
-      payments: schemas/payment.record.v1.schema.json    # canonical PaymentRecord
-      shipments: schemas/shipment.record.v1.schema.json  # canonical ShipmentRecord
+      orders: schemas/order.record.v1.schema.json # canonical OrderRecord (kit contract)
+      payments: schemas/payment.record.v1.schema.json # canonical PaymentRecord
+      shipments: schemas/shipment.record.v1.schema.json # canonical ShipmentRecord
     producers: [platform/api-gateway-bff (WebhookService → any push connector)]
     consumers:
       - clickhouse brain.kafka_integration_webhooks → mv_orders / mv_payments / mv_shipments (JSONAsString)
@@ -36,15 +36,15 @@ topics:
     key: brand_id
     schema: schemas/integration.pull.v1.schema.json
     payload_schemas:
-      ad_spend: schemas/ad-spend.record.v1.schema.json   # provider-variant cost field (cost_micros|spend)
+      ad_spend: schemas/ad-spend.record.v1.schema.json # provider-variant cost field (cost_micros|spend)
     producers: [platform/api-gateway-bff (PullService scheduler → google-ads / meta-ads connectors)]
     consumers:
       - clickhouse brain.kafka_integration_pull → mv_ad_spend (JSONAsString)
       - data-platform/raw-archiver (raw archive, group raw-archiver)
 
   # ── planned (Arch v2 §6.3 stage topics; created when their producer lands) ───────────────────
-  - { name: brain.raw_events,        lane: data,    status: planned, notes: tracking SDK / event-ingestion }
-  - { name: brain.normalized_events, lane: data,    status: planned, notes: event-processing output }
-  - { name: brain.customer_events,   lane: data,    status: planned, notes: identity-stitched stream }
-  - { name: brain.signals,           lane: data,    status: planned, notes: signal-detection output }
-  - { name: brain.decisions,         lane: control, status: planned, notes: decision-log feed }
+  - { name: brain.raw_events, lane: data, status: planned, notes: tracking SDK / event-ingestion }
+  - { name: brain.normalized_events, lane: data, status: planned, notes: event-processing output }
+  - { name: brain.customer_events, lane: data, status: planned, notes: identity-stitched stream }
+  - { name: brain.signals, lane: data, status: planned, notes: signal-detection output }
+  - { name: brain.decisions, lane: control, status: planned, notes: decision-log feed }

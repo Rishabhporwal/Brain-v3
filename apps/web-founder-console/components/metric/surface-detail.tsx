@@ -79,7 +79,13 @@ export function SurfaceDetail({ surface, currency }: { surface: string; currency
       )
     case 'timings':
       return (
-        <TimeSeriesChart kind="bar" currency={currency} valueFormat="qty" data={ts} series={[{ key: 'orders', label: 'Orders' }]} />
+        <TimeSeriesChart
+          kind="bar"
+          currency={currency}
+          valueFormat="qty"
+          data={ts}
+          series={[{ key: 'orders', label: 'Orders' }]}
+        />
       )
     case 'calendar':
       return (

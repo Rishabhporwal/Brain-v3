@@ -11,10 +11,13 @@ describe('Widget aggregate', () => {
     expect(w.pullEvents()).toHaveLength(1)
   })
   it('rejects an invalid name', () => {
-    expect(() => Widget.create({ id: 'w', brandId: 'b', name: 'x', priceMinor: 1, now: new Date() })).toThrow(InvalidWidgetName)
+    expect(() => Widget.create({ id: 'w', brandId: 'b', name: 'x', priceMinor: 1, now: new Date() })).toThrow(
+      InvalidWidgetName,
+    )
   })
   it('forbids double-archive (invariant)', () => {
-    const w = make(); w.archive()
+    const w = make()
+    w.archive()
     expect(() => w.archive()).toThrow(WidgetAlreadyArchived)
   })
 })

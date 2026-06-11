@@ -31,22 +31,30 @@ describe.skipIf(!RUN)('four-layer tenant isolation (fail closed)', () => {
     ac = new AccessControl(pg)
     // Seed both tenants as superuser (control-plane bypasses RLS — provisioning path).
     await withControlPlane(pg, async (c) => {
-      const ownerRole = (await c.query<{ id: string }>(`SELECT id FROM platform.roles WHERE scope='org' AND name='Owner'`)).rows[0].id
+      const ownerRole = (
+        await c.query<{ id: string }>(`SELECT id FROM platform.roles WHERE scope='org' AND name='Owner'`)
+      ).rows[0].id
       for (const T of [A, B]) {
-        T.orgId = (await c.query<{ id: string }>(
-          `INSERT INTO platform.organizations(name,region,currency,timezone,billing_basis)
+        T.orgId = (
+          await c.query<{ id: string }>(
+            `INSERT INTO platform.organizations(name,region,currency,timezone,billing_basis)
            VALUES ($1,'IN','INR','Asia/Kolkata','gmv_percent') RETURNING id`,
-          [`Org ${T.slug}`],
-        )).rows[0].id
-        T.brandId = (await c.query<{ id: string }>(
-          `INSERT INTO platform.brands(organization_id,name,slug,region,currency,timezone,status)
+            [`Org ${T.slug}`],
+          )
+        ).rows[0].id
+        T.brandId = (
+          await c.query<{ id: string }>(
+            `INSERT INTO platform.brands(organization_id,name,slug,region,currency,timezone,status)
            VALUES ($1,$2,$3,'IN','INR','Asia/Kolkata','active') RETURNING id`,
-          [T.orgId, `Brand ${T.slug}`, T.slug],
-        )).rows[0].id
-        T.userId = (await c.query<{ id: string }>(
-          `INSERT INTO platform.users(email_hash,display_name) VALUES ($1,$2) RETURNING id`,
-          [`${T.slug}-hash`, `User ${T.slug}`],
-        )).rows[0].id
+            [T.orgId, `Brand ${T.slug}`, T.slug],
+          )
+        ).rows[0].id
+        T.userId = (
+          await c.query<{ id: string }>(
+            `INSERT INTO platform.users(email_hash,display_name) VALUES ($1,$2) RETURNING id`,
+            [`${T.slug}-hash`, `User ${T.slug}`],
+          )
+        ).rows[0].id
         await c.query(
           `INSERT INTO platform.memberships(user_id,organization_id,brand_id,role_id,state)
            VALUES ($1,$2,$3,$4,'active')`,

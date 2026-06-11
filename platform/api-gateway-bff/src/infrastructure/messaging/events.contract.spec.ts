@@ -36,10 +36,16 @@ describe('event envelope ↔ contracts/events schema parity', () => {
   it('control-plane DomainEvent envelope matches integration.event.v1', () => {
     assertValid(
       'brain://events/integration.event.v1',
-      buildDomainEnvelope({ type: 'integration.connected', brandId: BRAND, actor: 'system', payload: { provider: 'shopify' } }, NOW),
+      buildDomainEnvelope(
+        { type: 'integration.connected', brandId: BRAND, actor: 'system', payload: { provider: 'shopify' } },
+        NOW,
+      ),
     )
     // platform-scoped event (null brand) is legal
-    assertValid('brain://events/integration.event.v1', buildDomainEnvelope({ type: 'integration.disconnected', brandId: null, actor: 'system' }, NOW))
+    assertValid(
+      'brain://events/integration.event.v1',
+      buildDomainEnvelope({ type: 'integration.disconnected', brandId: null, actor: 'system' }, NOW),
+    )
   })
 
   it('webhook envelope with canonical OrderRecord matches integration.webhook.v1', () => {
@@ -118,7 +124,13 @@ describe('event envelope ↔ contracts/events schema parity', () => {
   it('rejects a shipments webhook with a non-canonical (display-cased) status', () => {
     const validate = ajv.getSchema('brain://events/integration.webhook.v1')!
     const bad = buildWebhookEnvelope(
-      { provider: 'shiprocket', topic: 'shipment.status', stream: 'shipments', brandId: BRAND, payload: { shipment_id: '1', status: 'Out For Delivery' } },
+      {
+        provider: 'shiprocket',
+        topic: 'shipment.status',
+        stream: 'shipments',
+        brandId: BRAND,
+        payload: { shipment_id: '1', status: 'Out For Delivery' },
+      },
       NOW,
     )
     expect(validate(bad)).toBe(false)
@@ -127,7 +139,13 @@ describe('event envelope ↔ contracts/events schema parity', () => {
   it('rejects an orders webhook whose payload misses the MV-required keys', () => {
     const validate = ajv.getSchema('brain://events/integration.webhook.v1')!
     const bad = buildWebhookEnvelope(
-      { provider: 'shopify', topic: 'orders/create', stream: 'orders', brandId: BRAND, payload: { order_name: '#1001' } },
+      {
+        provider: 'shopify',
+        topic: 'orders/create',
+        stream: 'orders',
+        brandId: BRAND,
+        payload: { order_name: '#1001' },
+      },
       NOW,
     )
     expect(validate(bad)).toBe(false)
@@ -140,7 +158,16 @@ describe('event envelope ↔ contracts/events schema parity', () => {
         { provider: 'google', brandId: BRAND, stream: 'ad_spend', records: [] },
         {
           primaryKey: '222333:2026-06-10',
-          data: { date: '2026-06-10', campaign_id: '222333', campaign_name: 'Brand-IN', spend_minor: '1234', cost_micros: '12340000', clicks: '57', conversions: '3.0', currency: 'INR' },
+          data: {
+            date: '2026-06-10',
+            campaign_id: '222333',
+            campaign_name: 'Brand-IN',
+            spend_minor: '1234',
+            cost_micros: '12340000',
+            clicks: '57',
+            conversions: '3.0',
+            currency: 'INR',
+          },
         },
         NOW,
       ),
@@ -154,7 +181,16 @@ describe('event envelope ↔ contracts/events schema parity', () => {
         { provider: 'meta', brandId: BRAND, stream: 'ad_spend', records: [] },
         {
           primaryKey: '120208:2026-06-10',
-          data: { date: '2026-06-10', campaign_id: '120208', campaign_name: 'Prospecting', spend_minor: '84567', spend: '845.67', impressions: '10233', clicks: '188', currency: 'INR' },
+          data: {
+            date: '2026-06-10',
+            campaign_id: '120208',
+            campaign_name: 'Prospecting',
+            spend_minor: '84567',
+            spend: '845.67',
+            impressions: '10233',
+            clicks: '188',
+            currency: 'INR',
+          },
         },
         NOW,
       ),

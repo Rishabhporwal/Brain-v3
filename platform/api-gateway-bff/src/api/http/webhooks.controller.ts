@@ -38,7 +38,13 @@ export class WebhooksController {
     await this.dispatch(req, res, provider, headers, brandId)
   }
 
-  private async dispatch(req: RawBodyRequest<Request>, res: Response, provider: string, headers: Record<string, string | undefined>, brandId?: string): Promise<void> {
+  private async dispatch(
+    req: RawBodyRequest<Request>,
+    res: Response,
+    provider: string,
+    headers: Record<string, string | undefined>,
+    brandId?: string,
+  ): Promise<void> {
     const rawBody = req.rawBody ?? Buffer.from(typeof req.body === 'string' ? req.body : JSON.stringify(req.body ?? {}))
     const { status } = await this.webhooks.handle(provider, { rawBody, headers }, brandId)
     res.status(status).json({ ok: status < 300 })
