@@ -1,0 +1,27 @@
+# ArgoCD Application — realized-revenue-ledger. Renders the brain-service base chart with the local values file.
+# Multi-source: the chart lives at infra/kubernetes/charts/brain-service; the values file lives elsewhere
+# in the repo, so it's referenced via the $values ref (ArgoCD's supported cross-path value-file pattern).
+# Same shape deploys to EKS — only targetRevision + the values file swap (values-realized-revenue-ledger.yaml → prod values).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: realized-revenue-ledger
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/Rishabhporwal/Brain-v3.git
+      targetRevision: master
+      ref: values
+    - repoURL: https://github.com/Rishabhporwal/Brain-v3.git
+      targetRevision: master
+      path: infra/kubernetes/charts/brain-service
+      helm:
+        valueFiles:
+          - $values/infra/kubernetes/local/values-realized-revenue-ledger.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: brain
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true]

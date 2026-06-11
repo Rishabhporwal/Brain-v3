@@ -13,6 +13,7 @@ packages:
   #    Planned services live in tools/service-catalog/; when one is scaffolded, add it here
   #    (customer-intelligence/*, agent-platform/*, data-platform/first-party-data/*, apps/mobile, sdk/*).
   - 'commerce-intelligence/metric-engine'
+  - 'commerce-intelligence/realized-revenue-ledger'
   # ⑤ Shared TS libraries + contracts
   - 'shared/ts/*'
   - 'contracts'

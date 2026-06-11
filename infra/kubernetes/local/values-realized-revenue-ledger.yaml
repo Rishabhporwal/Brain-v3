@@ -1,0 +1,28 @@
+# Local (kind) values for the Tier-0 metric engine via the brain-service base chart.
+# Build the image from the repo root: docker build -f commerce-intelligence/realized-revenue-ledger/Dockerfile -t brain-realized-revenue-ledger:local .
+name: realized-revenue-ledger
+image:
+  repository: brain-realized-revenue-ledger
+  tag: local
+  pullPolicy: IfNotPresent
+replicaCount: 1
+port: 7082
+autoscaling:
+  enabled: false
+env:
+  NODE_ENV: production
+  LEDGER_PORT: '7082'
+  CH_URL: http://clickhouse:8123
+  # Local-only shared token (NON-secret here by design); prod sources it from ESO/Secrets Manager
+  # via secretRefs, same as the BFF's PG_URL. The guard fails closed without it (NODE_ENV=production).
+  LEDGER_TOKEN: local-internal-token
+probes:
+  liveness: { path: /healthz, initialDelaySeconds: 10, periodSeconds: 10 }
+  readiness: { path: /readyz, initialDelaySeconds: 5, periodSeconds: 10 }
+securityContext:
+  runAsNonRoot: false
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities: { drop: ['ALL'] }
+serviceAccount:
+  create: true
